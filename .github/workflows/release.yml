@@ -23,7 +23,7 @@ jobs:
       - name: Determine version bump type
         id: version_type
         run: |
-          COMMIT_MSG="${{ env.message }}"
+          COMMIT_MSG="${{ env.message }}";
           if echo "$COMMIT_MSG" | grep -q "#release-major"; then
             echo "bump_type=major" >> $GITHUB_OUTPUT
           elif echo "$COMMIT_MSG" | grep -q "#release-minor"; then
