@@ -6,8 +6,10 @@ on:
       - main
 
 jobs:
-  bump_version:
+  check_commit:
     runs-on: ubuntu-latest
+    outputs:
+      bump_type: ${{ steps.version_type.outputs.bump_type }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,17 +25,25 @@ jobs:
         run: |
           COMMIT_MSG="${{ env.message }}"
           if echo "$COMMIT_MSG" | grep -q "#release-major"; then
-            echo "bump_type=major" >> $GITHUB_ENV
+            echo "bump_type=major" >> $GITHUB_OUTPUT
           elif echo "$COMMIT_MSG" | grep -q "#release-minor"; then
-            echo "bump_type=minor" >> $GITHUB_ENV
+            echo "bump_type=minor" >> $GITHUB_OUTPUT
           elif echo "$COMMIT_MSG" | grep -q "#release-patch"; then
-            echo "bump_type=patch" >> $GITHUB_ENV
+            echo "bump_type=patch" >> $GITHUB_OUTPUT
           elif echo "$COMMIT_MSG" | grep -q "#release"; then
-            echo "bump_type=patch" >> $GITHUB_ENV
+            echo "bump_type=patch" >> $GITHUB_OUTPUT
           else
-            echo "No release keyword found, skipping version bump."
-            exit 0
-          fi
+            echo "bump_type=" >> $GITHUB_OUTPUT
+
+  bump_version:
+    needs: check_commit
+    if: needs.check_commit.outputs.bump_type != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full commit history
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -52,4 +62,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx lerna version ${{ env.bump_type }} --yes --force-publish --create-release github
+          npx lerna version ${{ needs.check_commit.outputs.bump_type }} --yes --force-publish --create-release github
