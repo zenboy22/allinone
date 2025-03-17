@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Ensures full commit history
+          fetch-depth: 0 # Ensures full commit history
 
       - name: Get latest commit message
         id: get_commit_message
@@ -33,17 +33,17 @@ jobs:
           elif echo "$COMMIT_MSG" | grep -q "#release"; then
             echo "bump_type=patch" >> $GITHUB_OUTPUT
           else
-            echo "bump_type=" >> $GITHUB_OUTPUT
+            echo "bump_type=none" >> $GITHUB_OUTPUT
 
   bump_version:
     needs: check_commit
-    if: needs.check_commit.outputs.bump_type != ''
+    if: needs.check_commit.outputs.bump_type != 'none'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Ensures full commit history
+          fetch-depth: 0 # Ensures full commit history
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
