@@ -1,0 +1,55 @@
+name: Auto Version Bump
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  bump_version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full commit history
+
+      - name: Get latest commit message
+        id: get_commit_message
+        run: echo "message=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+
+      - name: Determine version bump type
+        id: version_type
+        run: |
+          COMMIT_MSG="${{ env.message }}"
+          if echo "$COMMIT_MSG" | grep -q "#release-major"; then
+            echo "bump_type=major" >> $GITHUB_ENV
+          elif echo "$COMMIT_MSG" | grep -q "#release-minor"; then
+            echo "bump_type=minor" >> $GITHUB_ENV
+          elif echo "$COMMIT_MSG" | grep -q "#release-patch"; then
+            echo "bump_type=patch" >> $GITHUB_ENV
+          elif echo "$COMMIT_MSG" | grep -q "#release"; then
+            echo "bump_type=patch" >> $GITHUB_ENV
+          else
+            echo "No release keyword found, skipping version bump."
+            exit 0
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Bump versions and tag using Lerna
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx lerna version ${{ env.bump_type }} --yes --force-publish --create-release github
