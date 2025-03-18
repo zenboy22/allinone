@@ -18,7 +18,7 @@ jobs:
 
       - name: Get latest commit message
         id: get_commit_message
-        run: echo "message=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+        run: echo "message=$(git log -1 --pretty=%B | tr '\n' ' ')" >> $GITHUB_ENV
 
       - name: Determine version bump type
         id: version_type
