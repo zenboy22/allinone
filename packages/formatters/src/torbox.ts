@@ -24,16 +24,29 @@ export function torboxFormat(stream: ParsedStream): {
 
   let description: string = '';
 
-  description += `Quality: ${stream.quality}\nName: ${stream.filename}\nSize: ${formatSize(stream.size || 0)}\nLanguage: ${stream.languages.length > 0 ? stream.languages.join(', ') : 'Unknown'}`;
+  description += `Quality: ${stream.quality}
+Name: ${stream.filename}
+Size: ${formatSize(stream.size || 0)}`;
 
-  let streamType = stream.torrent
-    ? 'Torrent'
-    : stream.usenet
-      ? 'Usenet'
-      : stream.url
-        ? 'Direct'
-        : 'Unknown';
-  description += `\nType: ${streamType}`;
+  // Add Source/Indexer information if available
+  if (stream.indexers) {
+    description += ` | Source: ${stream.indexers}`;
+  }
+
+  description += `
+Language: ${stream.languages.length > 0 ? stream.languages.join(', ') : 'Unknown'}`;
+
+  // Determine stream type based on multiple indicators
+  let streamType = 'Unknown';
+  if (stream.usenet?.age || stream.type === 'usenet') {
+    streamType = 'Usenet';
+  } else if (stream.torrent?.infoHash || stream.torrent?.seeders || stream.type === 'p2p') {
+    streamType = 'Torrent';
+  } else if (stream.url) {
+    streamType = 'Direct';
+  }
+  description += `
+Type: ${streamType}`;
 
   if (streamType === 'Torrent' || streamType === 'Usenet') {
     description += ` | ${streamType === 'Torrent' ? 'Seeders' : 'Age'}: ${streamType === 'Torrent' ? stream.torrent?.seeders : stream.usenet?.age}`;

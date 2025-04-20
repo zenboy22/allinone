@@ -27,6 +27,7 @@ interface TorboxStream extends Stream {
   resolution?: string;
   language?: string;
   type?: string;
+  source?: string; // Indexer source (e.g., NZBGeek)
   adult?: boolean;
 }
 
@@ -50,30 +51,81 @@ export class Torbox extends BaseWrapper {
   protected parseStream(stream: TorboxStream): ParseResult {
     let type = stream.type;
     let personal = false;
+    let sourceIndexer: string | undefined;
+    
     if (stream.name.includes('Your Media')) {
       logger.debug(`${stream.name} was detected as a personal stream.`, {
         func: 'torbox',
       });
       personal = true;
     }
-    const [dQuality, dFilename, dSize, dLanguage, dAgeOrSeeders] =
-      stream.description.split('\n').map((field: string) => {
+    
+    // Initialize default values
+    let dQuality: string | undefined;
+    let dFilename: string | undefined;
+    let dSize: string | undefined;
+    let dSourceAndLanguage: string | undefined;
+    let dAgeOrSeeders: string | undefined;
+
+    // Only try to parse if description exists
+    if (stream.description) {
+      try {
+        const fields = stream.description.split('\n').map((field: string) => {
         if (field.startsWith('Type')) {
           // the last line can either contain only the type or the type and the seeders/age
           // we will always return the age or seeders and assign the type to the variable declared outside the map
           const parts = field.split('|');
-          type = ['torrent', 'usenet', 'web'].includes(type || '')
-            ? type
-            : parts[0].split(':')[1].trim().toLowerCase();
-          if (parts.length > 1) {
-            return parts[1].split(':')[1].trim();
+          // Extract type from the first part (e.g., "Type: usenet")
+          const typePart = parts[0].split(':');
+          if (typePart.length > 1) {
+            const extractedType = typePart[1].trim().toLowerCase();
+            // Only update type if it's a valid type and we don't already have a valid type
+            if (['torrent', 'usenet', 'web'].includes(extractedType)) {
+              type = extractedType;
+            }
           }
-          // since the last line only contains the type, we will return undefined
+          
+          // Return the seeders/age from the second part if it exists
+          if (parts.length > 1) {
+            const valuePart = parts[1].split(':');
+            return valuePart.length > 1 ? valuePart[1].trim() : undefined;
+          }
           return undefined;
         }
-        const [_, value] = field.split(':');
-        return value.trim();
+        // Handle case where field might not contain ':'
+        const parts = field.split(':');
+        if (parts.length < 2) return undefined;
+
+        const [fieldName, ...valueParts] = parts;
+        const value = valueParts.join(':'); // Rejoin in case there were more colons
+        const trimmedValue = value.trim();
+        
+        // Extract Source/Indexer from the size or language field
+        if (fieldName && fieldName.trim() === 'Size' && trimmedValue.includes('Source')) {
+          // Format: "643MB | Source: NZBGeek"
+          const parts = trimmedValue.split('|');
+          if (parts.length > 1 && parts[1].includes('Source')) {
+            sourceIndexer = parts[1].split(':')[1].trim();
+            return parts[0].trim(); // Return just the size part
+          }
+        } else if (fieldName && fieldName.trim() === 'Language' && trimmedValue.includes('Source')) {
+          // Format: "Unknown | Source: NZBGeek"
+          const parts = trimmedValue.split('|');
+          if (parts.length > 1 && parts[1].includes('Source')) {
+            sourceIndexer = parts[1].split(':')[1].trim();
+            return parts[0].trim(); // Return just the language part
+          }
+        }
+        
+        return trimmedValue;
       });
+
+      // Safely assign values from the parsed fields
+      [dQuality, dFilename, dSize, dSourceAndLanguage, dAgeOrSeeders] = fields;
+      } catch (error) {
+        logger.error(`Error parsing stream description: ${error}`, { func: 'torbox' });
+      }
+    }
     const filename = stream.behaviorHints?.filename || dFilename;
     const parsedFilename: ParsedNameData = parseFilename(
       filename || stream.description
@@ -87,7 +139,7 @@ export class Torbox extends BaseWrapper {
     }
     */
 
-    const language = stream.language || dLanguage;
+    const language = stream.language || dSourceAndLanguage;
     const normaliseLanguage = (lang: string) => {
       if (lang.toLowerCase() === 'multi audio') {
         return 'Multi';
@@ -122,18 +174,25 @@ export class Torbox extends BaseWrapper {
       cached: stream.is_cached,
     };
 
-    const seeders =
-      type === 'torrent'
-        ? stream.seeders ||
-          (dAgeOrSeeders ? parseInt(dAgeOrSeeders) : undefined)
-        : undefined;
-    const age = type === 'usenet' ? dAgeOrSeeders || undefined : undefined;
-    let infoHash = stream.hash || this.extractInfoHash(stream.url);
-    if (age && infoHash) {
-      // we only need the infoHash for torrents
-      infoHash = undefined;
+    // If seeders is undefined and we have a source indexer, it's likely a Usenet stream
+    if (sourceIndexer && !stream.seeders && type !== 'torrent') {
+      type = 'usenet';
     }
 
+    // Set seeders only for torrent type
+    const seeders = type === 'torrent' ?
+      stream.seeders || (dAgeOrSeeders ? parseInt(dAgeOrSeeders) : undefined) :
+      undefined;
+
+    // Set age only for usenet type
+    const age = type === 'usenet' ? dAgeOrSeeders || undefined : undefined;
+
+    // Handle infoHash - only for torrent type
+    let infoHash = type === 'torrent' ? (stream.hash || this.extractInfoHash(stream.url)) : undefined;
+
+    // Add the sourceIndexer to the indexers field if available
+    const indexers = sourceIndexer ? sourceIndexer : undefined;
+    
     const parsedStream: ParseResult = this.createParsedResult(
       parsedFilename,
       stream,
@@ -142,8 +201,8 @@ export class Torbox extends BaseWrapper {
       provider,
       seeders,
       age,
-      undefined,
-      undefined,
+      indexers, // The indexers parameter is in the 8th position
+      undefined, // This is the duration parameter in the 9th position
       personal,
       infoHash
     );
