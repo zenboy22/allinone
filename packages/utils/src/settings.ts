@@ -109,13 +109,13 @@ export class Settings {
     : ['dmm_public_hash_shares_only'];
   public static readonly FORCE_COMET_HOSTNAME = process.env.FORCE_COMET_HOSTNAME
     ? process.env.FORCE_COMET_HOSTNAME
-    : 'comet.elfhosted.com';
+    : null;
   public static readonly FORCE_COMET_PORT = process.env.FORCE_COMET_PORT
     ? process.env.FORCE_COMET_PORT
-    : '';
+    : null;
   public static readonly FORCE_COMET_PROTOCOL = process.env.FORCE_COMET_PROTOCOL
     ? process.env.FORCE_COMET_PROTOCOL
-    : 'https';
+    : null;
   public static readonly DEFAULT_COMET_TIMEOUT = process.env
     .DEFAULT_COMET_TIMEOUT
     ? parseInt(process.env.DEFAULT_COMET_TIMEOUT)
