@@ -24,7 +24,7 @@ export function torboxFormat(stream: ParsedStream): {
 
   let description: string = '';
 
-  description += `Quality: ${stream.quality}\nName: ${stream.filename}\nSize: ${formatSize(stream.size || 0)}\nLanguage: ${stream.languages.length > 0 ? stream.languages.join(', ') : 'Unknown'}`;
+  description += `Quality: ${stream.quality}\nName: ${stream.filename}\nSize: ${formatSize(stream.size || 0)}${stream.indexers ? `| Source: ${stream.indexers}` : ''}\nLanguage: ${stream.languages.length > 0 ? stream.languages.join(', ') : 'Unknown'}`;
 
   let streamType = stream.torrent
     ? 'Torrent'
