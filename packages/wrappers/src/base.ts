@@ -229,12 +229,14 @@ export class BaseWrapper {
     indexer?: string,
     duration?: number,
     personal?: boolean,
-    infoHash?: string
+    infoHash?: string,
+    message?: string
   ): ParseResult {
     return {
       type: 'stream',
       result: {
         ...parsedInfo,
+        message: message,
         addon: { name: this.addonName, id: this.addonId },
         filename: filename,
         size: size,
