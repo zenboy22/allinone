@@ -359,13 +359,15 @@ export class AIOStreams {
       const initialStreams = filteredResults;
       const normaliseFilename = (filename?: string): string | undefined =>
         filename
-          ?.replace(
-            /\.(mkv|mp4|avi|mov|wmv|flv|webm|m4v|mpg|mpeg|3gp|3g2|m2ts|ts|vob|ogv|ogm|divx|xvid|rm|rmvb|asf|mxf|mka|mks|mk3d|webm|f4v|f4p|f4a|f4b)$/i,
-            ''
-          )
-          .replace(/[^\p{L}\p{N}+]/gu, '')
-          .replace(/\s+/g, '')
-          .toLowerCase();
+          ? filename
+              ?.replace(
+                /\.(mkv|mp4|avi|mov|wmv|flv|webm|m4v|mpg|mpeg|3gp|3g2|m2ts|ts|vob|ogv|ogm|divx|xvid|rm|rmvb|asf|mxf|mka|mks|mk3d|webm|f4v|f4p|f4a|f4b)$/i,
+                ''
+              )
+              .replace(/[^\p{L}\p{N}+]/gu, '')
+              .replace(/\s+/g, '')
+              .toLowerCase()
+          : undefined;
 
       const groupStreamsByKey = (
         streams: ParsedStream[],
@@ -398,7 +400,13 @@ export class AIOStreams {
       );
 
       logger.info(
-        `Found ${Object.keys(streamsGroupedByFilename).length} unique filenames`
+        `Found ${Object.keys(streamsGroupedByFilename).length} unique filenames with ${
+          initialStreams.length -
+          Object.values(streamsGroupedByFilename).reduce(
+            (sum, group) => sum + group.length,
+            0
+          )
+        } streams not grouped`
       );
 
       // Process grouped streams by filename
