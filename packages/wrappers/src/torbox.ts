@@ -34,7 +34,7 @@ interface TorboxStream extends Stream {
 export class Torbox extends BaseWrapper {
   constructor(
     apiKey: string,
-    addonName: string = 'Torbox',
+    addonName: string = 'TorBox',
     addonId: string,
     userConfig: Config,
     indexerTimeout?: number
