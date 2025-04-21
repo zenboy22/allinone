@@ -74,7 +74,7 @@ export class Torbox extends BaseWrapper {
     const personal = stream.name.includes('Your Media');
     const provider = {
       id: 'torbox',
-      cached: stream.is_cached || true,
+      cached: stream.is_cached !== undefined ? stream.is_cached : true,
     };
 
     const parsedStream: ParseResult = this.createParsedResult(
