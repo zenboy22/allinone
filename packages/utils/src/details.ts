@@ -348,7 +348,7 @@ export const addonDetails: AddonDetail[] = [
     ],
   },
   {
-    name: 'Torbox',
+    name: 'TorBox',
     id: 'torbox',
     requiresService: true,
     supportedServices: ['torbox'],
