@@ -53,10 +53,18 @@ export class AIOStreams {
     }
     const mediaFlowConfig = getMediaFlowConfig(this.config);
     if (mediaFlowConfig.mediaFlowEnabled) {
-      const mediaFlowIp = await getMediaFlowPublicIp(
-        mediaFlowConfig,
-        this.config.instanceCache
-      );
+      let mediaFlowIp: string | null = null;
+      // if mediaflow is enabled, we MUST use its IP and throw an error if we can't get it
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        mediaFlowIp = await getMediaFlowPublicIp(
+          mediaFlowConfig,
+          this.config.instanceCache
+        );
+        if (mediaFlowIp) break;
+      }
+      if (!mediaFlowIp) {
+        throw new Error('Failed to get MediaFlow IP after 3 attempts');
+      }
       if (mediaFlowIp) {
         userIp = mediaFlowIp;
       }
@@ -68,33 +76,13 @@ export class AIOStreams {
     const streams: Stream[] = [];
     const startTime = new Date().getTime();
 
-    let ipRequestCount = 0;
-    while (ipRequestCount < 3) {
-      try {
-        const ip = await this.getRequestingIp();
-        if (!ip && getMediaFlowConfig(this.config).mediaFlowEnabled) {
-          throw new Error('No IP was found with MediaFlow enabled');
-        }
-        this.config.requestingIp = ip;
-        break;
-      } catch (error: any) {
-        logger.error(error, {
-          func: 'getRequestingIp',
-        });
-        ipRequestCount++;
-        if (ipRequestCount < 3) {
-          logger.info(`Retrying ${ipRequestCount}/3...`);
-        }
-      }
+    try {
+      this.config.requestingIp = await this.getRequestingIp();
+    } catch (error) {
+      logger.error(error);
+      return [errorStream(`Failed to get MediaFlow IP`)];
     }
-    if (ipRequestCount === 3) {
-      logger.error('Failed to get requesting IP after 3 attempts');
-      if (this.config.mediaFlowConfig?.mediaFlowEnabled) {
-        return [
-          errorStream('Aborted request after failing to get requesting IP'),
-        ];
-      }
-    }
+
     const { parsedStreams, errorStreams } =
       await this.getParsedStreams(streamRequest);
 
