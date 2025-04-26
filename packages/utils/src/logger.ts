@@ -78,3 +78,10 @@ export const createLogger = (module: string) => {
     transports: [new winston.transports.Console()],
   });
 };
+
+export function maskSensitiveInfo(message: string) {
+  if (Settings.LOG_SENSITIVE_INFO) {
+    return message;
+  }
+  return '<redacted>';
+}
