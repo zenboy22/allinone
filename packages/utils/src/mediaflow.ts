@@ -68,6 +68,13 @@ export async function generateMediaFlowStreams(
       throw new Error(`${response.status}: ${response.statusText}`);
     }
 
+    try {
+      await response.json();
+    } catch (error) {
+      const text = await response.text();
+      logger.debug(`Response body: ${text}`);
+      throw new Error('Failed to parse JSON response from MediaFlow');
+    }
     const responseData = await response.json();
 
     if (responseData.error) {
@@ -76,11 +83,11 @@ export async function generateMediaFlowStreams(
     if (responseData.urls) {
       return responseData.urls;
     } else {
-      throw new Error('No encrypted or encoded URL returned');
+      throw new Error('No URLs were returned from MediaFlow');
     }
   } catch (error) {
     logger.error(
-      `Failed to encrypt MediaFlow URL using request to ${maskSensitiveInfo(proxyUrl.toString())}: ${error}`
+      `Failed to generate MediaFlow URLs using request to ${maskSensitiveInfo(proxyUrl.toString())}: ${error}`
     );
     return null;
   }
