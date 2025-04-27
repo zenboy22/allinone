@@ -14,14 +14,15 @@ export class EasynewsPlusPlus extends BaseWrapper {
   ) {
     let url = overrideUrl
       ? overrideUrl
-      : Settings.EASYNEWS_PLUS_URL + (configString ? configString + '/' : '');
+      : Settings.EASYNEWS_PLUS_PLUS_URL +
+        (configString ? configString + '/' : '');
 
     super(
       addonName,
       url,
       addonId,
       userConfig,
-      indexerTimeout || Settings.DEFAULT_EASYNEWS_PLUS_TIMEMOUT
+      indexerTimeout || Settings.DEFAULT_EASYNEWS_PLUS_PLUS_TIMEMOUT
     );
   }
 
