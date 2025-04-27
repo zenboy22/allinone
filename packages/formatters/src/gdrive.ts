@@ -81,7 +81,7 @@ export function gdriveFormat(
         (language) => languageToEmoji(language) || language
       );
     }
-    description += `🌎 ${languages.join(' | ')}`;
+    description += `🌎 ${languages.join(minimalistic ? ' / ' : ' | ')}`;
     description += '\n';
   }
 
