@@ -1054,7 +1054,7 @@ export class AIOStreams {
         );
       }
       case 'easynews-plus-plus': {
-        return await getEasynewsPlusStreams(
+        return await getEasynewsPlusPlusStreams(
           this.config,
           addon.options,
           streamRequest,
