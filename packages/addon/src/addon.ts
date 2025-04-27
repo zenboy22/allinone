@@ -3,6 +3,7 @@ import {
   getCometStreams,
   getDebridioStreams,
   getDMMCastStreams,
+  getEasynewsPlusPlusStreams,
   getEasynewsPlusStreams,
   getEasynewsStreams,
   getJackettioStreams,
@@ -1045,6 +1046,14 @@ export class AIOStreams {
         );
       }
       case 'easynews-plus': {
+        return await getEasynewsPlusStreams(
+          this.config,
+          addon.options,
+          streamRequest,
+          addonId
+        );
+      }
+      case 'easynews-plus-plus': {
         return await getEasynewsPlusStreams(
           this.config,
           addon.options,
