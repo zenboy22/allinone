@@ -142,9 +142,16 @@ export class Settings {
   // Jackettio settings
   public static readonly JACKETTIO_URL =
     process.env.JACKETTIO_URL || 'https://jackettio.elfhosted.com/';
-  public static readonly JACKETT_INDEXERS = process.env.JACKETT_INDEXERS
-    ? JSON.parse(process.env.JACKETT_INDEXERS)
-    : ['bitsearch', 'eztv', 'thepiratebay', 'therarbg', 'yts'];
+  public static readonly DEFAULT_JACKETTIO_INDEXERS =
+    process.env.DEFAULT_JACKETTIO_INDEXERS || process.env.JACKETT_INDEXERS
+      ? JSON.parse(
+          process.env.DEFAULT_JACKETTIO_INDEXERS ||
+            process.env.JACKETT_INDEXERS!
+        )
+      : ['eztv', 'thepiratebay', 'therarbg', 'yts'];
+  public static readonly DEFAULT_JACKETTIO_STREMTHRU_URL =
+    process.env.DEFAULT_JACKETTIO_STREMTHRU_URL ||
+    'https://stremthru.elfhosted.com';
   public static readonly DEFAULT_JACKETTIO_TIMEOUT = process.env
     .DEFAULT_JACKETTIO_TIMEOUT
     ? parseInt(process.env.DEFAULT_JACKETTIO_TIMEOUT)
