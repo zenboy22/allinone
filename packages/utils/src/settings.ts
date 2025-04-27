@@ -220,8 +220,10 @@ export class Settings {
   public static readonly EASYNEWS_PLUS_PLUS_URL =
     process.env.EASYNEWS_PLUS_PLUS_URL ||
     'https://easynews-cloudflare-worker.jqrw92fchz.workers.dev/';
-  public static readonly DEFAULT_EASYNEWS_PLUS_PLUS_TIMEMOUT =
-    process.env.DEFAULT_EASYNEWS_PLUS_PLUS_TIMEMOUT;
+  public static readonly DEFAULT_EASYNEWS_PLUS_PLUS_TIMEMOUT = process.env
+    .DEFAULT_EASYNEWS_PLUS_PLUS_TIMEMOUT
+    ? parseInt(process.env.DEFAULT_EASYNEWS_PLUS_PLUS_TIMEMOUT)
+    : undefined;
 
   public static readonly DEBRIDIO_URL =
     process.env.DEBRIDIO_URL || 'https://debridio.adobotec.com/';
