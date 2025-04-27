@@ -40,6 +40,7 @@ import CredentialInput from '@/components/CredentialInput';
 import CreateableSelect from '@/components/CreateableSelect';
 import MultiSelect from '@/components/MutliSelect';
 import InstallWindow from '@/components/InstallWindow';
+import FormatterPreview from '@/components/FormatterPreview';
 
 const version = addonPackage.version;
 
@@ -1113,6 +1114,7 @@ export default function Configure() {
               </select>
             </div>
           </div>
+          <FormatterPreview formatter={formatter || 'gdrive'} />
         </div>
 
         <div className={styles.section}>
