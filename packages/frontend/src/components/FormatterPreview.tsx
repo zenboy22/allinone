@@ -40,7 +40,7 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({
     switch (formatter) {
       case 'gdrive':
         return gdriveFormat(sampleStream, false);
-      case 'gdrive-minimalistic':
+      case 'minimalistic-gdrive':
         return gdriveFormat(sampleStream, true);
       case 'torrentio':
         return torrentioFormat(sampleStream);
