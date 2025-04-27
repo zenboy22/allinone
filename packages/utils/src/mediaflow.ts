@@ -68,14 +68,14 @@ export async function generateMediaFlowStreams(
       throw new Error(`${response.status}: ${response.statusText}`);
     }
 
+    let responseData: any;
     try {
-      await response.json();
+      responseData = await response.json();
     } catch (error) {
       const text = await response.text();
       logger.debug(`Response body: ${text}`);
       throw new Error('Failed to parse JSON response from MediaFlow');
     }
-    const responseData = await response.json();
 
     if (responseData.error) {
       throw new Error(responseData.error);
