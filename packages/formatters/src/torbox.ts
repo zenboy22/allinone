@@ -8,16 +8,16 @@ export function torboxFormat(stream: ParsedStream): {
 } {
   let name: string = '';
 
-  name += `${stream.addon.name}\n`;
+  name += `${stream.addon.name} `;
   if (stream.provider) {
     const serviceShortName =
       serviceDetails.find((service) => service.id === stream.provider!.id)
         ?.shortName || stream.provider.id;
-    name += `(${serviceShortName}${stream.provider.cached === undefined ? ' Unknown' : stream.provider.cached ? ' Instant' : ''})\n`;
+    name += `(${stream.provider.cached === undefined ? 'Unknown' : stream.provider.cached ? 'Instant' : ''} ${serviceShortName}) `;
   }
 
   if (stream.torrent?.infoHash) {
-    name += `(P2P)\n`;
+    name += `(P2P) `;
   }
 
   name += `${stream.personal ? '(Your Media) ' : ''}(${stream.resolution})`;
