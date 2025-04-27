@@ -800,10 +800,10 @@ export const serviceDetails = [
     ],
   },
   {
-    name: 'Torbox',
+    name: 'TorBox',
     id: 'torbox',
     shortName: 'TB',
-    knownNames: ['TB', 'TRB', 'Torbox'],
+    knownNames: ['TB', 'TRB', 'TorBox'],
     signUpLink:
       'https://torbox.app/subscription?referral=9ca21adb-dbcb-4fb0-9195-412a5f3519bc',
     credentials: [
