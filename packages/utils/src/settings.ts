@@ -110,15 +110,12 @@ export class Settings {
   public static readonly COMET_INDEXERS = process.env.COMET_INDEXERS
     ? JSON.parse(process.env.COMET_INDEXERS)
     : ['dmm_public_hash_shares_only'];
-  public static readonly FORCE_COMET_HOSTNAME = process.env.FORCE_COMET_HOSTNAME
-    ? process.env.FORCE_COMET_HOSTNAME
-    : null;
-  public static readonly FORCE_COMET_PORT = process.env.FORCE_COMET_PORT
-    ? process.env.FORCE_COMET_PORT
-    : null;
-  public static readonly FORCE_COMET_PROTOCOL = process.env.FORCE_COMET_PROTOCOL
-    ? process.env.FORCE_COMET_PROTOCOL
-    : null;
+  public static readonly FORCE_COMET_HOSTNAME =
+    process.env.FORCE_COMET_HOSTNAME ?? null;
+  public static readonly FORCE_COMET_PORT =
+    process.env.FORCE_COMET_PORT ?? null;
+  public static readonly FORCE_COMET_PROTOCOL =
+    process.env.FORCE_COMET_PROTOCOL ?? null;
   public static readonly DEFAULT_COMET_TIMEOUT = process.env
     .DEFAULT_COMET_TIMEOUT
     ? parseInt(process.env.DEFAULT_COMET_TIMEOUT)
