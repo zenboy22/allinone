@@ -23,7 +23,6 @@ export class Settings {
     ? process.env.DETERMINISTIC_ADDON_ID === 'true'
     : false;
   public static readonly API_KEY = process.env.API_KEY ?? '';
-  public static readonly TMDB_API_KEY = process.env.TMDB_API_KEY || '';
   public static readonly SHOW_DIE = process.env.SHOW_DIE
     ? process.env.SHOW_DIE === 'true'
     : false;
@@ -151,7 +150,7 @@ export class Settings {
       : ['eztv', 'thepiratebay', 'therarbg', 'yts'];
   public static readonly DEFAULT_JACKETTIO_STREMTHRU_URL =
     process.env.DEFAULT_JACKETTIO_STREMTHRU_URL ||
-    'https://stremthru.elfhosted.com';
+    'https://stremthru.13377001.xyz';
   public static readonly DEFAULT_JACKETTIO_TIMEOUT = process.env
     .DEFAULT_JACKETTIO_TIMEOUT
     ? parseInt(process.env.DEFAULT_JACKETTIO_TIMEOUT)
@@ -160,12 +159,12 @@ export class Settings {
   // Stremio Jackett settings
   public static readonly STREMIO_JACKETT_URL =
     process.env.STREMIO_JACKETT_URL || 'https://stremio-jackett.elfhosted.com/';
-  public static readonly JACKETT_URL = process.env.JACKETT_URL || null;
-  public static readonly JACKETT_API_KEY = process.env.JACKETT_API_KEY || null;
-  public static readonly STREMIO_JACKETT_CACHE_ENABLED = process.env
-    .STREMIO_JACKETT_CACHE_ENABLED
-    ? process.env.STREMIO_JACKETT_CACHE_ENABLED !== 'false'
-    : true;
+  public static readonly DEFAULT_STREMIO_JACKETT_JACKETT_URL =
+    process.env.DEFAULT_STREMIO_JACKETT_JACKETT_URL || null;
+  public static readonly DEFAULT_STREMIO_JACKETT_JACKETT_API_KEY =
+    process.env.DEFAULT_STREMIO_JACKETT_JACKETT_API_KEY || null;
+  public static readonly DEFAULT_STREMIO_JACKETT_TMDB_API_KEY =
+    process.env.DEFAULT_STREMIO_JACKETT_TMDB_API_KEY || null;
   public static readonly DEFAULT_STREMIO_JACKETT_TIMEOUT = process.env
     .DEFAULT_STREMIO_JACKETT_TIMEOUT
     ? parseInt(process.env.DEFAULT_STREMIO_JACKETT_TIMEOUT)
