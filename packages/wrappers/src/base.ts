@@ -221,9 +221,7 @@ export class BaseWrapper {
         message = `The stream request to ${this.addonName} timed out after ${this.indexerTimeout}ms`;
         return Promise.reject(message);
       }
-      const errorMessage = error.stack || String(error);
-      logger.error(`Error fetching streams from ${this.addonName}`);
-      logger.error(errorMessage);
+      logger.error(`Error fetching streams from ${this.addonName}: ${message}`);
       return Promise.reject(error.message);
     }
   }
