@@ -10,6 +10,20 @@
   gap: 15px;
   margin: 10px 0;
 }
+
+input.filenameInput:hover,
+input.smallInput:hover,
+.selectInput:hover,
+.streamPreview:hover {
+  background-color: #1e1e1e;
+  border-color: #444444;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.previewContainer:hover .streamName {
+  color: #ffffff;
+}
+
 .previewTitle {
   font-size: 18px;
   font-weight: bold;
@@ -101,16 +115,15 @@ input.filenameInput {
   outline: none;
   width: 100%;
   font-family: monospace;
+  transition:
+    box-shadow 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
 }
 
-.filenameInput {
-  padding: 8px 10px;
-  background-color: #1e1e1e;
-  border: 1px solid #333;
-  border-radius: var(--borderRadius);
-  color: white;
-  width: 100%;
-  font-family: monospace;
+input.filenameInput:focus {
+  border-color: #555;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 input.smallInput {
@@ -121,6 +134,17 @@ input.smallInput {
   color: white;
   width: 100%;
   font-family: monospace;
+  outline: none;
+  transition:
+    box-shadow 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+input.smallInput:focus {
+  background-color: #1e1e1e;
+  border-color: #444444;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .selectInput {
