@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './FormatterPreview.module.css';
 import { ParsedStream } from '@aiostreams/types';
 import {
@@ -81,7 +81,7 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
     setFilename(DEFAULT_FILENAME);
   };
 
-  // Toggle switch component
+  // Toggle switch component with animation fix
   const ToggleSwitch = ({
     label,
     isChecked,
@@ -91,6 +91,31 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
     isChecked: boolean;
     setChecked: (checked: boolean) => void;
   }) => {
+    const [visualState, setVisualState] = useState(isChecked);
+    const [isAnimating, setIsAnimating] = useState(false);
+
+    // Sync visual state with actual state
+    useEffect(() => {
+      if (!isAnimating) {
+        setVisualState(isChecked);
+      }
+    }, [isChecked, isAnimating]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newState = e.target.checked;
+      setIsAnimating(true);
+      setVisualState(newState);
+
+      // Allow animation to play before updating the actual state
+      setTimeout(() => {
+        setChecked(newState);
+        // Reset animating state after animation completes
+        setTimeout(() => {
+          setIsAnimating(false);
+        }, 50);
+      }, 250); // Slightly shorter than the CSS transition duration
+    };
+
     return (
       <div className={styles.toggleWrapper}>
         <label className={styles.toggleLabel}>
@@ -98,11 +123,13 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
           <div className={styles.toggleContainer}>
             <input
               type="checkbox"
-              checked={isChecked}
-              onChange={(e) => setChecked(e.target.checked)}
+              checked={visualState}
+              onChange={handleChange}
               className={styles.toggleInput}
             />
-            <span className={styles.toggleSwitch}></span>
+            <span
+              className={`${styles.toggleSwitch} ${isAnimating ? styles.animating : ''}`}
+            ></span>
           </div>
         </label>
       </div>

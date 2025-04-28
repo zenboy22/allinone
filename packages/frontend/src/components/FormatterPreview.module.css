@@ -225,6 +225,12 @@ input.toggleInput {
   border-radius: 50%;
   background: #aaa;
   transition: 0.3s all ease;
+  transform: translateX(0);
+}
+
+/* Force animation during state changes */
+.toggleSwitch.animating::after {
+  transition: 0.3s transform ease;
 }
 
 .toggleInput:checked + .toggleSwitch {
@@ -233,7 +239,7 @@ input.toggleInput {
 }
 
 .toggleInput:checked + .toggleSwitch::after {
-  left: calc(100% - 15px);
+  transform: translateX(18px);
   background-color: #ffffff;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
 }
