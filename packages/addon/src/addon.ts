@@ -49,7 +49,10 @@ export class AIOStreams {
 
   private async getRequestingIp() {
     let userIp = this.config.requestingIp;
-    if (userIp === '::1') {
+    const PRIVATE_IP_REGEX =
+      /^(::1|::ffff:(10|127|192|172)\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})|10\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})|127\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})|192\.168\.(\d{1,3})\.(\d{1,3})|172\.(1[6-9]|2[0-9]|3[0-1])\.(\d{1,3})\.(\d{1,3}))$/;
+
+    if (userIp && PRIVATE_IP_REGEX.test(userIp)) {
       userIp = undefined;
     }
     const mediaFlowConfig = getMediaFlowConfig(this.config);
