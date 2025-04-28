@@ -11,6 +11,7 @@ import {
   getOrionStreams,
   getPeerflixStreams,
   getStremioJackettStreams,
+  getStremThruStoreStreams,
   getTorboxStreams,
   getTorrentioStreams,
 } from '@aiostreams/wrappers';
@@ -1074,6 +1075,14 @@ export class AIOStreams {
       }
       case 'peerflix': {
         return await getPeerflixStreams(
+          this.config,
+          addon.options,
+          streamRequest,
+          addonId
+        );
+      }
+      case 'stremthru-store': {
+        return await getStremThruStoreStreams(
           this.config,
           addon.options,
           streamRequest,

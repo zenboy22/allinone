@@ -237,6 +237,14 @@ export class Settings {
     ? parseInt(process.env.DEFAULT_DEBRIDIO_TIMEOUT)
     : undefined;
 
+  public static readonly STREMTHRU_STORE_URL =
+    process.env.STREMTHRU_STORE_URL ||
+    'https://stremthru.elfhosted.com/stremio/store/';
+  public static readonly DEFAULT_STREMTHRU_STORE_TIMEOUT = process.env
+    .DEFAULT_STREMTHRU_STORE_TIMEOUT
+    ? parseInt(process.env.DEFAULT_STREMTHRU_STORE_TIMEOUT)
+    : undefined;
+
   public static readonly DEFAULT_DMM_CAST_TIMEOUT = process.env
     .DEFAULT_DMM_CAST_TIMEOUT
     ? parseInt(process.env.DEFAULT_DMM_CAST_TIMEOUT)
