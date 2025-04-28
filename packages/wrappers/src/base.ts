@@ -24,7 +24,6 @@ const IP_HEADERS = [
   'X-Client-IP',
   'X-Forwarded-For',
   'X-Real-IP',
-  'CF-Connecting-IP',
   'True-Client-IP',
   'X-Forwarded',
   'Forwarded-For',
