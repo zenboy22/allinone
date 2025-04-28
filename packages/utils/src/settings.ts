@@ -46,6 +46,12 @@ export class Settings {
       : 'text'
     : 'text';
 
+  // Stremio Addon Site
+  public static readonly STREMIO_ADDONS_CONFIG_ISSUER =
+    process.env.STREMIO_ADDONS_AUTH_ISSUER || 'https://stremio-addons.net';
+  public static readonly STREMIO_ADDONS_CONFIG_SIGNATURE =
+    process.env.STREMIO_ADDONS_CONFIG_SIGNATURE || null;
+
   // Cache settings
   public static readonly CACHE_STREAM_RESULTS = process.env.CACHE_STREAM_RESULTS
     ? process.env.CACHE_STREAM_RESULTS === 'true'
