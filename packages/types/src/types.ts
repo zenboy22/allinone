@@ -3,6 +3,7 @@ export interface ParsedNameData {
   resolution: string;
   quality: string;
   encode: string;
+  releaseGroup: string;
   visualTags: string[];
   audioTags: string[];
   languages: string[];
@@ -36,6 +37,7 @@ export interface ParsedStream extends ParsedNameData {
   url?: string;
   externalUrl?: string;
   indexers?: string;
+  releaseGroup: string;
   personal?: boolean;
   stream?: {
     subtitles?: Subtitle[];
