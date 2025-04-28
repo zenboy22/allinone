@@ -104,8 +104,8 @@ const defaultEncodes: Encode[] = [
 ];
 
 const defaultSortCriteria: SortBy[] = [
-  { personal: true, direction: 'desc' },
   { cached: true, direction: 'desc' },
+  { personal: true, direction: 'desc' },
   { resolution: true },
   { language: true },
   { size: true, direction: 'desc' },
