@@ -10,6 +10,19 @@
   gap: 15px;
   margin: 10px 0;
 }
+.previewTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.previewDescription {
+  font-size: 14px;
+  color: #aaa;
+  white-space: pre-wrap;
+  margin-bottom: 10px;
+}
 
 .streamPreview {
   font-family: monospace;

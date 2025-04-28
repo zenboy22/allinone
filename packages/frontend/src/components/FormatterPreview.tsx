@@ -111,6 +111,17 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
 
   return (
     <div className={styles.previewContainer}>
+      <h2 className={styles.previewTitle}>Formatter Preview</h2>
+      <p className={styles.previewDescription}>
+        This is a preview of how the formatter will look like. You can change
+        the filename and other parameters to see how it affects the output.
+        <br />
+        <br />
+        Note: The options here do not affect your configuration and are only for
+        testing purposes.
+        <br />
+      </p>
+      {/* Formatter example display */}
       <div className={styles.streamPreview}>
         <div className={styles.streamName}>{example.name}</div>
         <div className={styles.streamDescription}>{example.description}</div>
