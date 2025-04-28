@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import p from '../package.json';
 
 try {
   dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -26,6 +27,8 @@ export class Settings {
   public static readonly SHOW_DIE = process.env.SHOW_DIE
     ? process.env.SHOW_DIE === 'true'
     : false;
+  public static readonly ADDON_REQUEST_USER_AGENT =
+    process.env.ADDON_REQUEST_USER_AGENT ?? `AIOStreams/${p.version}`;
   public static readonly LOG_SENSITIVE_INFO = process.env.LOG_SENSITIVE_INFO
     ? process.env.LOG_SENSITIVE_INFO === 'true'
     : false;
