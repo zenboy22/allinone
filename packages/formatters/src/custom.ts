@@ -73,7 +73,7 @@ const convertStreamToParseValue = (stream: ParsedStream): ParseValue => {
     stream: {
       name: stream.filename || null,
       size: stream.size || null,
-      personal: stream.personal || null,
+      personal: stream.personal !== undefined ? stream.personal : null,
       quality: stream.quality === 'Unknown' ? null : stream.quality,
       resolution: stream.resolution === 'Unknown' ? null : stream.resolution,
       languages: stream.languages || null,
@@ -101,7 +101,8 @@ const convertStreamToParseValue = (stream: ParsedStream): ParseValue => {
         ? serviceDetails.find((service) => service.id === stream.provider?.id)
             ?.name || null
         : null,
-      cached: stream.provider?.cached || null,
+      cached:
+        stream.provider?.cached !== undefined ? stream.provider?.cached : null,
     },
   };
 };
@@ -198,6 +199,7 @@ function modifier(
         return value.join(', ');
       case mod.startsWith('join(') && mod.endsWith(')'):
         // Extract the separator from join(separator)
+        // e.g. join(' - ')
         const separator = mod
           .substring(5, mod.length - 1)
           .replace(/^['"]|['"]$/g, '');
