@@ -32,14 +32,14 @@ const CustomFormatter: React.FC<CustomFormatterProps> = ({ setFormatter }) => {
       {isExpanded && (
         <div className={styles.customFormatterContent}>
           <p className={styles.customFormatterDescription}>
-            Define a custom formatter syntax. You can use any of the following
-            variables:
+            Define a custom formatter syntax. Write
+            <code>{'{debug.jsonf}'}</code> to see the available variables.
             <br />
-            <code>{'{resolution}'}</code>, <code>{'{quality}'}</code>,{' '}
-            <code>{'{size}'}</code>,<code>{'{language}'}</code>,{' '}
-            <code>{'{visualTag}'}</code>, <code>{'{audioTag}'}</code>,
-            <code>{'{service}'}</code>, <code>{'{seeders}'}</code>,{' '}
-            <code>{'{addon}'}</code>,<code>{'{encode}'}</code>
+            For a more detailed explanation, check the{' '}
+            <a href="https://github.com/Viren070/AIOStreams/wiki/Custom-Formatter">
+              wiki
+            </a>
+            <br />
           </p>
 
           <div className={styles.formGroup}>
