@@ -27,6 +27,7 @@ import {
   torrentioFormat,
   torboxFormat,
   imposterFormat,
+  customFormat,
 } from '@aiostreams/formatters';
 import {
   addonDetails,
@@ -38,7 +39,6 @@ import {
   generateMediaFlowStreams,
 } from '@aiostreams/utils';
 import { errorStream } from './responses';
-import { customFormat } from '@aiostreams/formatters/src/custom';
 
 const logger = createLogger('addon');
 
