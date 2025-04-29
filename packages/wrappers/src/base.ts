@@ -54,6 +54,11 @@ export class BaseWrapper {
       'User-Agent': Settings.ADDON_REQUEST_USER_AGENT,
       ...(requestHeaders || {}),
     });
+    for (const [key, value] of this.headers.entries()) {
+      if (!value) {
+        this.headers.delete(key);
+      }
+    }
   }
 
   protected standardizeManifestUrl(url: string): string {
