@@ -182,7 +182,11 @@ function parseString(str: string, value: ParseValue) {
     re.lastIndex = index;
   }
 
-  return str.replace(/\\n/g, '\n');
+  return str
+    .replace(/\\n/g, '\n')
+    .split('\n')
+    .filter((line) => line.trim() !== '')
+    .join('\n');
 }
 
 function modifier(
