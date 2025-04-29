@@ -441,6 +441,18 @@ function modifier(
 
         return value ? check_true : check_false;
       }
+      case mod == 'isfalse': {
+        if (typeof check_true !== 'string' || typeof check_false !== 'string')
+          return `{unknown_bool_modifier(${mod})}`;
+
+        if (_value) {
+          return !value
+            ? parseString(check_true, _value) || check_true
+            : parseString(check_false, _value) || check_false;
+        }
+
+        return !value ? check_true : check_false;
+      }
       default:
         return `{unknown_bool_modifier(${mod})}`;
     }
