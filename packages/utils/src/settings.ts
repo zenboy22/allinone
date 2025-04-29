@@ -161,6 +161,12 @@ export class Settings {
     .DEFAULT_JACKETTIO_TIMEOUT
     ? parseInt(process.env.DEFAULT_JACKETTIO_TIMEOUT)
     : undefined;
+  public static readonly FORCE_JACKETTIO_HOSTNAME =
+    process.env.FORCE_JACKETTIO_HOSTNAME ?? null;
+  public static readonly FORCE_JACKETTIO_PORT =
+    process.env.FORCE_JACKETTIO_PORT ?? null;
+  public static readonly FORCE_JACKETTIO_PROTOCOL =
+    process.env.FORCE_JACKETTIO_PROTOCOL ?? null;
 
   // Stremio Jackett settings
   public static readonly STREMIO_JACKETT_URL =
