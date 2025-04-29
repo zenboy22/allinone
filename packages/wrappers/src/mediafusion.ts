@@ -16,17 +16,16 @@ export class MediaFusion extends BaseWrapper {
   ) {
     let url = overrideUrl ? overrideUrl : Settings.MEDIAFUSION_URL;
 
-    const headers =
-      configString && !overrideUrl
-        ? { encoded_user_data: configString }
-        : undefined;
     super(
       addonName,
       url,
       addonId,
       userConfig,
       indexerTimeout || Settings.DEFAULT_MEDIAFUSION_TIMEOUT,
-      headers
+      {
+        'User-Agent': Settings.DEFAULT_MEDIAFUSION_USER_AGENT,
+        encoded_user_data: configString && !overrideUrl ? configString : '',
+      }
     );
   }
 

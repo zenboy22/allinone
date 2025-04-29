@@ -25,7 +25,10 @@ export class Jackettio extends BaseWrapper {
       url,
       addonId,
       userConfig,
-      indexerTimeout || Settings.DEFAULT_JACKETTIO_TIMEOUT
+      indexerTimeout || Settings.DEFAULT_JACKETTIO_TIMEOUT,
+      {
+        'User-Agent': Settings.DEFAULT_JACKETTIO_USER_AGENT,
+      }
     );
   }
 
