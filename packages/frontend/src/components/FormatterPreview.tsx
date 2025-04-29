@@ -8,12 +8,14 @@ import {
 } from '@aiostreams/formatters';
 import { parseFilename } from '@aiostreams/parser';
 import { serviceDetails } from '@aiostreams/utils';
+import { customFormat } from '@aiostreams/formatters/src/custom';
 
 interface FormatterPreviewProps {
   formatter: string;
 }
 
 const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const DEFAULT_FILENAME =
     'Movie.Title.2023.2160p.BluRay.HEVC.DV.TrueHD.Atmos.7.1.iTA.ENG-GROUP';
 
@@ -31,6 +33,7 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
   const [fileSize, setFileSize] = React.useState<number>(62500000000); // 58.2 GB
   const parsedInfo = parseFilename(filename);
 
+  console.log(`Formatter: ${formatter}`);
   const sampleStream: ParsedStream = {
     ...parsedInfo,
     addon: {
@@ -71,6 +74,12 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
             'ಞ Sus: Very ಞ\nಞ Vented: Yes ಞ\nಞ Tasks: None ಞ\nಞ Crewmates: 0 ಞ',
         };
       default:
+        if (formatter.startsWith('custom') && formatter.length > 7) {
+          const jsonString = formatter.slice(7);
+          const data = JSON.parse(jsonString);
+
+          return customFormat(sampleStream, data);
+        }
         return gdriveFormat(sampleStream, false);
     }
   };
@@ -137,161 +146,177 @@ const FormatterPreview: React.FC<FormatterPreviewProps> = ({ formatter }) => {
   };
 
   return (
-    <div className={styles.previewContainer}>
-      <h2 className={styles.previewTitle}>Formatter Preview</h2>
-      <p className={styles.previewDescription}>
-        This is a preview of how the formatter will look like. You can change
-        the filename and other parameters to see how it affects the output.
-        <br />
-        <br />
-        Note: The options here do not affect your configuration and are only for
-        testing purposes.
-        <br />
-      </p>
-      {/* Formatter example display */}
-      <div className={styles.streamPreview}>
-        <div className={styles.streamName}>{example.name}</div>
-        <div className={styles.streamDescription}>{example.description}</div>
-      </div>
+    <div className={styles.customFormatterContainer}>
+      <h3
+        className={styles.customFormatterTitle}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        Preview
+        <span className={styles.expandIcon}>{isExpanded ? '▼' : '►'}</span>
+      </h3>
 
-      {/* File name input with reset button */}
-      <div className={styles.formGroup}>
-        <label className={styles.inputLabel}>Filename:</label>
-        <div className={styles.filenameControls}>
-          <div className={styles.filenameInputContainer}>
-            <input
-              type="text"
-              value={filename}
-              onChange={(e) => setFilename(e.target.value)}
-              className={styles.filenameInput}
+      {isExpanded && (
+        <div className={styles.customFormatterContent}>
+          <p className={styles.customFormatterDescription}>
+            This is a preview of how the formatter will look like. You can
+            change the filename and other parameters to see how it affects the
+            output.
+            <br />
+            <br />
+            Note: The options here do not affect your configuration and are only
+            for testing purposes.
+          </p>
+
+          {/* Formatter example display */}
+          <div className={styles.streamPreview}>
+            <div className={styles.streamName}>{example.name}</div>
+            <div className={styles.streamDescription}>
+              {example.description}
+            </div>
+          </div>
+
+          {/* File name input with reset button */}
+          <div className={styles.formGroup}>
+            <label className={styles.inputLabel}>Filename:</label>
+            <div className={styles.filenameControls}>
+              <div className={styles.filenameInputContainer}>
+                <input
+                  type="text"
+                  value={filename}
+                  onChange={(e) => setFilename(e.target.value)}
+                  className={styles.filenameInput}
+                />
+              </div>
+              <button
+                className={styles.resetButton}
+                onClick={resetFilename}
+                title="Reset to default filename"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Small inputs in one row */}
+          <div className={styles.formRow}>
+            <div className={styles.formGroupSmall}>
+              <label className={styles.inputLabel}>Indexer:</label>
+              <input
+                type="text"
+                value={indexers}
+                onChange={(e) => setIndexers(e.target.value)}
+                className={styles.smallInput}
+              />
+            </div>
+
+            <div className={styles.formGroupSmall}>
+              <label className={styles.inputLabel}>Seeders:</label>
+              <input
+                type="number"
+                value={seeders}
+                onChange={(e) => setSeeders(Number(e.target.value))}
+                className={styles.smallInput}
+                min="0"
+              />
+            </div>
+
+            <div className={styles.formGroupSmall}>
+              <label className={styles.inputLabel}>Usenet Age:</label>
+              <input
+                type="text"
+                value={usenetAge}
+                onChange={(e) => setUsenetAge(e.target.value)}
+                className={styles.smallInput}
+                min="0"
+              />
+            </div>
+
+            <div className={styles.formGroupSmall}>
+              <label className={styles.inputLabel}>Duration (s):</label>
+              <input
+                type="number"
+                value={
+                  sampleStream.duration
+                    ? sampleStream.duration / 1000
+                    : undefined
+                }
+                onChange={(e) => setDuration(Number(e.target.value) * 1000)}
+                className={styles.smallInput}
+                min="0"
+              />
+            </div>
+
+            <div className={styles.formGroupSmall}>
+              <label className={styles.inputLabel}>File Size (bytes):</label>
+              <input
+                type="number"
+                value={fileSize}
+                onChange={(e) => setFileSize(Number(e.target.value))}
+                className={styles.smallInput}
+                min="0"
+              />
+            </div>
+          </div>
+
+          {/* Provider selection and toggle switches */}
+          <div className={styles.formRow}>
+            <div className={styles.formGroupMedium}>
+              <label className={styles.inputLabel}>Provider:</label>
+              <select
+                value={providerId}
+                onChange={(e) => setProviderId(e.target.value)}
+                className={styles.selectInput}
+              >
+                {serviceDetails
+                  .filter((service) => service.id != 'orion')
+                  .map((service) => (
+                    <option key={service.id} value={service.id}>
+                      {service.name}
+                    </option>
+                  ))}
+                <option value="None">None</option>
+              </select>
+            </div>
+
+            <div className={styles.formGroupMedium}>
+              <label className={styles.inputLabel}>Addon Name:</label>
+              <input
+                type="text"
+                value={addonName}
+                onChange={(e) => setAddonName(e.target.value)}
+                className={styles.smallInput}
+              />
+            </div>
+          </div>
+
+          {/* Toggle switches in a more compact layout */}
+          <div className={styles.togglesRow}>
+            <ToggleSwitch
+              label="Cached"
+              isChecked={isCached}
+              setChecked={setIsCached}
+            />
+
+            <ToggleSwitch label="P2P" isChecked={isP2P} setChecked={setIsP2P} />
+
+            <ToggleSwitch
+              label="Personal"
+              isChecked={isPersonal}
+              setChecked={setIsPersonal}
             />
           </div>
-          <button
-            className={styles.resetButton}
-            onClick={resetFilename}
-            title="Reset to default filename"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-            >
-              <path
-                fill="currentColor"
-                d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
-              />
-            </svg>
-          </button>
         </div>
-      </div>
-
-      {/* Small inputs in one row */}
-      <div className={styles.formRow}>
-        <div className={styles.formGroupSmall}>
-          <label className={styles.inputLabel}>Indexer:</label>
-          <input
-            type="text"
-            value={indexers}
-            onChange={(e) => setIndexers(e.target.value)}
-            className={styles.smallInput}
-          />
-        </div>
-
-        <div className={styles.formGroupSmall}>
-          <label className={styles.inputLabel}>Seeders:</label>
-          <input
-            type="number"
-            value={seeders}
-            onChange={(e) => setSeeders(Number(e.target.value))}
-            className={styles.smallInput}
-            min="0"
-          />
-        </div>
-
-        <div className={styles.formGroupSmall}>
-          <label className={styles.inputLabel}>Usenet Age:</label>
-          <input
-            type="text"
-            value={usenetAge}
-            onChange={(e) => setUsenetAge(e.target.value)}
-            className={styles.smallInput}
-            min="0"
-          />
-        </div>
-
-        <div className={styles.formGroupSmall}>
-          <label className={styles.inputLabel}>Duration (s):</label>
-          <input
-            type="number"
-            value={
-              sampleStream.duration ? sampleStream.duration / 1000 : undefined
-            }
-            onChange={(e) => setDuration(Number(e.target.value) * 1000)}
-            className={styles.smallInput}
-            min="0"
-          />
-        </div>
-
-        <div className={styles.formGroupSmall}>
-          <label className={styles.inputLabel}>File Size (bytes):</label>
-          <input
-            type="number"
-            value={fileSize}
-            onChange={(e) => setFileSize(Number(e.target.value))}
-            className={styles.smallInput}
-            min="0"
-          />
-        </div>
-      </div>
-
-      {/* Provider selection and toggle switches */}
-      <div className={styles.formRow}>
-        <div className={styles.formGroupMedium}>
-          <label className={styles.inputLabel}>Provider:</label>
-          <select
-            value={providerId}
-            onChange={(e) => setProviderId(e.target.value)}
-            className={styles.selectInput}
-          >
-            {serviceDetails
-              .filter((service) => service.id != 'orion')
-              .map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.name}
-                </option>
-              ))}
-            <option value="None">None</option>
-          </select>
-        </div>
-
-        <div className={styles.formGroupMedium}>
-          <label className={styles.inputLabel}>Addon Name:</label>
-          <input
-            type="text"
-            value={addonName}
-            onChange={(e) => setAddonName(e.target.value)}
-            className={styles.smallInput}
-          />
-        </div>
-      </div>
-
-      {/* Toggle switches in a more compact layout */}
-      <div className={styles.togglesRow}>
-        <ToggleSwitch
-          label="Cached"
-          isChecked={isCached}
-          setChecked={setIsCached}
-        />
-
-        <ToggleSwitch label="P2P" isChecked={isP2P} setChecked={setIsP2P} />
-
-        <ToggleSwitch
-          label="Personal"
-          isChecked={isPersonal}
-          setChecked={setIsPersonal}
-        />
-      </div>
+      )}
     </div>
   );
 };

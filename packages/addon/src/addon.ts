@@ -38,6 +38,7 @@ import {
   generateMediaFlowStreams,
 } from '@aiostreams/utils';
 import { errorStream } from './responses';
+import { customFormat } from '@aiostreams/formatters/src/custom';
 
 const logger = createLogger('addon');
 
@@ -582,6 +583,16 @@ export class AIOStreams {
         return torboxFormat(parsedStream);
       }
       default: {
+        if (
+          this.config.formatter.startsWith('custom:') &&
+          this.config.formatter.length > 7
+        ) {
+          const jsonString = this.config.formatter.slice(7);
+          const formatter = JSON.parse(jsonString);
+          if (formatter.name && formatter.description) {
+            return customFormat(parsedStream, formatter);
+          }
+        }
         throw new Error('Unsupported formatter');
       }
     }

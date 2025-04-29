@@ -41,6 +41,7 @@ import CreateableSelect from '@/components/CreateableSelect';
 import MultiSelect from '@/components/MutliSelect';
 import InstallWindow from '@/components/InstallWindow';
 import FormatterPreview from '@/components/FormatterPreview';
+import CustomFormatter from '@/components/CustomFormatter';
 
 const version = addonPackage.version;
 
@@ -1104,7 +1105,7 @@ export default function Configure() {
             </div>
             <div className={styles.settingInput}>
               <select
-                value={formatter}
+                value={formatter?.startsWith('custom') ? 'custom' : formatter}
                 onChange={(e) => setFormatter(e.target.value)}
               >
                 {formatterOptions.map((formatter) => (
@@ -1115,6 +1116,9 @@ export default function Configure() {
               </select>
             </div>
           </div>
+          {formatter?.startsWith('custom') && (
+            <CustomFormatter setFormatter={setFormatter} />
+          )}
           <FormatterPreview formatter={formatter || 'gdrive'} />
         </div>
 

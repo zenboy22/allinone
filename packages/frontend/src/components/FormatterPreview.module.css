@@ -1,14 +1,17 @@
 .previewContainer {
+}
+
+/* Collapsible container styling */
+.customFormatterContainer {
   background-color: #121212;
-  border-radius: 6px;
-  padding: 15px;
+  border-radius: var(--borderRadius);
+  border: 1px solid #333;
   margin-top: 15px;
-  border: 1px solid #333333;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  padding: 0;
   margin: 10px 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  gap: 15px;
 }
 
 input.filenameInput:hover,
@@ -166,7 +169,7 @@ input.smallInput:focus {
   border-width: 0;
   background-color: #d1d1d1;
   color: rgb(68, 68, 68);
-  border: no ne;
+  border: none;
   cursor: pointer;
   transition:
     background-color 0.2s,
@@ -273,6 +276,58 @@ input.toggleInput {
   border-radius: var(--borderRadius);
   background-color: #252525;
   border: 1px solid #383838;
+}
+
+.customFormatterTitle {
+  padding: 12px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #aaa;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.customFormatterTitle:hover {
+  background-color: #1a1a1a;
+  color: #fff;
+}
+
+.expandIcon {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.customFormatterContent {
+  padding: 15px;
+  border-top: 1px solid #333;
+  background-color: #121212;
+  gap: 15px;
+
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.customFormatterDescription {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.customFormatterDescription code {
+  background-color: #1e1e1e;
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin: 0 2px;
+  font-family: monospace;
+  color: #e0e0e0;
 }
 
 /* Responsive adjustments */
