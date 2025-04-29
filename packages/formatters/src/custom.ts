@@ -116,6 +116,7 @@ function parseString(str: string, value: ParseValue) {
   const data = {
     stream: value.stream,
     provider: value.provider,
+    addon: value.addon,
   };
 
   value.debug = {
