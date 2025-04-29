@@ -48,7 +48,7 @@ const CustomFormatter: React.FC<CustomFormatterProps> = ({ setFormatter }) => {
               className={styles.syntaxInput}
               value={customNameSyntax}
               onChange={(e) => setCustomNameSyntax(e.target.value)}
-              placeholder="E.g.: {resolution} {visualTag} {language}"
+              placeholder="E.g.: {addon.name}"
               rows={2}
             />
           </div>
@@ -59,7 +59,7 @@ const CustomFormatter: React.FC<CustomFormatterProps> = ({ setFormatter }) => {
               className={styles.syntaxInput}
               value={customDescSyntax}
               onChange={(e) => setCustomDescSyntax(e.target.value)}
-              placeholder="E.g.: {size} | {quality} | {encode} | {audioTag} | {seeders} seeders | {addon}"
+              placeholder="E.g.: {stream.name}"
               rows={3}
             />
           </div>
