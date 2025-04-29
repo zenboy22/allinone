@@ -51,6 +51,8 @@ export type ParseValue = {
     seeders: number | null;
     age: string | null;
     duration: number | null;
+    infoHash: string | null;
+    message: string | null;
   };
   provider?: {
     id: string | null;
@@ -86,6 +88,8 @@ const convertStreamToParseValue = (stream: ParsedStream): ParseValue => {
       seeders: stream.torrent?.seeders || null,
       age: stream.usenet?.age || null,
       duration: stream.duration || null,
+      infoHash: stream.torrent?.infoHash || null,
+      message: stream.message || null,
     },
     addon: {
       id: stream.addon.id,
