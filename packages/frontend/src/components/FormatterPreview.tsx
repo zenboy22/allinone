@@ -5,10 +5,10 @@ import {
   gdriveFormat,
   torrentioFormat,
   torboxFormat,
+  customFormat,
 } from '@aiostreams/formatters';
 import { parseFilename } from '@aiostreams/parser';
 import { serviceDetails } from '@aiostreams/utils';
-import { customFormat } from '@aiostreams/formatters/src/custom';
 
 interface FormatterPreviewProps {
   formatter: string;
