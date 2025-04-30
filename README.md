@@ -50,13 +50,30 @@ AIOStreams can parse and integrate results from the following addons:
 
 ## Getting Started
 
-To use AIOStreams, you need to host it yourself or use a hosted instance. Once running, access the `/configure` endpoint to set up your preferences, add API keys, select the addons you want to integrate, and install the configured AIOStreams addon into your Stremio application.
+There are several ways to use AIOStreams:
 
-For detailed instructions on **Deployment**, **Configuration**, and **Development**, please refer to the project [**Wiki**](https://github.com/Viren070/AIOStreams/wiki):
+1.  **Public Instance:**
 
-- **[Deployment Guide](https://github.com/Viren070/AIOStreams/wiki/Deployment)** (Covers Docker, Cloudflare Workers, ElfHosted, Heroku, From Source, etc.)
-- **[Configuration Guide](https://github.com/Viren070/AIOStreams/wiki/Configuration)** (Explains configuration options and Environment Variables)
-- **[Development Guide](https://github.com/Viren070/AIOStreams/wiki/Development)** (Instructions for contributing or running in development mode)
+    - **[Community Instance (Hosted by ElfHosted)](https://aiostreams.elfhosted.com/configure)**: A free-to-use, ratelimited, public instance. Note that the Torrentio addon is disabled on this instance. This instance avoids rate limits for other ElfHosted addons (like Comet, MediaFusion) but might be rate-limited by non-ElfHosted addons.
+
+2.  **Self-Hosting / Paid Hosting:**
+    - Host AIOStreams yourself using methods like Docker, Cloudflare Workers, or directly from the source.
+    - Use a paid hosting provider like [ElfHosted](https://store.elfhosted.com/product/aiostreams/elf/viren070/) (using this link supports the project!) or Heroku.
+
+> [!NOTE] > [A private ElfHosted instance](https://store.elfhosted.com/product/aiostreams/elf/viren070/) will support all addons, including Torrentio, avoid ratelimits of all ElfHosted addons, and also have no rate limit of its own.
+
+Regardless of the method you choose, once AIOStreams is accessible, navigate to its `/configure` page in your browser. Here, you can:
+
+- Set your filtering and sorting preferences.
+- Add API keys for services like Real-Debrid, Premiumize, etc.
+- Select and configure the upstream addons you want to integrate.
+- Finally, click "Install" to add the configured AIOStreams addon to the application of your choice. (AIOStreams is compatible with Stremio, Vidi, Fusion, Omni, and any other Stremio addon compatible application.)
+
+For detailed instructions on **Deployment** (including Docker, Cloudflare Workers, using **[a private ElfHosted instance](https://store.elfhosted.com/product/aiostreams/elf/viren070/)**, Heroku, running from source), **Configuration**, and **Development**, please refer to the project [**Wiki**](https://github.com/Viren070/AIOStreams/wiki):
+
+- **[Deployment Guide](https://github.com/Viren070/AIOStreams/wiki/Deployment)**
+- **[Configuration Guide](https://github.com/Viren070/AIOStreams/wiki/Configuration)**
+- **[Development Guide](https://github.com/Viren070/AIOStreams/wiki/Development)**
 
 ## FAQ
 
