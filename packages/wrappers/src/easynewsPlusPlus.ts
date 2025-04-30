@@ -33,6 +33,10 @@ export class EasynewsPlusPlus extends BaseWrapper {
     const parseResult = super.parseStream(stream);
     if (parseResult.type !== 'error') {
       parseResult.result.type = 'usenet';
+      const ageString = stream.description?.match(/📅\s*(\d+[a-zA-Z])/);
+      parseResult.result.usenet = {
+        age: ageString ? ageString[1] : '',
+      };
     }
     return parseResult;
   }
