@@ -69,9 +69,9 @@ For detailed instructions on **Deployment**, **Configuration**, and **Developmen
 AIOStreams is a free and open-source project maintained by me and its contributors. If you find it useful, you can support its development in the following ways:
 
 - **Star the Repository**: Starring the repository helps others discover the project and shows your appreciation.
-- **Star on Community Addon Sites**: If you use AIOStreams as an addon, consider starring it on community addon directories to help spread the word.
+- **Star on Community Addon Sites**: If you use AIOStreams as an addon, consider starring it on the community [Stremio Addons](https://beta.stremio-addons.net/addons/aiostreams-elfhosted) site.
 - **Contributions Welcome**: Issues, pull requests, and ideas for improvement are always appreciated.
-- **Donations**: You can support the project financially by donating on [Ko-fi](https://ko-fi.com/) or becoming a [GitHub Sponsor](https://github.com/sponsors/Viren070).
+- **Donations**: You can support the project financially by donating on [Ko-fi](https://ko-fi.com/viren070) or becoming a [GitHub Sponsor](https://github.com/sponsors/Viren070).
 
 Your support, whether through a star, contribution, or donation, helps keep the project alive and growing. ❤️
 
