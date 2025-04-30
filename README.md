@@ -1,6 +1,31 @@
 <p align="center"><img src="https://raw.githubusercontent.com/Viren070/AIOStreams/refs/heads/main/packages/frontend/public/assets/logo.png" /></p>
 <h1 align="center" id="title">AIOStreams</h1>
 
+<p align="center">
+  <a> 
+    <img src="https://img.shields.io/github/check-runs/Viren070/AIOStreams/main?style=for-the-badge" alt="Discord Server">
+  </a>
+  <a>
+    <img src="https://img.shields.io/docker/v/viren070/aiostreams?style=for-the-badge" alt="version">
+  </a>
+  <a href="https://github.com/Viren070/AIOStreams/stargazers">
+    <img src="https://img.shields.io/github/stars/Viren070/AIOStreams?style=for-the-badge" alt="GitHub Stars">
+  </a>
+  <a href="https://hub.docker.com/r/viren070/aiostreams">
+    <img src="https://img.shields.io/docker/pulls/viren070/aiostreams?style=for-the-badge" alt="Docker Pulls">
+  </a>
+  <a href="https://discord.gg/9Dn9mSxW6t"> <!-- <<<--- REPLACE abcdefg with your Discord invite code -->
+    <img src="https://img.shields.io/badge/Discord-Join_Chat-7289DA?logo=discord&logoColor=white&style=for-the-badge" alt="Discord Server">
+  </a>
+
+  
+
+
+  
+
+  <!-- Add other badges here if needed -->
+</p>
+
 ## 📦 Description
 
 AIOStreams consoloidates multiple Stremio addons and debrid services into a single, easily configurable addon. It allows highly customisable filtering, sorting, and formatting of results and supports proxying all your streams through [MediaFlow Proxy](https://github.com/mhdzumair/mediaflow-proxy) for improved compatibility and IP restriction bypassing.
