@@ -1,6 +1,6 @@
 import { Config, CustomFormatter, ParsedStream } from '@aiostreams/types';
 import { serviceDetails } from '@aiostreams/utils';
-import { formatDuration, formatSize } from './utils';
+import { formatDuration, formatSize, languageToEmoji } from './utils';
 
 export function customFormat(
   stream: ParsedStream,
@@ -43,6 +43,7 @@ export type ParseValue = {
     quality: string | null;
     resolution: string | null;
     languages: string[] | null;
+    languageEmojis: string[] | null;
     visualTags: string[] | null;
     audioTags: string[] | null;
     releaseGroup: string | null;
@@ -79,6 +80,11 @@ const convertStreamToParseValue = (stream: ParsedStream): ParseValue => {
       quality: stream.quality === 'Unknown' ? null : stream.quality,
       resolution: stream.resolution === 'Unknown' ? null : stream.resolution,
       languages: stream.languages || null,
+      languageEmojis: stream.languages
+        ? stream.languages
+            .map((lang) => languageToEmoji(lang) || lang)
+            .filter((value, index, self) => self.indexOf(value) === index)
+        : null,
       visualTags: stream.visualTags,
       audioTags: stream.audioTags,
       releaseGroup:
