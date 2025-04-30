@@ -489,7 +489,9 @@ export default function Configure() {
       if (isValueEncrypted(config) || config.startsWith('B-')) {
         throw new Error('Encrypted Config Not Supported');
       } else {
-        decodedConfig = JSON.parse(atob(decodeURIComponent(config)));
+        decodedConfig = JSON.parse(
+          Buffer.from(decodeURIComponent(config), 'base64').toString('utf-8')
+        );
       }
       return decodedConfig;
     }
