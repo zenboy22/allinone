@@ -477,7 +477,7 @@ function modifier(
     (['>', '>=', '=', '<=', '<', '~', '$', '^'].some((modif) =>
       mod.startsWith(modif)
     ) ||
-      ['istrue', 'exists'].includes(mod))
+      ['istrue', 'exists', 'isfalse'].includes(mod))
   ) {
     if (_value) return parseString(check_false, _value) || check_false;
     return check_false;
