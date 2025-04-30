@@ -590,10 +590,18 @@ export class AIOStreams {
           const jsonString = this.config.formatter.slice(7);
           const formatter = JSON.parse(jsonString);
           if (formatter.name && formatter.description) {
-            return customFormat(parsedStream, formatter);
+            try {
+              return customFormat(parsedStream, formatter);
+            } catch (error: any) {
+              logger.error(
+                `Error in custom formatter: ${error.message || error}, falling back to default formatter`
+              );
+              return gdriveFormat(parsedStream, false);
+            }
           }
         }
-        throw new Error('Unsupported formatter');
+
+        return gdriveFormat(parsedStream, false);
       }
     }
   }
