@@ -61,7 +61,8 @@ There are several ways to use AIOStreams:
    - Host AIOStreams yourself using methods like Docker, Cloudflare Workers, or directly from the source.
    - Use a paid hosting provider like [ElfHosted](https://store.elfhosted.com/product/aiostreams/elf/viren070/) (using this link supports the project!) or Heroku.
 
-> [!NOTE] > [A private ElfHosted instance](https://store.elfhosted.com/product/aiostreams/elf/viren070/) will support all addons, including Torrentio, avoid ratelimits of all ElfHosted addons, and also have no rate limit of its own.
+> [!NOTE]
+> [A private ElfHosted instance](https://store.elfhosted.com/product/aiostreams/elf/viren070/) will support all addons, including Torrentio, avoid ratelimits of all ElfHosted addons, and also have no rate limit of its own.
 
 Regardless of the method you choose, once AIOStreams is accessible, navigate to its `/configure` page in your browser. Here, you can:
 
