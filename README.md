@@ -57,12 +57,12 @@ There are several ways to use AIOStreams:
 
    - **[Community Instance (Hosted by ElfHosted)](https://aiostreams.elfhosted.com/configure)**: A free-to-use, ratelimited, public instance. Note that the Torrentio addon is disabled on this instance. This instance avoids rate limits for other ElfHosted addons (like Comet, MediaFusion) but might be rate-limited by non-ElfHosted addons.
 
-2. **Self-Hosting / Paid Hosting:**
+2. 🛠️ **Self-Hosting / Paid Hosting:**
    - Host AIOStreams yourself using methods like Docker, Cloudflare Workers, or directly from the source.
    - Use a paid hosting provider like [ElfHosted](https://store.elfhosted.com/product/aiostreams/elf/viren070/) (using this link supports the project!) or Heroku.
 
 > [!NOTE]
-> [A private ElfHosted instance](https://store.elfhosted.com/product/aiostreams/elf/viren070/) will support all addons, including Torrentio, avoid ratelimits of all ElfHosted addons, and also have no rate limit of its own.
+> A [private ElfHosted instance](https://store.elfhosted.com/product/aiostreams/elf/viren070/) will support all addons, including Torrentio, avoid ratelimits of all ElfHosted addons, and also have no rate limit of its own.
 
 Regardless of the method you choose, once AIOStreams is accessible, navigate to its `/configure` page in your browser. Here, you can:
 
