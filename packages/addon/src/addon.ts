@@ -639,12 +639,14 @@ export class AIOStreams {
     });
 
     // Remove streams that failed to proxy
-    console.error(
-      `Failed to proxy ${removeIndexes.size} streams, removing them from the final list`
-    );
-    parsedStreams = parsedStreams.filter(
-      (_, index) => !removeIndexes.has(index)
-    );
+    if (removeIndexes.size > 0) {
+      logger.error(
+        `Failed to proxy ${removeIndexes.size} streams, removing them from the final list`
+      );
+      parsedStreams = parsedStreams.filter(
+        (_, index) => !removeIndexes.has(index)
+      );
+    }
 
     // Build final Stream objects
     const streamObjects: Stream[] = await Promise.all(
