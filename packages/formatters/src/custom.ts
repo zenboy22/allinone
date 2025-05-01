@@ -246,8 +246,11 @@ function parseString(str: string, value: ParseValue) {
   return str
     .replace(/\\n/g, '\n')
     .split('\n')
-    .filter((line) => line.trim() !== '')
-    .join('\n');
+    .filter(
+      (line) => line.trim() !== '' && !line.includes('{tools.removeLine}')
+    )
+    .join('\n')
+    .replace(/\{tools.newLine\}/g, '\n');
 }
 
 function modifier(
