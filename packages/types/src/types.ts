@@ -7,10 +7,16 @@ export interface ParsedNameData {
   visualTags: string[];
   audioTags: string[];
   languages: string[];
+  title?: string;
+  year?: string;
+  season?: number;
+  seasons?: number[];
+  episode?: number;
 }
 
 // the parsed stream data which is to be used to create the final stream object
 export interface ParsedStream extends ParsedNameData {
+  proxied: boolean; // if the stream is proxied or not
   addon: {
     id: string;
     name: string;
@@ -148,7 +154,6 @@ export interface Config {
   minMovieSize: number | null;
   maxEpisodeSize: number | null;
   minEpisodeSize: number | null;
-  addonNameInDescription?: boolean;
   cleanResults: boolean;
   maxResultsPerResolution: number | null;
   excludeFilters: string[] | null;

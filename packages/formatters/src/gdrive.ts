@@ -1,6 +1,6 @@
 import { ParsedStream } from '@aiostreams/types';
 import { formatDuration, formatSize, languageToEmoji } from './utils';
-import { serviceDetails } from '@aiostreams/utils';
+import { serviceDetails, Settings } from '@aiostreams/utils';
 
 export function gdriveFormat(
   stream: ParsedStream,
@@ -100,6 +100,13 @@ export function gdriveFormat(
   if (stream.message) {
     description += `📢 ${stream.message}`;
   }
+
+  if (stream.proxied) {
+    name = `🕵️‍♂️ ${name}`;
+  } else if (Settings.SHOW_DIE) {
+    name = `🎲 ${name}`;
+  }
+
   description = description.trim();
   name = name.trim();
   return { name, description };

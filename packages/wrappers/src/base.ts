@@ -253,6 +253,7 @@ export class BaseWrapper {
       type: 'stream',
       result: {
         ...parsedInfo,
+        proxied: false,
         message: message,
         addon: { name: this.addonName, id: this.addonId },
         filename: filename,

@@ -8,6 +8,7 @@
   },
   "description": "Library to parse a torrent filename ",
   "dependencies": {
-    "@aiostreams/types": "^1.0.0"
+    "@aiostreams/types": "^1.0.0",
+    "parse-torrent-title": "github:TheBeastLT/parse-torrent-title"
   }
 }
