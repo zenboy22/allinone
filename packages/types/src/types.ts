@@ -22,6 +22,7 @@ export interface ParsedStream extends ParsedNameData {
     name: string;
   };
   filename?: string;
+  folderName?: string;
   message?: string;
   size?: number;
   provider?: {
