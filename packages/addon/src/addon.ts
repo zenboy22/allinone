@@ -54,8 +54,12 @@ export class AIOStreams {
     this.config = config;
     // Pre-compile regex patterns if they exist
     if (this.config.regexSortPatterns) {
-      const regexSortPatterns = this.config.regexSortPatterns.split(/\s+/).filter(Boolean);
-      this.preCompiledRegexPatterns = regexSortPatterns.map(pattern => new RegExp(pattern));
+      const regexSortPatterns = this.config.regexSortPatterns
+        .split(/\s+/)
+        .filter(Boolean);
+      this.preCompiledRegexPatterns = regexSortPatterns.map(
+        (pattern) => new RegExp(pattern)
+      );
     }
   }
 
@@ -377,22 +381,35 @@ export class AIOStreams {
       // apply regex filters if API key is set
       if (this.config.apiKey && this.config.regexFilters) {
         const { excludePattern, includePattern } = this.config.regexFilters;
-        
+
         if (excludePattern) {
           const regexExclude = new RegExp(excludePattern, 'i');
-          if (parsedStream.filename && safeRegexTest(regexExclude, parsedStream.filename)) {
+          if (
+            parsedStream.filename &&
+            safeRegexTest(regexExclude, parsedStream.filename)
+          ) {
             skipReasons.excludeRegex++;
             return false;
           }
-          if (parsedStream.indexers && safeRegexTest(regexExclude, parsedStream.indexers)) {
+          if (
+            parsedStream.indexers &&
+            safeRegexTest(regexExclude, parsedStream.indexers)
+          ) {
             skipReasons.excludeRegex++;
             return false;
           }
         }
-        
+
         if (includePattern) {
           const regexInclude = new RegExp(includePattern, 'i');
-          if (!((parsedStream.filename && safeRegexTest(regexInclude, parsedStream.filename)) || (parsedStream.indexers && safeRegexTest(regexInclude, parsedStream.indexers)))) {
+          if (
+            !(
+              (parsedStream.filename &&
+                safeRegexTest(regexInclude, parsedStream.filename)) ||
+              (parsedStream.indexers &&
+                safeRegexTest(regexInclude, parsedStream.indexers))
+            )
+          ) {
             skipReasons.requiredRegex++;
             return false;
           }
@@ -677,7 +694,11 @@ export class AIOStreams {
     // Identify streams that require proxying
     const streamsToProxy = parsedStreams
       .map((stream, index) => ({ stream, index }))
-      .filter(({ stream }) => stream.url && this.shouldProxyStream(stream, mediaFlowConfig, stremThruConfig));
+      .filter(
+        ({ stream }) =>
+          stream.url &&
+          this.shouldProxyStream(stream, mediaFlowConfig, stremThruConfig)
+      );
 
     const proxiedUrls = streamsToProxy.length
       ? mediaFlowConfig.mediaFlowEnabled
@@ -795,18 +816,20 @@ export class AIOStreams {
       );
     } else if (field === 'regexSort') {
       if (!this.config.regexSortPatterns) return 0;
-      
+
       try {
         for (let i = 0; i < this.preCompiledRegexPatterns.length; i++) {
           const regex = this.preCompiledRegexPatterns[i];
           const aMatch = a.filename ? safeRegexTest(regex, a.filename) : false;
           const bMatch = b.filename ? safeRegexTest(regex, b.filename) : false;
-          
+
           // If both match or both don't match, continue to next pattern
           if ((aMatch && bMatch) || (!aMatch && !bMatch)) continue;
-          
+
           // If one matches and the other doesn't, use direction to determine order
-          const direction = this.config.sortBy.find((sort) => Object.keys(sort)[0] === 'regexSort')?.direction;
+          const direction = this.config.sortBy.find(
+            (sort) => Object.keys(sort)[0] === 'regexSort'
+          )?.direction;
           if (direction === 'asc') {
             // In ascending order, matching files come last
             return aMatch ? 1 : -1;
@@ -815,7 +838,7 @@ export class AIOStreams {
             return aMatch ? -1 : 1;
           }
         }
-        
+
         // If we get here, no patterns matched or all patterns matched the same way
         return 0;
       } catch (e) {

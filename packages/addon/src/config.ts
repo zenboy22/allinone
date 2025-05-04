@@ -383,7 +383,10 @@ export function validateConfig(
     );
   }
 
-  if (config.mediaFlowConfig?.mediaFlowEnabled && config.stremThruConfig?.stremThruEnabled) {
+  if (
+    config.mediaFlowConfig?.mediaFlowEnabled &&
+    config.stremThruConfig?.stremThruEnabled
+  ) {
     return createResponse(
       false,
       'multipleProxyServices',
@@ -464,7 +467,7 @@ export function validateConfig(
         'Regex filtering requires an API key to be set'
       );
     }
-    
+
     if (config.regexFilters.excludePattern) {
       try {
         new RegExp(config.regexFilters.excludePattern);
@@ -476,7 +479,7 @@ export function validateConfig(
         );
       }
     }
-    
+
     if (config.regexFilters.includePattern) {
       try {
         new RegExp(config.regexFilters.includePattern);

@@ -47,7 +47,8 @@ export async function generateStremThruStreams(
   });
 
   if (Settings.ENCRYPT_STREMTHRU_URLS) {
-    headers['X-StremThru-Authorization'] = `Basic ${stremThruConfig.credential}`;
+    headers['X-StremThru-Authorization'] =
+      `Basic ${stremThruConfig.credential}`;
   } else {
     proxyUrl.searchParams.set('token', stremThruConfig.credential);
   }
