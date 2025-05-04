@@ -118,7 +118,7 @@ export async function getStremThruPublicIp(
     const stremThruUrl = new URL(stremThruConfig.url.replace(/\/$/, ''));
     if (PRIVATE_CIDR.test(stremThruUrl.hostname)) {
       // StremThru URL is a private IP address
-      logger.debug('StremThru URL is a private IP address so returning null');
+      logger.error('StremThru URL is a private IP address so returning null');
       return null;
     }
 
@@ -157,6 +157,10 @@ export async function getStremThruPublicIp(
     const publicIp = data.data?.ip?.machine;
     if (publicIp && cache) {
       cache.set(cacheKey, publicIp, Settings.CACHE_STREMTHRU_IP_TTL);
+    } else {
+      logger.error(
+        `StremThru did not respond with a public IP address, please check a valid credential was used. Response: ${JSON.stringify(data)}`
+      );
     }
     return publicIp;
   } catch (error: any) {
