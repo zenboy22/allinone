@@ -18,11 +18,6 @@
     <img src="https://img.shields.io/badge/Discord-Join_Chat-7289DA?logo=discord&logoColor=white&style=for-the-badge" alt="Discord Server">
   </a>
 
-  
-
-
-  
-
   <!-- Add other badges here if needed -->
 </p>
 
@@ -47,9 +42,9 @@ AIOStreams consoloidates multiple Stremio addons and debrid services into a sing
   - Choose from predefined formats (e.g., `gdrive`, `minimalistic-gdrive`, `torrentio`, `torbox`).
   - Utilise a **Custom Formatter** system to define exactly how stream information is displayed. See the [Custom Formatter Wiki page](https://github.com/Viren070/AIOStreams/wiki/Custom-Formatter) for details.
   - View the formatters in the live preview at the configuration page.
-- **🔁 MediaFlow Proxy Integration** - Proxy your streams through MediaFlow to allow for:
+- **🔁 Proxy Integration** - Proxy your streams through either [**MediaFlow**](https://github.com/mhdzumair/mediaflow-proxy) or [**StremThru**](https://github.com/MunifTanjim/stremthru) to allow for:
   - **IP Restriction Bypass**: Bypass simultaneous IP restrictions on some services
-  - **Improved Compatibility**: Using MediaFlow Proxy improves compatibility with some apps and external players (like Infuse)
+  - **Improved Compatibility**: Using a proxy improves compatibility with some apps and external players (like Infuse)
 
 ## 🧩 Supported Addons
 
