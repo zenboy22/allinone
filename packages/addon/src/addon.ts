@@ -63,6 +63,23 @@ export class AIOStreams {
     }
   }
 
+  private async retryGetIp<T>(
+    getter: () => Promise<T | null>,
+    label: string,
+    maxRetries: number = 3
+  ): Promise<T> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const result = await getter();
+      if (result) {
+        return result;
+      }
+      logger.warn(
+        `Failed to get ${label}, retrying... (${attempt}/${maxRetries})`
+      );
+    }
+    throw new Error(`Failed to get ${label} after ${maxRetries} attempts`);
+  }
+
   private async getRequestingIp() {
     let userIp = this.config.requestingIp;
     const PRIVATE_IP_REGEX =
@@ -71,43 +88,18 @@ export class AIOStreams {
     if (userIp && PRIVATE_IP_REGEX.test(userIp)) {
       userIp = undefined;
     }
-    const mediaFlowConfig = getMediaFlowConfig(this.config);
-    if (mediaFlowConfig.mediaFlowEnabled) {
-      let mediaFlowIp: string | null = null;
-      // if mediaflow is enabled, we MUST use its IP and throw an error if we can't get it
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        mediaFlowIp = await getMediaFlowPublicIp(
-          mediaFlowConfig,
-          this.config.instanceCache
-        );
-        if (mediaFlowIp) break;
-      }
-      if (!mediaFlowIp) {
-        throw new Error('Failed to get MediaFlow IP after 3 attempts');
-      }
-      if (mediaFlowIp) {
-        userIp = mediaFlowIp;
-      }
-      return userIp;
-    }
+    const mediaflowConfig = getMediaFlowConfig(this.config);
     const stremThruConfig = getStremThruConfig(this.config);
-    if (stremThruConfig.stremThruEnabled) {
-      let stremThruIp: string | null = null;
-      // if stremthru is enabled, we MUST use its IP and throw an error if we can't get it
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        stremThruIp = await getStremThruPublicIp(
-          stremThruConfig,
-          this.config.instanceCache
-        );
-        if (stremThruIp) break;
-      }
-      if (!stremThruIp) {
-        throw new Error('Failed to get StremThru IP after 3 attempts');
-      }
-      if (stremThruIp) {
-        userIp = stremThruIp;
-      }
-      return userIp;
+    if (mediaflowConfig.mediaFlowEnabled) {
+      userIp = await this.retryGetIp(
+        () => getMediaFlowPublicIp(mediaflowConfig, this.config.instanceCache),
+        'MediaFlow public IP'
+      );
+    } else if (stremThruConfig.stremThruEnabled) {
+      userIp = await this.retryGetIp(
+        () => getStremThruPublicIp(stremThruConfig, this.config.instanceCache),
+        'StremThru public IP'
+      );
     }
     return userIp;
   }
