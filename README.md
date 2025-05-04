@@ -23,7 +23,7 @@
 
 ## 📦 Description
 
-AIOStreams consoloidates multiple Stremio addons and debrid services into a single, easily configurable addon. It allows highly customisable filtering, sorting, and formatting of results and supports proxying all your streams through [MediaFlow Proxy](https://github.com/mhdzumair/mediaflow-proxy) for improved compatibility and IP restriction bypassing.
+AIOStreams consoloidates multiple Stremio addons and debrid services into a single, easily configurable addon. It allows highly customisable filtering, sorting, and formatting of results and supports proxying all your streams through [MediaFlow Proxy](https://github.com/mhdzumair/mediaflow-proxy) or [StremThru](https://github.com/MunifTanjim/stremthru) for improved compatibility and IP restriction bypassing.
 
 ## ✨ Key Features
 
