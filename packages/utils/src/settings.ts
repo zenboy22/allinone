@@ -117,10 +117,8 @@ export class Settings {
   public static readonly MEDIAFLOW_IP_TIMEOUT = process.env.MEDIAFLOW_IP_TIMEOUT
     ? parseInt(process.env.MEDIAFLOW_IP_TIMEOUT)
     : 30000;
-  public static readonly ENCRYPT_MEDIAFLOW_URLS = process.env
-    .ENCRYPT_MEDIAFLOW_URLS
-    ? process.env.ENCRYPT_MEDIAFLOW_URLS === 'true'
-    : false;
+  public static readonly ENCRYPT_MEDIAFLOW_URLS =
+    process.env.ENCRYPT_MEDIAFLOW_URLS !== 'false';
 
   // StremThru settings
   public static readonly DEFAULT_STREMTHRU_URL =
@@ -133,7 +131,7 @@ export class Settings {
     ? parseInt(process.env.STREMTHRU_TIMEOUT)
     : 30000;
   public static readonly ENCRYPT_STREMTHRU_URLS =
-    process.env.ENCRYPT_STREMTHRU_URLS === 'true';
+    process.env.ENCRYPT_STREMTHRU_URLS !== 'false';
 
   // Comet settings
   public static readonly COMET_URL =
