@@ -465,7 +465,7 @@ export function validateConfig(
     }
   }
 
-  if (config.regexSortPattern) {
+  if (config.regexSortPatterns) {
     if (!config.apiKey) {
       return createResponse(
         false,
@@ -474,14 +474,27 @@ export function validateConfig(
       );
     }
 
-    try {
-      new RegExp(config.regexSortPattern);
-    } catch (e) {
+    // Split the pattern by spaces and validate each one
+    const patterns = config.regexSortPatterns.split(/\s+/).filter(Boolean);
+    // Enforce an upper bound on the number of patterns
+    if (patterns.length > Settings.MAX_REGEX_SORT_PATTERNS) {
       return createResponse(
         false,
-        'invalidRegexSortPattern',
-        'Invalid regex sort pattern'
+        'tooManyRegexSortPatterns',
+        `You can specify at most ${Settings.MAX_REGEX_SORT_PATTERNS} regex sort patterns`
       );
+    }
+
+    for (const pattern of patterns) {
+      try {
+        new RegExp(pattern);
+      } catch (e) {
+        return createResponse(
+          false,
+          'invalidRegexSortPattern',
+          `Invalid regex sort pattern: ${pattern}`
+        );
+      }
     }
   }
 

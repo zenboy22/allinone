@@ -39,14 +39,21 @@ import {
   generateMediaFlowStreams,
 } from '@aiostreams/utils';
 import { errorStream } from './responses';
+import { safeRegexTest } from './utils/regex';
 
 const logger = createLogger('addon');
 
 export class AIOStreams {
   private config: Config;
+  private preCompiledRegexPatterns: RegExp[] = [];
 
   constructor(config: any) {
     this.config = config;
+    // Pre-compile regex patterns if they exist
+    if (this.config.regexSortPatterns) {
+      const regexSortPatterns = this.config.regexSortPatterns.split(/\s+/).filter(Boolean);
+      this.preCompiledRegexPatterns = regexSortPatterns.map(pattern => new RegExp(pattern));
+    }
   }
 
   private async getRequestingIp() {
@@ -350,11 +357,11 @@ export class AIOStreams {
         
         if (excludePattern) {
           const regexExclude = new RegExp(excludePattern, 'i');
-          if (parsedStream.filename && regexExclude.test(parsedStream.filename)) {
+          if (parsedStream.filename && safeRegexTest(regexExclude, parsedStream.filename)) {
             skipReasons.excludeRegex++;
             return false;
           }
-          if (parsedStream.indexers && regexExclude.test(parsedStream.indexers)) {
+          if (parsedStream.indexers && safeRegexTest(regexExclude, parsedStream.indexers)) {
             skipReasons.excludeRegex++;
             return false;
           }
@@ -362,7 +369,7 @@ export class AIOStreams {
         
         if (includePattern) {
           const regexInclude = new RegExp(includePattern, 'i');
-          if (!((parsedStream.filename && regexInclude.test(parsedStream.filename)) || (parsedStream.indexers && regexInclude.test(parsedStream.indexers)))) {
+          if (!((parsedStream.filename && safeRegexTest(regexInclude, parsedStream.filename)) || (parsedStream.indexers && safeRegexTest(regexInclude, parsedStream.indexers)))) {
             skipReasons.requiredRegex++;
             return false;
           }
@@ -741,25 +748,30 @@ export class AIOStreams {
         )
       );
     } else if (field === 'regexSort') {
-      if (!this.config.regexSortPattern) return 0;
+      if (!this.config.regexSortPatterns) return 0;
       
       try {
-        const regex = new RegExp(this.config.regexSortPattern);
-        const aMatch = a.filename ? regex.test(a.filename) : false;
-        const bMatch = b.filename ? regex.test(b.filename) : false;
-        
-        // If both match or both don't match, they are equal
-        if ((aMatch && bMatch) || (!aMatch && !bMatch)) return 0;
-        
-        // If one matches and the other doesn't, use direction to determine order
-        const direction = this.config.sortBy.find((sort) => Object.keys(sort)[0] === 'regexSort')?.direction;
-        if (direction === 'asc') {
-          // In ascending order, matching files come last
-          return aMatch ? 1 : -1;
-        } else {
-          // In descending order, matching files come first
-          return aMatch ? -1 : 1;
+        for (let i = 0; i < this.preCompiledRegexPatterns.length; i++) {
+          const regex = this.preCompiledRegexPatterns[i];
+          const aMatch = a.filename ? safeRegexTest(regex, a.filename) : false;
+          const bMatch = b.filename ? safeRegexTest(regex, b.filename) : false;
+          
+          // If both match or both don't match, continue to next pattern
+          if ((aMatch && bMatch) || (!aMatch && !bMatch)) continue;
+          
+          // If one matches and the other doesn't, use direction to determine order
+          const direction = this.config.sortBy.find((sort) => Object.keys(sort)[0] === 'regexSort')?.direction;
+          if (direction === 'asc') {
+            // In ascending order, matching files come last
+            return aMatch ? 1 : -1;
+          } else {
+            // In descending order, matching files come first
+            return aMatch ? -1 : 1;
+          }
         }
+        
+        // If we get here, no patterns matched or all patterns matched the same way
+        return 0;
       } catch (e) {
         return 0;
       }
