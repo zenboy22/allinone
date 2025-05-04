@@ -42,7 +42,12 @@ export class MediaFusion extends BaseWrapper {
       const description = stream.description || stream.title;
       const match = torrentNameRegex.exec(description || '');
       if (match && match[1].trim() !== parseResult.result.filename?.trim()) {
-        parseResult.result.folderName = match[1].split('┈➤')[1].trim();
+        parseResult.result.folderName = match[1].trim();
+        if (parseResult.result.folderName.split('┈➤')[1]) {
+          parseResult.result.filename = parseResult.result.folderName
+            .split('┈➤')[1]
+            .trim();
+        }
       }
     }
     return parseResult;
