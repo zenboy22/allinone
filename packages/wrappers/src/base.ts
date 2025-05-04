@@ -334,7 +334,7 @@ export class BaseWrapper {
     const potentialFilenames = [
       filename,
       ...(description.split('\n') as string[]).splice(0, 5),
-    ];
+    ].filter((line) => line && line.length > 0);
     for (const line of potentialFilenames) {
       parsedInfo = parseFilename(line);
       if (
