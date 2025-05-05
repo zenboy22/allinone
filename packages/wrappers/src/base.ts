@@ -342,6 +342,7 @@ export class BaseWrapper {
         (parsedInfo.season && parsedInfo.episode) ||
         parsedInfo.episode
       ) {
+        filename = line;
         break;
       } else {
         parsedInfo = undefined;
@@ -350,6 +351,11 @@ export class BaseWrapper {
     if (!parsedInfo) {
       // fall back to using full description as info source
       parsedInfo = parseFilename(description);
+      filename = filename
+        ? filename
+        : description
+          ? description.split('\n')[0]
+          : undefined;
     }
 
     // look for size in one of the many random places it could be
