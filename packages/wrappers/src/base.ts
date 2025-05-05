@@ -326,14 +326,14 @@ export class BaseWrapper {
     let filename = stream?.behaviorHints?.filename || stream.filename;
 
     // if filename behaviorHint is not present, attempt to look for a filename in the stream description or title
-    let description = stream.description || stream.title;
+    let description = stream.description || stream.title || '';
 
     // attempt to find a valid filename by looking for season/episode or year in the description line by line,
     // and fall back to using the full description.
     let parsedInfo: ParsedNameData | undefined = undefined;
     const potentialFilenames = [
       filename,
-      ...(description.split('\n') as string[]).splice(0, 5),
+      ...description.split('\n').splice(0, 5),
     ].filter((line) => line && line.length > 0);
     for (const line of potentialFilenames) {
       parsedInfo = parseFilename(line);
