@@ -356,8 +356,8 @@ export class AIOStreams {
       }
 
       // generate array of excludeTests. for each regex, only add to array if the filename or indexers are defined
-      const excludeTests = [];
-      const requiredTests = [];
+      let excludeTests = [];
+      let requiredTests = [];
 
       if (parsedStream.filename) {
         excludeTests.push(
@@ -395,6 +395,10 @@ export class AIOStreams {
             : null
         );
       }
+
+      // filter out any null values as these are when the regex is not defined
+      excludeTests = excludeTests.filter((test) => test !== null);
+      requiredTests = requiredTests.filter((test) => test !== null);
 
       if (excludeTests.length > 0 && excludeTests.some((test) => test)) {
         skipReasons.excludeRegex++;
