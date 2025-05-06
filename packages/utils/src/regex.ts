@@ -5,8 +5,11 @@ import { createLogger } from './logger';
 import { Settings } from './settings';
 
 const DEFAULT_TIMEOUT = 1000; // 1 second timeout
-const regexCache = Cache.getInstance<string, RegExp>('regexCache');
-const resultCache = Cache.getInstance<string, string>('regexResultCache');
+const regexCache = Cache.getInstance<string, RegExp>('regexCache', 1_000);
+const resultCache = Cache.getInstance<string, boolean>(
+  'regexResultCache',
+  1_000_000
+);
 
 const logger = createLogger('regex');
 
@@ -22,41 +25,37 @@ export function safeRegexTest(
   str: string,
   timeoutMs: number = DEFAULT_TIMEOUT
 ): boolean {
-  // const compiledPattern =
-  //   typeof pattern === 'string'
-  //     ? regexCache.wrap(
-  //         (p: string) => new RegExp(p),
-  //         getTextHash(pattern),
-  //         60,
-  //         pattern
-  //       )
-  //     : pattern;
   const compiledPattern =
     typeof pattern === 'string' ? compileRegex(pattern) : pattern;
   try {
-    const result = resultCache.wrap(
+    return resultCache.wrap(
       (p: RegExp, s: string) => isMatch(p, s, { timeout: timeoutMs }),
       getTextHash(`${compiledPattern.toString()}|${str}`),
-      60,
+      100,
       compiledPattern,
       str
     );
-    return result;
   } catch (error) {
     logger.error(`Regex test timed out after ${timeoutMs}ms:`, error);
     return false;
   }
 }
 
-export function compileRegex(pattern: string, flags: string = ''): RegExp {
-  const compiledPattern = regexCache.wrap(
+export function compileRegex(
+  pattern: string,
+  flags: string = '',
+  bypassCache: boolean = false
+): RegExp {
+  if (bypassCache) {
+    return new RegExp(pattern, flags);
+  }
+  return regexCache.wrap(
     (p: string, f: string) => new RegExp(p, f),
     getTextHash(`${pattern}|${flags}`),
     60,
     pattern,
     flags
   );
-  return compiledPattern;
 }
 
 export function formRegexFromKeywords(
