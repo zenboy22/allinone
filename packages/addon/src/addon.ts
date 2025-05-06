@@ -154,16 +154,29 @@ export class AIOStreams {
       ? formRegexFromKeywords(this.config.strictIncludeFilters)
       : undefined;
 
+    const sortRegexPatterns = this.config.apiKey
+      ? this.config.regexSortPatterns || Settings.DEFAULT_REGEX_SORT_PATTERNS
+      : undefined;
+
+    const sortRegexes = sortRegexPatterns
+      ? sortRegexPatterns
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((pattern) => compileRegex(pattern, 'i'))
+      : undefined;
+
     excludeRegex ||
     excludeKeywordsRegex ||
     requiredRegex ||
-    requiredKeywordsRegex
+    requiredKeywordsRegex ||
+    sortRegexes
       ? logger.debug(
           `The following regex patterns are being used:\n` +
             `Exclude Regex: ${excludeRegex}\n` +
             `Exclude Keywords: ${excludeKeywordsRegex}\n` +
             `Required Regex: ${requiredRegex}\n` +
-            `Required Keywords: ${requiredKeywordsRegex}`
+            `Required Keywords: ${requiredKeywordsRegex}\n` +
+            `Sort Regexes: ${sortRegexes?.join('  -->  ')}\n`
         )
       : [];
 
@@ -342,43 +355,46 @@ export class AIOStreams {
         return false;
       }
 
-      const excludeTests = [
-        ...(excludeRegex
-          ? [
-              parsedStream.filename &&
-                safeRegexTest(excludeRegex, parsedStream.filename),
-              parsedStream.indexers &&
-                safeRegexTest(excludeRegex, parsedStream.indexers),
-            ]
-          : []),
-        ...(excludeKeywordsRegex
-          ? [
-              parsedStream.filename &&
-                safeRegexTest(excludeKeywordsRegex, parsedStream.filename),
-              parsedStream.indexers &&
-                safeRegexTest(excludeKeywordsRegex, parsedStream.indexers),
-            ]
-          : []),
-      ];
+      // generate array of excludeTests. for each regex, only add to array if the filename or indexers are defined
+      const excludeTests = [];
+      const requiredTests = [];
 
-      const requiredTests = [
-        ...(requiredRegex
-          ? [
-              parsedStream.filename &&
-                safeRegexTest(requiredRegex, parsedStream.filename),
-              parsedStream.indexers &&
-                safeRegexTest(requiredRegex, parsedStream.indexers),
-            ]
-          : []),
-        ...(requiredKeywordsRegex
-          ? [
-              parsedStream.filename &&
-                safeRegexTest(requiredKeywordsRegex, parsedStream.filename),
-              parsedStream.indexers &&
-                safeRegexTest(requiredKeywordsRegex, parsedStream.indexers),
-            ]
-          : []),
-      ];
+      if (parsedStream.filename) {
+        excludeTests.push(
+          excludeRegex
+            ? safeRegexTest(excludeRegex, parsedStream.filename)
+            : null,
+          excludeKeywordsRegex
+            ? safeRegexTest(excludeKeywordsRegex, parsedStream.filename)
+            : null
+        );
+        requiredTests.push(
+          requiredRegex
+            ? safeRegexTest(requiredRegex, parsedStream.filename)
+            : null,
+          requiredKeywordsRegex
+            ? safeRegexTest(requiredKeywordsRegex, parsedStream.filename)
+            : null
+        );
+      }
+      if (parsedStream.indexers) {
+        excludeTests.push(
+          excludeRegex
+            ? safeRegexTest(excludeRegex, parsedStream.indexers)
+            : null,
+          excludeKeywordsRegex
+            ? safeRegexTest(excludeKeywordsRegex, parsedStream.indexers)
+            : null
+        );
+        requiredTests.push(
+          requiredRegex
+            ? safeRegexTest(requiredRegex, parsedStream.indexers)
+            : null,
+          requiredKeywordsRegex
+            ? safeRegexTest(requiredKeywordsRegex, parsedStream.indexers)
+            : null
+        );
+      }
 
       if (excludeTests.length > 0 && excludeTests.some((test) => test)) {
         skipReasons.excludeRegex++;
