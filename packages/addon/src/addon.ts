@@ -118,7 +118,7 @@ export class AIOStreams {
       excludeAudioTags: 0,
       excludeVisualTags: 0,
       excludeStreamTypes: 0,
-      excludeCached: 0,
+      excludeUncached: 0,
       sizeFilters: 0,
       duplicateStreams: 0,
       streamLimiters: 0,
@@ -280,7 +280,7 @@ export class AIOStreams {
         parsedStream.provider &&
         !parsedStream.provider.cached
       ) {
-        skipReasons.excludeCached++;
+        skipReasons.excludeUncached++;
         return false;
       }
 
