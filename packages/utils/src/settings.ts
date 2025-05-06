@@ -35,7 +35,8 @@ const regex = makeValidator((x) => {
     throw new Error('Regex pattern must be a string');
   }
   try {
-    return new RegExp(x);
+    new RegExp(x);
+    return x;
   } catch (e) {
     throw new Error(`Invalid regex pattern: ${x}`);
   }

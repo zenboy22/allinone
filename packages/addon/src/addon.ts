@@ -42,6 +42,7 @@ import {
   generateStremThruStreams,
   safeRegexTest,
   compileRegex,
+  formRegexFromKeywords,
 } from '@aiostreams/utils';
 import { errorStream } from './responses';
 
@@ -130,33 +131,45 @@ export class AIOStreams {
     logger.info(
       `Got ${parsedStreams.length} parsed streams and ${errorStreams.length} error streams in ${getTimeTakenSincePoint(startTime)}`
     );
-    const filterStartTime = new Date().getTime();
 
-    const excludeRegex = this.config.excludeFilters
-      ? new RegExp(
-          `(?<![^ [(_\\-.])(${this.config.excludeFilters
-            .map((filter) => filter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'))
-            .map((filter) => filter.replace(/\s/g, '[ .\\-_]?'))
-            .join('|')})(?=[ \\)\\]_.-]|$)`,
-          'i'
-        )
-      : null;
+    const excludeRegexPattern = this.config.apiKey
+      ? this.config.regexFilters?.excludePattern ||
+        Settings.DEFAULT_REGEX_EXCLUDE_PATTERN
+      : undefined;
+    const excludeRegex = excludeRegexPattern
+      ? compileRegex(excludeRegexPattern, 'i')
+      : undefined;
 
-    const strictIncludeRegex = this.config.strictIncludeFilters
-      ? new RegExp(
-          `(?<![^ [(_\\-.])(${this.config.strictIncludeFilters
-            .map((filter) => filter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'))
-            .map((filter) => filter.replace(/\s/g, '[ .\\-_]?'))
-            .join('|')})(?=[ \\)\\]_.-]|$)`,
-          'i'
-        )
-      : null;
+    const excludeKeywordsRegex = this.config.excludeFilters
+      ? formRegexFromKeywords(this.config.excludeFilters)
+      : undefined;
 
-    excludeRegex || strictIncludeRegex
+    const requiredRegexPattern = this.config.apiKey
+      ? this.config.regexFilters?.includePattern ||
+        Settings.DEFAULT_REGEX_INCLUDE_PATTERN
+      : undefined;
+    const requiredRegex = requiredRegexPattern
+      ? compileRegex(requiredRegexPattern, 'i')
+      : undefined;
+
+    const requiredKeywordsRegex = this.config.strictIncludeFilters
+      ? formRegexFromKeywords(this.config.strictIncludeFilters)
+      : undefined;
+
+    excludeRegex ||
+    excludeKeywordsRegex ||
+    requiredRegex ||
+    requiredKeywordsRegex
       ? logger.debug(
-          `Using keyword regex filters: excludeRegex: ${excludeRegex}, strictIncludeRegex: ${strictIncludeRegex}`
+          `The following regex patterns are being used:\n` +
+            `Exclude Regex: ${excludeRegex}\n` +
+            `Exclude Keywords: ${excludeKeywordsRegex}\n` +
+            `Required Regex: ${requiredRegex}\n` +
+            `Required Keywords: ${requiredKeywordsRegex}`
         )
-      : null;
+      : [];
+
+    const filterStartTime = new Date().getTime();
 
     let filteredResults = parsedStreams.filter((parsedStream) => {
       const streamTypeFilter = this.config.streamTypes?.find(
@@ -331,72 +344,52 @@ export class AIOStreams {
         return false;
       }
 
-      // apply keyword filters
-      if (
-        this.config.excludeFilters &&
-        this.config.excludeFilters.length > 0 &&
-        excludeRegex
-      ) {
-        if (parsedStream.filename && excludeRegex.test(parsedStream.filename)) {
-          skipReasons.excludeKeywords++;
-          return false;
-        }
-        if (parsedStream.indexers && excludeRegex.test(parsedStream.indexers)) {
-          skipReasons.excludeKeywords++;
-          return false;
-        }
+      const excludeTests = [
+        ...(excludeRegex
+          ? [
+              parsedStream.filename &&
+                safeRegexTest(excludeRegex, parsedStream.filename),
+              parsedStream.indexers &&
+                safeRegexTest(excludeRegex, parsedStream.indexers),
+            ]
+          : []),
+        ...(excludeKeywordsRegex
+          ? [
+              parsedStream.filename &&
+                safeRegexTest(excludeKeywordsRegex, parsedStream.filename),
+              parsedStream.indexers &&
+                safeRegexTest(excludeKeywordsRegex, parsedStream.indexers),
+            ]
+          : []),
+      ];
+
+      const requiredTests = [
+        ...(requiredRegex
+          ? [
+              parsedStream.filename &&
+                safeRegexTest(requiredRegex, parsedStream.filename),
+              parsedStream.indexers &&
+                safeRegexTest(requiredRegex, parsedStream.indexers),
+            ]
+          : []),
+        ...(requiredKeywordsRegex
+          ? [
+              parsedStream.filename &&
+                safeRegexTest(requiredKeywordsRegex, parsedStream.filename),
+              parsedStream.indexers &&
+                safeRegexTest(requiredKeywordsRegex, parsedStream.indexers),
+            ]
+          : []),
+      ];
+
+      if (excludeTests.length > 0 && excludeTests.some((test) => test)) {
+        skipReasons.excludeKeywords++;
+        return false;
       }
 
-      if (
-        this.config.strictIncludeFilters &&
-        this.config.strictIncludeFilters.length > 0 &&
-        strictIncludeRegex
-      ) {
-        if (
-          parsedStream.filename &&
-          !strictIncludeRegex.test(parsedStream.filename)
-        ) {
-          skipReasons.requiredKeywords++;
-          return false;
-        }
-      }
-
-      const excludeRegexPattern = this.config.apiKey
-        ? this.config.regexFilters?.excludePattern ||
-          Settings.DEFAULT_REGEX_EXCLUDE_PATTERN
-        : null;
-
-      const requiredRegexPattern = this.config.apiKey
-        ? this.config.regexFilters?.includePattern ||
-          Settings.DEFAULT_REGEX_INCLUDE_PATTERN
-        : null;
-
-      if (excludeRegexPattern) {
-        const tests = [
-          parsedStream.filename &&
-            safeRegexTest(excludeRegexPattern, parsedStream.filename),
-          parsedStream.indexers &&
-            safeRegexTest(excludeRegexPattern, parsedStream.indexers),
-        ];
-        // return false if any matched true
-        if (tests.some((test) => test)) {
-          skipReasons.excludeRegex++;
-          return false;
-        }
-      }
-
-      if (requiredRegexPattern) {
-        const tests = [
-          parsedStream.filename &&
-            safeRegexTest(requiredRegexPattern, parsedStream.filename),
-          parsedStream.indexers &&
-            safeRegexTest(requiredRegexPattern, parsedStream.indexers),
-        ];
-        // return false if none matched true
-        if (!tests.some((test) => test)) {
-          skipReasons.requiredRegex++;
-          return false;
-        }
+      if (requiredTests.length > 0 && !requiredTests.some((test) => test)) {
+        skipReasons.requiredKeywords++;
+        return false;
       }
 
       return true;

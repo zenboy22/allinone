@@ -58,3 +58,15 @@ export function compileRegex(pattern: string, flags: string = ''): RegExp {
   );
   return compiledPattern;
 }
+
+export function formRegexFromKeywords(
+  keywords: string[],
+  flags: string = 'i'
+): RegExp {
+  const pattern = `(?<![^ [(_\\-.])(${keywords
+    .map((filter) => filter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'))
+    .map((filter) => filter.replace(/\s/g, '[ .\\-_]?'))
+    .join('|')})(?=[ \\)\\]_.-]|$)`;
+
+  return compileRegex(pattern, flags);
+}
