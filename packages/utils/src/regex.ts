@@ -30,7 +30,7 @@ export function safeRegexTest(
   try {
     return resultCache.wrap(
       (p: RegExp, s: string) => isMatch(p, s, { timeout: timeoutMs }),
-      getTextHash(`${compiledPattern.toString()}|${str}`),
+      getTextHash(`${compiledPattern.source}|${str}`),
       100,
       compiledPattern,
       str

@@ -135,7 +135,7 @@ export class AIOStreams {
         Settings.DEFAULT_REGEX_EXCLUDE_PATTERN
       : undefined;
     const excludeRegex = excludeRegexPattern
-      ? compileRegex(excludeRegexPattern, 'i', true)
+      ? compileRegex(excludeRegexPattern, 'i')
       : undefined;
 
     const excludeKeywordsRegex = this.config.excludeFilters
@@ -147,7 +147,7 @@ export class AIOStreams {
         Settings.DEFAULT_REGEX_INCLUDE_PATTERN
       : undefined;
     const requiredRegex = requiredRegexPattern
-      ? compileRegex(requiredRegexPattern, 'i', true)
+      ? compileRegex(requiredRegexPattern, 'i')
       : undefined;
 
     const requiredKeywordsRegex = this.config.strictIncludeFilters
@@ -162,7 +162,7 @@ export class AIOStreams {
       ? sortRegexPatterns
           .split(/\s+/)
           .filter(Boolean)
-          .map((pattern) => compileRegex(pattern, 'i', true))
+          .map((pattern) => compileRegex(pattern, 'i'))
       : undefined;
 
     excludeRegex ||
