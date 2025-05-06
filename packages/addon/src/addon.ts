@@ -372,8 +372,10 @@ export class AIOStreams {
 
       addToTests(excludeTests, parsedStream.filename);
       addToTests(excludeTests, parsedStream.indexers);
+      addToTests(excludeTests, parsedStream.folderName);
       addToTests(requiredTests, parsedStream.filename);
       addToTests(requiredTests, parsedStream.indexers);
+      addToTests(requiredTests, parsedStream.folderName);
 
       // filter out any null values as these are when the regex is not defined
       excludeTests = excludeTests.filter((test) => test !== null);
