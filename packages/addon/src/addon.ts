@@ -111,8 +111,6 @@ export class AIOStreams {
       await this.getParsedStreams(streamRequest);
 
     const skipReasons = {
-      excludeKeywords: 0,
-      requiredKeywords: 0,
       excludeLanguages: 0,
       excludeResolutions: 0,
       excludeQualities: 0,
@@ -383,12 +381,12 @@ export class AIOStreams {
       ];
 
       if (excludeTests.length > 0 && excludeTests.some((test) => test)) {
-        skipReasons.excludeKeywords++;
+        skipReasons.excludeRegex++;
         return false;
       }
 
       if (requiredTests.length > 0 && !requiredTests.some((test) => test)) {
-        skipReasons.requiredKeywords++;
+        skipReasons.requiredRegex++;
         return false;
       }
 
