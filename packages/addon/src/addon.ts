@@ -359,23 +359,26 @@ export class AIOStreams {
       let excludeTests: (boolean | null)[] = [];
       let requiredTests: (boolean | null)[] = [];
 
-      const addToTests = (tests: any[], field: string | undefined) => {
+      const addToTests = (field: string | undefined) => {
         if (field) {
-          tests.push(
+          excludeTests.push(
             excludeRegex ? safeRegexTest(excludeRegex, field) : null,
             excludeKeywordsRegex
               ? safeRegexTest(excludeKeywordsRegex, field)
               : null
           );
+          requiredTests.push(
+            requiredRegex ? safeRegexTest(requiredRegex, field) : null,
+            requiredKeywordsRegex
+              ? safeRegexTest(requiredKeywordsRegex, field)
+              : null
+          );
         }
       };
 
-      addToTests(excludeTests, parsedStream.filename);
-      addToTests(excludeTests, parsedStream.indexers);
-      addToTests(excludeTests, parsedStream.folderName);
-      addToTests(requiredTests, parsedStream.filename);
-      addToTests(requiredTests, parsedStream.indexers);
-      addToTests(requiredTests, parsedStream.folderName);
+      addToTests(parsedStream.filename);
+      addToTests(parsedStream.folderName);
+      addToTests(parsedStream.indexers);
 
       // filter out any null values as these are when the regex is not defined
       excludeTests = excludeTests.filter((test) => test !== null);
