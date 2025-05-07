@@ -512,10 +512,14 @@ export class AIOStreams {
     // pre compute highest indexes for regexSortPatterns
     const startPrecomputeTime = new Date().getTime();
     filteredResults.forEach((stream: ParsedStream) => {
-      if (sortRegexes && stream.filename) {
+      if (sortRegexes) {
         for (let i = 0; i < sortRegexes.length; i++) {
+          if (!stream.filename && !stream.folderName) continue;
           const regex = sortRegexes[i];
-          if (isMatch(regex.regex, stream.filename)) {
+          if (
+            (stream.filename && isMatch(regex.regex, stream.filename)) ||
+            (stream.folderName && isMatch(regex.regex, stream.folderName))
+          ) {
             stream.regexMatched = {
               name: regex.name,
               pattern: regex.regex.source,
