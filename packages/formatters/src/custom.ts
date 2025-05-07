@@ -83,7 +83,7 @@ export type ParseValue = {
     visualTags: string[] | null;
     audioTags: string[] | null;
     releaseGroup: string | null;
-    regexMatch: string | null;
+    regexMatched: string | null;
     encode: string | null;
     indexer: string | null;
     year: string | null;
@@ -138,7 +138,7 @@ const convertStreamToParseValue = (stream: ParsedStream): ParseValue => {
       audioTags: stream.audioTags,
       releaseGroup:
         stream.releaseGroup === 'Unknown' ? null : stream.releaseGroup,
-      regexMatch: stream.regexMatch || null,
+      regexMatched: stream.regexMatched?.name || null,
       encode: stream.encode === 'Unknown' ? null : stream.encode,
       indexer: stream.indexers || null,
       seeders: stream.torrent?.seeders || null,

@@ -43,8 +43,6 @@ import {
   safeRegexTest,
   compileRegex,
   formRegexFromKeywords,
-  Cache,
-  getTextHash,
 } from '@aiostreams/utils';
 import { errorStream } from './responses';
 import { isMatch } from 'super-regex';
@@ -513,22 +511,16 @@ export class AIOStreams {
     }
     // pre compute highest indexes for regexSortPatterns
     const startPrecomputeTime = new Date().getTime();
-    const sortRegexCache = Cache.getInstance<string, number>('sortRegexCache');
     filteredResults.forEach((stream: ParsedStream) => {
       if (sortRegexes && stream.filename) {
-        const filenameHash = getTextHash(stream.filename);
-
-        const cachedIndex = sortRegexCache.get(filenameHash);
-        if (cachedIndex !== undefined) {
-          stream.regexMatch = sortRegexes[cachedIndex].name;
-          return;
-        }
-
         for (let i = 0; i < sortRegexes.length; i++) {
           const regex = sortRegexes[i];
           if (isMatch(regex.regex, stream.filename)) {
-            stream.regexMatch = regex.name;
-            sortRegexCache.set(filenameHash, i, 60);
+            stream.regexMatched = {
+              name: regex.name,
+              pattern: regex.regex.source,
+              index: i,
+            };
             break;
           }
         }
@@ -854,10 +846,8 @@ export class AIOStreams {
         if (!a.filename) return direction === 'asc' ? -1 : 1;
         if (!b.filename) return direction === 'asc' ? 1 : -1;
 
-        const cache = Cache.getInstance<string, number>('sortRegexCache');
-
-        const aHighestIndex = cache.get(getTextHash(a.filename));
-        const bHighestIndex = cache.get(getTextHash(b.filename));
+        const aHighestIndex = a.regexMatched?.index;
+        const bHighestIndex = b.regexMatched?.index;
 
         // If both have a regex match, sort by the highest index
         if (aHighestIndex !== undefined && bHighestIndex !== undefined) {
