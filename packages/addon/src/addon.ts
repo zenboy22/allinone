@@ -47,6 +47,7 @@ import {
   getTextHash,
 } from '@aiostreams/utils';
 import { errorStream } from './responses';
+import { isMatch } from 'super-regex';
 
 const logger = createLogger('addon');
 
@@ -514,17 +515,21 @@ export class AIOStreams {
     const startPrecomputeTime = new Date().getTime();
     const sortRegexCache = Cache.getInstance<string, number>('sortRegexCache');
     filteredResults.forEach((stream: ParsedStream) => {
-      if (sortRegexes) {
+      if (sortRegexes && stream.filename) {
+        const filenameHash = getTextHash(stream.filename);
+
+        const cachedIndex = sortRegexCache.get(filenameHash);
+        if (cachedIndex !== undefined) {
+          stream.regexMatch = sortRegexes[cachedIndex].name;
+          return;
+        }
+
         for (let i = 0; i < sortRegexes.length; i++) {
           const regex = sortRegexes[i];
-          if (stream.filename) {
-            const match = safeRegexTest(regex.regex, stream.filename);
-            if (match) {
-              stream.regexMatch = regex.name;
-              sortRegexCache.set(getTextHash(stream.filename), i, 60);
-
-              break;
-            }
+          if (isMatch(regex.regex, stream.filename)) {
+            stream.regexMatch = regex.name;
+            sortRegexCache.set(filenameHash, i, 60);
+            break;
           }
         }
       }
@@ -838,12 +843,6 @@ export class AIOStreams {
       const regexSortPatterns =
         this.config.regexSortPatterns || Settings.DEFAULT_REGEX_SORT_PATTERNS;
       if (!regexSortPatterns) return 0;
-      // generate array of RegExp objects from space separated patterns
-      const compiledRegexPatterns = regexSortPatterns
-        .split(/\s+/)
-        .filter(Boolean)
-        .map((pattern) => compileRegex(pattern, 'i'));
-
       try {
         // Get direction once
         const direction = this.config.sortBy.find(
