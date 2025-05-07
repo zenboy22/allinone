@@ -63,9 +63,14 @@ const multipleRegex = makeValidator((x) => {
     );
   }
   // try compiling each pattern to check for validity
-
+  // each "pattern" is regexName::regexPattern, where regexName is optional
+  // we need to only extract the regexPattern part,
   patterns.forEach((p) => {
     try {
+      const delimiterIndex = p.indexOf('<::>');
+      if (delimiterIndex !== -1) {
+        p = p.slice(delimiterIndex + 2);
+      }
       new RegExp(p);
     } catch (e) {
       throw new EnvError(`Invalid regex pattern: ${p}`);
