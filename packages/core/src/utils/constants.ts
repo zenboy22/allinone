@@ -1,0 +1,838 @@
+import { Option } from '../db';
+
+export enum ErrorCode {
+  // User API
+  USER_NOT_FOUND = 'USER_NOT_FOUND',
+  USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
+  USER_INVALID_PASSWORD = 'USER_INVALID_PASSWORD',
+  USER_INVALID_CONFIG = 'USER_INVALID_CONFIG',
+  USER_ERROR = 'USER_ERROR',
+  USER_NEW_PASSWORD_TOO_SHORT = 'USER_NEW_PASSWORD_TOO_SHORT',
+  USER_NEW_PASSWORD_TOO_SIMPLE = 'USER_NEW_PASSWORD_TOO_SIMPLE',
+  // Format API
+  FORMAT_INVALID_FORMATTER = 'FORMAT_INVALID_FORMATTER',
+  FORMAT_INVALID_STREAM = 'FORMAT_INVALID_STREAM',
+  FORMAT_ERROR = 'FORMAT_ERROR',
+  // Other
+  MISSING_REQUIRED_FIELDS = 'MISSING_REQUIRED_FIELDS',
+  INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
+  METHOD_NOT_ALLOWED = 'METHOD_NOT_ALLOWED',
+  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
+}
+
+interface ErrorDetails {
+  statusCode: number;
+  message: string;
+}
+
+export const ErrorMap: Record<ErrorCode, ErrorDetails> = {
+  [ErrorCode.MISSING_REQUIRED_FIELDS]: {
+    statusCode: 400,
+    message: 'Required fields are missing',
+  },
+  [ErrorCode.USER_NOT_FOUND]: {
+    statusCode: 404,
+    message: 'User not found',
+  },
+  [ErrorCode.USER_ALREADY_EXISTS]: {
+    statusCode: 409,
+    message: 'User already exists',
+  },
+  [ErrorCode.USER_INVALID_PASSWORD]: {
+    statusCode: 401,
+    message: 'Invalid password',
+  },
+  [ErrorCode.USER_INVALID_CONFIG]: {
+    statusCode: 400,
+    message: 'The config for this user is invalid',
+  },
+  [ErrorCode.USER_ERROR]: {
+    statusCode: 500,
+    message: 'A generic error while processing the user request',
+  },
+  [ErrorCode.USER_NEW_PASSWORD_TOO_SHORT]: {
+    statusCode: 400,
+    message: 'New password is too short',
+  },
+  [ErrorCode.USER_NEW_PASSWORD_TOO_SIMPLE]: {
+    statusCode: 400,
+    message: 'New password is too simple',
+  },
+  [ErrorCode.INTERNAL_SERVER_ERROR]: {
+    statusCode: 500,
+    message: 'An unexpected error occurred',
+  },
+  [ErrorCode.METHOD_NOT_ALLOWED]: {
+    statusCode: 405,
+    message: 'Method not allowed',
+  },
+  [ErrorCode.RATE_LIMIT_EXCEEDED]: {
+    statusCode: 429,
+    message: 'Too many requests from this IP, please try again later.',
+  },
+  [ErrorCode.FORMAT_INVALID_FORMATTER]: {
+    statusCode: 400,
+    message: 'Invalid formatter',
+  },
+  [ErrorCode.FORMAT_INVALID_STREAM]: {
+    statusCode: 400,
+    message: 'Invalid stream',
+  },
+  [ErrorCode.FORMAT_ERROR]: {
+    statusCode: 500,
+    message: 'An error occurred while formatting the stream',
+  },
+};
+
+export class APIError extends Error {
+  constructor(
+    public code: ErrorCode,
+    public statusCode: number = ErrorMap[code].statusCode,
+    message?: string
+  ) {
+    super(message || ErrorMap[code].message);
+    this.name = 'APIError';
+  }
+}
+
+const HEADERS_FOR_IP_FORWARDING = [
+  'X-Client-IP',
+  'X-Forwarded-For',
+  'X-Real-IP',
+  'True-Client-IP',
+  'X-Forwarded',
+  'Forwarded-For',
+];
+
+const API_VERSION = 1;
+
+export const GDRIVE_FORMATTER = 'gdrive';
+export const LIGHT_GDRIVE_FORMATTER = 'lightgdrive';
+export const MINIMALISTIC_GDRIVE_FORMATTER = 'minimalisticgdrive';
+export const TORRENTIO_FORMATTER = 'torrentio';
+export const TORBOX_FORMATTER = 'torbox';
+export const CUSTOM_FORMATTER = 'custom';
+
+export const FORMATTERS = [
+  GDRIVE_FORMATTER,
+  LIGHT_GDRIVE_FORMATTER,
+  MINIMALISTIC_GDRIVE_FORMATTER,
+  TORRENTIO_FORMATTER,
+  TORBOX_FORMATTER,
+  CUSTOM_FORMATTER,
+] as const;
+
+export type FormatterDetail = {
+  id: FormatterType;
+  name: string;
+  description: string;
+};
+
+export const FORMATTER_DETAILS: Record<FormatterType, FormatterDetail> = {
+  [GDRIVE_FORMATTER]: {
+    id: GDRIVE_FORMATTER,
+    name: 'Google Drive',
+    description: 'Uses the formatting from the Stremio GDrive addon',
+  },
+  [LIGHT_GDRIVE_FORMATTER]: {
+    id: LIGHT_GDRIVE_FORMATTER,
+    name: 'Light Google Drive',
+    description:
+      'A lighter version of the GDrive formatter, focused on asthetics',
+  },
+  [MINIMALISTIC_GDRIVE_FORMATTER]: {
+    id: MINIMALISTIC_GDRIVE_FORMATTER,
+    name: 'Minimalistic Google Drive',
+    description:
+      'A minimalistic formatter for Google Drive which shows only the bare minimum',
+  },
+  [TORRENTIO_FORMATTER]: {
+    id: TORRENTIO_FORMATTER,
+    name: 'Torrentio',
+    description: 'Uses the formatting from the Torrentio addon',
+  },
+  [TORBOX_FORMATTER]: {
+    id: TORBOX_FORMATTER,
+    name: 'Torbox',
+    description: 'Uses the formatting from the TorBox Stremio addon',
+  },
+  [CUSTOM_FORMATTER]: {
+    id: CUSTOM_FORMATTER,
+    name: 'Custom',
+    description: 'Define your own formatter',
+  },
+};
+
+export type FormatterType = (typeof FORMATTERS)[number];
+
+const REALDEBRID_SERVICE = 'realdebrid';
+const DEBRIDLINK_SERVICE = 'debridlink';
+const PREMIUMIZE_SERVICE = 'premiumize';
+const ALLEDEBRID_SERVICE = 'alldebrid';
+const TORBOX_SERVICE = 'torbox';
+const EASYDEBRID_SERVICE = 'easydebrid';
+const PUTIO_SERVICE = 'putio';
+const PIKPAK_SERVICE = 'pikpak';
+const OFFCLOUD_SERVICE = 'offcloud';
+const SEEDR_SERVICE = 'seedr';
+const EASYNEWS_SERVICE = 'easynews';
+
+const SERVICES = [
+  REALDEBRID_SERVICE,
+  DEBRIDLINK_SERVICE,
+  PREMIUMIZE_SERVICE,
+  ALLEDEBRID_SERVICE,
+  TORBOX_SERVICE,
+  EASYDEBRID_SERVICE,
+  PUTIO_SERVICE,
+  PIKPAK_SERVICE,
+  OFFCLOUD_SERVICE,
+  SEEDR_SERVICE,
+  EASYNEWS_SERVICE,
+] as const;
+
+export type ServiceId = (typeof SERVICES)[number];
+
+export const MEDIAFLOW_SERVICE = 'mediaflow' as const;
+export const STREMTHRU_SERVICE = 'stremthru' as const;
+
+export const PROXY_SERVICES = [MEDIAFLOW_SERVICE, STREMTHRU_SERVICE] as const;
+export type ProxyServiceId = (typeof PROXY_SERVICES)[number];
+
+export const PROXY_SERVICE_DETAILS: Record<
+  ProxyServiceId,
+  {
+    id: ProxyServiceId;
+    name: string;
+    description: string;
+    url: string;
+  }
+> = {
+  [MEDIAFLOW_SERVICE]: {
+    id: MEDIAFLOW_SERVICE,
+    name: 'MediaFlow',
+    description:
+      'MediaFlow is a proxy service that allows you to proxy your requests to the server.',
+    url: 'https://github.com/mhdzumair/mediaflow-proxy',
+  },
+  [STREMTHRU_SERVICE]: {
+    id: STREMTHRU_SERVICE,
+    name: 'StremThru',
+    description:
+      'StremThru is a proxy service that allows you to proxy your requests to the server.',
+    url: 'https://github.com/MunifTanjim/stremthru',
+  },
+};
+
+const SERVICE_DETAILS: Record<
+  ServiceId,
+  {
+    id: ServiceId;
+    name: string;
+    shortName: string;
+    knownNames: string[];
+    signUpText: string;
+    credentials: Option[];
+  }
+> = {
+  [REALDEBRID_SERVICE]: {
+    id: REALDEBRID_SERVICE,
+    name: 'Real-Debrid',
+    shortName: 'RD',
+    knownNames: ['RD', 'Real Debrid', 'RealDebrid', 'Real-Debrid'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://real-debrid.com/signup?aid=9483829)",
+    credentials: [
+      {
+        id: 'apiKey',
+        name: 'API Key',
+        description:
+          'The API key for the Real-Debrid service. Obtain it from [here](https://real-debrid.com/settings/api)',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+  [ALLEDEBRID_SERVICE]: {
+    id: ALLEDEBRID_SERVICE,
+    name: 'All-Debrid',
+    shortName: 'AD',
+    knownNames: ['AD', 'All Debrid', 'AllDebrid', 'All-Debrid'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://alldebrid.com/?uid=3n8qa&lang=en)",
+    credentials: [
+      {
+        id: 'apiKey',
+        name: 'API Key',
+        description:
+          'The API key for the All-Debrid service. Create one [here](https://alldebrid.com/apikeys)',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+  [PREMIUMIZE_SERVICE]: {
+    id: PREMIUMIZE_SERVICE,
+    name: 'Premiumize',
+    shortName: 'PZ',
+    knownNames: ['PM', 'Premiumize'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://www.premiumize.me/register)",
+    credentials: [
+      {
+        id: 'apiKey',
+        name: 'API Key',
+        description:
+          'Your Premiumize API key. Obtain it from [here](https://www.premiumize.me/account)',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+  [DEBRIDLINK_SERVICE]: {
+    id: DEBRIDLINK_SERVICE,
+    name: 'Debridlink',
+    shortName: 'DL',
+    knownNames: ['DL', 'Debrid Link', 'DebridLink', 'Debrid-Link'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://debrid-link.com/id/EY0JO)",
+    credentials: [
+      {
+        id: 'apiKey',
+        name: 'API Key',
+        description:
+          'Your Debrid-Link API key. Obtain it from [here](https://debrid-link.com/webapp/apikey)',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+  [TORBOX_SERVICE]: {
+    id: TORBOX_SERVICE,
+    name: 'TorBox',
+    shortName: 'TB',
+    knownNames: ['TB', 'TorBox', 'Torbox'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://torbox.app/subscription?referral=9ca21adb-dbcb-4fb0-9195-412a5f3519bc) or use my referral code `9ca21adb-dbcb-4fb0-9195-412a5f3519bc`.",
+    credentials: [
+      {
+        id: 'apiKey',
+        name: 'API Key',
+        description:
+          'Your Torbox API key. Obtain it from [here](https://torbox.app/settings)',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+  [OFFCLOUD_SERVICE]: {
+    id: OFFCLOUD_SERVICE,
+    name: 'Offcloud',
+    shortName: 'OC',
+    knownNames: ['OC', 'Offcloud'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://offcloud.com/?=06202a3d)",
+    credentials: [
+      {
+        id: 'apiKey',
+        name: 'API Key',
+        description:
+          'Your Offcloud API key. Obtain it from [here](https://offcloud.com/settings)',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+      {
+        id: 'email',
+        name: 'Email',
+        description:
+          'Your Offcloud email. (These credentials are necessary for some addons)',
+        type: 'string',
+        required: true,
+      },
+      {
+        id: 'password',
+        name: 'Password',
+        description:
+          'Your Offcloud password. (These credentials are necessary for some addons)',
+        type: 'string',
+        required: true,
+      },
+    ],
+  },
+  [PUTIO_SERVICE]: {
+    id: PUTIO_SERVICE,
+    name: 'put.io',
+    shortName: 'P.IO',
+    knownNames: ['PO', 'put.io', 'putio'],
+    signUpText: "Don't have an account? [Sign up here](https://put.io/)",
+    credentials: [
+      {
+        id: 'clientId',
+        name: 'Client ID',
+        description:
+          'Your put.io Client ID. Obtain it from [here](https://put.io/oauth)',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+      {
+        id: 'token',
+        name: 'Token',
+        description:
+          'Your put.io Token. Obtain it from [here](https://put.io/oauth)',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+  [EASYNEWS_SERVICE]: {
+    id: EASYNEWS_SERVICE,
+    name: 'Easynews',
+    shortName: 'EN',
+    knownNames: ['EN', 'Easynews'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://www.easynews.com/)",
+    credentials: [
+      {
+        id: 'username',
+        name: 'Username',
+        description: 'Your Easynews username',
+        type: 'string',
+        required: true,
+      },
+      {
+        id: 'password',
+        name: 'Password',
+        description: 'Your Easynews password',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+  [EASYDEBRID_SERVICE]: {
+    id: EASYDEBRID_SERVICE,
+    name: 'EasyDebrid',
+    shortName: 'ED',
+    knownNames: ['ED', 'EasyDebrid'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://paradise-cloud.com/products/easydebrid)",
+    credentials: [
+      {
+        id: 'apiKey',
+        name: 'API Key',
+        description:
+          'Your EasyDebrid API key. Obtain it from [here](https://paradise-cloud.com/products/easydebrid)',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+  [PIKPAK_SERVICE]: {
+    id: PIKPAK_SERVICE,
+    name: 'PikPak',
+    shortName: 'PKP',
+    knownNames: ['PP', 'PikPak', 'PKP'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://mypikpak.com/drive/activity/invited?invitation-code=72822731)",
+    credentials: [
+      {
+        id: 'email',
+        name: 'Email',
+        description: 'Your PikPak email address',
+        type: 'string',
+        required: true,
+      },
+      {
+        id: 'password',
+        name: 'Password',
+        description: 'Your PikPak password',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+  [SEEDR_SERVICE]: {
+    id: SEEDR_SERVICE,
+    name: 'Seedr',
+    shortName: 'SDR',
+    knownNames: ['SR', 'Seedr', 'SDR'],
+    signUpText:
+      "Don't have an account? [Sign up here](https://www.seedr.cc/?r=6542079)",
+    credentials: [
+      {
+        id: 'apiKey',
+        name: 'Encoded Token',
+        description:
+          'Please authorise at MediaFusion and copy the token into here.',
+        type: 'string',
+        required: true,
+        sensitive: true,
+      },
+    ],
+  },
+};
+
+const STRING_OPTION_TYPE = 'string';
+const NUMBER_OPTION_TYPE = 'number';
+const BOOLEAN_OPTION_TYPE = 'boolean';
+const SELECT_OPTION_TYPE = 'select';
+const MULTI_SELECT_OPTION_TYPE = 'multi-select';
+
+const OPTION_TYPES = [
+  STRING_OPTION_TYPE,
+  NUMBER_OPTION_TYPE,
+  BOOLEAN_OPTION_TYPE,
+  SELECT_OPTION_TYPE,
+  MULTI_SELECT_OPTION_TYPE,
+] as const;
+
+const P2P_TAG = 'p2p';
+const DIRECT_TAG = 'direct';
+const DEBRID_TAG = 'debrid';
+const USENET_TAG = 'usenet';
+const PRESET_TAGS = [P2P_TAG, DIRECT_TAG, DEBRID_TAG, USENET_TAG] as const;
+
+export const DEDUPLICATOR_KEYS = ['filename', 'infoHash'] as const;
+
+const RESOLUTIONS = [
+  '2160p',
+  '1440p',
+  '1080p',
+  '720p',
+  '576p',
+  '480p',
+  '360p',
+  '240p',
+  '144p',
+  'Unknown',
+] as const;
+
+const QUALITIES = [
+  'Bluray REMUX',
+  'Bluray',
+  'WEB-DL',
+  'WEBRip',
+  'HDRip',
+  'HC HD-Rip',
+  'DVDRip',
+  'HDTV',
+  'CAM',
+  'TS',
+  'TC',
+  'SCR',
+  'Unknown',
+] as const;
+
+const VISUAL_TAGS = [
+  'HDR+DV',
+  'HDR10+',
+  'HDR10',
+  'DV',
+  'HDR',
+  '10bit',
+  '3D',
+  'IMAX',
+  'AI',
+  'SDR',
+] as const;
+
+const AUDIO_TAGS = [
+  'Atmos',
+  'DD+',
+  'DD',
+  'DTS-HD MA',
+  'DTS',
+  'TrueHD',
+  '5.1',
+  '7.1',
+  'FLAC',
+  'AAC',
+  'Unknown',
+] as const;
+
+const ENCODES = [
+  'AV1',
+  'HEVC',
+  'AVC',
+  'XviD',
+  'DivX',
+  'H-OU',
+  'H-SBS',
+  'Unknown',
+] as const;
+
+const SORT_CRITERIA = [
+  'quality',
+  'resolution',
+  'language',
+  'visualTag',
+  'audioTag',
+  'streamType',
+  'size',
+  'service',
+  'seeders',
+  'addon',
+  'regexPatterns',
+  'cached',
+  'personal',
+] as const;
+const SORT_DIRECTIONS = ['asc', 'desc'] as const;
+
+const STREAM_TYPES = [
+  'p2p',
+  'live',
+  'usenet',
+  'debrid',
+  'http',
+  'external',
+  'youtube',
+] as const;
+
+const STREAM_RESOURCE = 'stream' as const;
+const SUBTITLES_RESOURCE = 'subtitles' as const;
+const CATALOG_RESOURCE = 'catalog' as const;
+const META_RESOURCE = 'meta' as const;
+const ADDON_CATALOG_RESOURCE = 'addon_catalog' as const;
+
+export const MOVIE_TYPE = 'movie' as const;
+export const SERIES_TYPE = 'series' as const;
+export const CHANNEL_TYPE = 'channel' as const;
+export const TV_TYPE = 'tv' as const;
+
+export const TYPES = [MOVIE_TYPE, SERIES_TYPE, CHANNEL_TYPE, TV_TYPE] as const;
+
+const RESOURCES = [
+  STREAM_RESOURCE,
+  SUBTITLES_RESOURCE,
+  CATALOG_RESOURCE,
+  META_RESOURCE,
+  ADDON_CATALOG_RESOURCE,
+] as const;
+
+// const LANGUAGE_EMOJI_MAPPING = {
+//   multi: '🌎',
+//   english: '🇬🇧',
+//   japanese: '🇯🇵',
+//   chinese: '🇨🇳',
+//   russian: '🇷🇺',
+//   arabic: '🇸🇦',
+//   portuguese: '🇵🇹',
+//   spanish: '🇪��',
+//   french: '🇫🇷',
+//   german: '🇩🇪',
+//   italian: '🇮🇹',
+//   korean: '🇰🇷',
+//   hindi: '🇮🇳',
+//   bengali: '🇧🇩',
+//   punjabi: '🇵🇰',
+//   marathi: '🇮🇳',
+//   gujarati: '🇮🇳',
+//   tamil: '🇮🇳',
+//   telugu: '🇮🇳',
+//   kannada: '🇮🇳',
+//   malayalam: '🇮🇳',
+//   thai: '🇹🇭',
+//   vietnamese: '🇻🇳',
+//   indonesian: '🇮🇩',
+//   turkish: '🇹🇷',
+//   hebrew: '🇮🇱',
+//   persian: '🇮🇷',
+//   ukrainian: '🇺🇦',
+//   greek: '🇬🇷',
+//   lithuanian: '🇱🇹',
+//   latvian: '🇱🇻',
+//   estonian: '🇪🇪',
+//   polish: '🇵🇱',
+//   czech: '🇨🇿',
+//   slovak: '🇸🇰',
+//   hungarian: '🇭🇺',
+//   romanian: '🇷🇴',
+//   bulgarian: '🇧🇬',
+//   serbian: '🇷🇸',
+//   croatian: '🇭🇷',
+//   slovenian: '🇸🇮',
+//   dutch: '🇳🇱',
+//   danish: '🇩🇰',
+//   finnish: '🇫🇮',
+//   swedish: '🇸🇪',
+//   norwegian: '🇳🇴',
+//   malay: '🇲🇾',
+//   latino: '💃🏻',
+//   Latino: '🇲🇽',
+// };
+
+// const ISO_639_1_LANGUAGE_MAPPING: Record<string, string> = {
+//   EN: 'english',
+//   JA: 'japanese',
+//   ZH: 'chinese',
+//   RU: 'russian',
+//   AR: 'arabic',
+//   PT: 'portuguese',
+//   ES: 'spanish',
+//   FR: 'french',
+//   DE: 'german',
+//   IT: 'italian',
+//   KO: 'korean',
+//   HI: 'hindi',
+//   BN: 'bengali',
+//   PA: 'punjabi',
+//   MR: 'marathi',
+//   GU: 'gujarati',
+//   TA: 'tamil',
+//   TE: 'telugu',
+//   KN: 'kannada',
+//   ML: 'malayalam',
+//   TH: 'thai',
+//   VI: 'vietnamese',
+//   ID: 'indonesian',
+//   TR: 'turkish',
+//   HE: 'hebrew',
+//   FA: 'persian',
+//   UK: 'ukrainian',
+//   EL: 'greek',
+//   LT: 'lithuanian',
+//   LV: 'latvian',
+//   ET: 'estonian',
+//   PL: 'polish',
+//   CS: 'czech',
+//   SK: 'slovak',
+//   HU: 'hungarian',
+//   RO: 'romanian',
+//   BG: 'bulgarian',
+//   SR: 'serbian',
+//   HR: 'croatian',
+//   SL: 'slovenian',
+//   NL: 'dutch',
+//   DA: 'danish',
+//   FI: 'finnish',
+//   SV: 'swedish',
+//   NO: 'norwegian',
+//   MS: 'malay',
+//   LA: 'latino',
+//   MX: 'Latino',
+// };
+
+// // const LANGUAGES = Object.keys(LANGUAGE_EMOJI_MAPPING).map(
+// //   (lang) => lang.charAt(0).toUpperCase() + lang.slice(1)
+// // );
+
+const LANGUAGES = [
+  'english',
+  'japanese',
+  'chinese',
+  'russian',
+  'arabic',
+  'portuguese',
+  'spanish',
+  'french',
+  'german',
+  'italian',
+  'korean',
+  'hindi',
+  'bengali',
+  'punjabi',
+  'marathi',
+  'gujarati',
+  'tamil',
+  'telugu',
+  'kannada',
+  'malayalam',
+  'thai',
+  'vietnamese',
+  'indonesian',
+  'turkish',
+  'hebrew',
+  'persian',
+  'ukrainian',
+  'greek',
+  'lithuanian',
+  'latvian',
+  'estonian',
+  'polish',
+  'czech',
+  'slovak',
+  'hungarian',
+  'romanian',
+  'bulgarian',
+  'serbian',
+  'croatian',
+  'slovenian',
+  'dutch',
+  'danish',
+  'finnish',
+  'swedish',
+  'norwegian',
+  'malay',
+  'latino',
+] as const;
+
+export const SNIPPETS = [
+  {
+    name: 'Title Only',
+    description: 'Just the title of the stream',
+    value: '{title}',
+  },
+  {
+    name: 'Title + Year',
+    description: 'Title and year',
+    value: '{title} ({year})',
+  },
+  {
+    name: 'Full Info',
+    description: 'Title, year, resolution, quality',
+    value: '{title} ({year}) [{resolution}] [{quality}]',
+  },
+];
+
+export {
+  API_VERSION,
+  SERVICES,
+  RESOLUTIONS,
+  QUALITIES,
+  VISUAL_TAGS,
+  AUDIO_TAGS,
+  ENCODES,
+  SORT_CRITERIA,
+  SORT_DIRECTIONS,
+  STREAM_TYPES,
+  LANGUAGES,
+  RESOURCES,
+  OPTION_TYPES,
+  PRESET_TAGS,
+  STREAM_RESOURCE,
+  SUBTITLES_RESOURCE,
+  CATALOG_RESOURCE,
+  META_RESOURCE,
+  ADDON_CATALOG_RESOURCE,
+  REALDEBRID_SERVICE,
+  PREMIUMIZE_SERVICE,
+  ALLEDEBRID_SERVICE,
+  TORBOX_SERVICE,
+  EASYDEBRID_SERVICE,
+  PUTIO_SERVICE,
+  PIKPAK_SERVICE,
+  OFFCLOUD_SERVICE,
+  SEEDR_SERVICE,
+  EASYNEWS_SERVICE,
+  SERVICE_DETAILS,
+  STRING_OPTION_TYPE,
+  NUMBER_OPTION_TYPE,
+  BOOLEAN_OPTION_TYPE,
+  SELECT_OPTION_TYPE,
+  MULTI_SELECT_OPTION_TYPE,
+  P2P_TAG,
+  DIRECT_TAG,
+  DEBRID_TAG,
+  USENET_TAG,
+  HEADERS_FOR_IP_FORWARDING,
+};

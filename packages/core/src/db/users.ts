@@ -1,0 +1,321 @@
+// import { UserDataSchema, UserData, DB } from '../db';
+import { UserDataSchema, UserData } from './schemas';
+import { TransactionQueue } from './queue';
+import { DB } from './db';
+import {
+  decryptString,
+  deriveKey,
+  encryptString,
+  generateUUID,
+  getTextHash,
+  maskSensitiveInfo,
+  createLogger,
+  constants,
+  Env,
+} from '../utils';
+
+const APIError = constants.APIError;
+const logger = createLogger('users');
+const db = DB.getInstance();
+const txQueue = TransactionQueue.getInstance();
+
+export class UserRepository {
+  static async createUser(
+    config: UserData,
+    password: string
+  ): Promise<{ uuid: string; encryptedPassword: string }> {
+    return txQueue.enqueue(async () => {
+      if (password.length < 8) {
+        return Promise.reject(
+          new APIError(constants.ErrorCode.USER_NEW_PASSWORD_TOO_SHORT)
+        );
+      }
+
+      // require at least one uppercase, one lowercase, one number, and one special character
+      // [@$!%*?&\-\._#~^()+=<>,;:'"`{}[\]|\\]
+      if (
+        !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-\._#~^()+=<>,;:'"`{}[\]|\\])[A-Za-z\d@$!%*?&\-\._#~^()+=<>,;:'"`{}[\]|\\]{8,}$/.test(
+          password
+        )
+      ) {
+        return Promise.reject(
+          new APIError(constants.ErrorCode.USER_NEW_PASSWORD_TOO_SIMPLE)
+        );
+      }
+
+      const uuid = await this.generateUUID();
+      config.uuid = uuid;
+
+      const { encryptedConfig, salt } = await this.encryptConfig(
+        config,
+        password
+      );
+      const { hash: hashedPassword } = getTextHash(password, salt);
+
+      const { success, data } = encryptString(password);
+      if (success === false) {
+        return Promise.reject(constants.ErrorCode.USER_ERROR);
+      }
+
+      const encryptedPassword = data;
+      const tx = await db.begin();
+      try {
+        await tx.execute(
+          'INSERT INTO users (uuid, password_hash, password_salt, config) VALUES (?, ?, ?, ?)',
+          [uuid, hashedPassword, salt, encryptedConfig]
+        );
+        await tx.commit();
+        logger.info(`Created a new user with UUID: ${uuid}`);
+        return { uuid, encryptedPassword };
+      } catch (error) {
+        await tx.rollback();
+        logger.error(
+          `Failed to create user: ${error instanceof Error ? error.message : String(error)}`
+        );
+        return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+      }
+    });
+  }
+
+  static async checkUserExists(uuid: string): Promise<boolean> {
+    try {
+      const result = await db.query('SELECT uuid FROM users WHERE uuid = ?', [
+        uuid,
+      ]);
+      return result.length > 0;
+    } catch (error) {
+      logger.error(`Error checking user existence: ${error}`);
+      return Promise.reject(constants.ErrorCode.USER_ERROR);
+    }
+  }
+
+  static async getUser(
+    uuid: string,
+    encryptedPassword?: string,
+    password?: string
+  ): Promise<UserData | null> {
+    try {
+      if (!encryptedPassword && !password) {
+        return Promise.reject(
+          new APIError(constants.ErrorCode.MISSING_REQUIRED_FIELDS)
+        );
+      }
+      const result = await db.query(
+        'SELECT config, password_salt FROM users WHERE uuid = ?',
+        [uuid]
+      );
+
+      if (!result.length || !result[0].config) {
+        return Promise.reject(new APIError(constants.ErrorCode.USER_NOT_FOUND));
+      }
+
+      await db.execute(
+        'UPDATE users SET accessed_at = CURRENT_TIMESTAMP WHERE uuid = ?',
+        [uuid]
+      );
+
+      if (!password) {
+        const { success, data } = decryptString(encryptedPassword!);
+        if (!success) {
+          return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+        }
+        password = data;
+      }
+
+      const isValid = await this.verifyUserPassword(uuid, password);
+      if (!isValid) {
+        return Promise.reject(
+          new APIError(constants.ErrorCode.USER_INVALID_PASSWORD)
+        );
+      }
+
+      const decryptedConfig = await this.decryptConfig(
+        result[0].config,
+        password,
+        result[0].password_salt
+      );
+
+      decryptedConfig.admin =
+        Env.ADMIN_UUIDS?.split(',').some((u) => new RegExp(u).test(uuid)) ??
+        false;
+      logger.info(`Retrieved configuration for user ${uuid}`);
+      return decryptedConfig;
+    } catch (error) {
+      logger.error(
+        `Error retrieving user ${uuid}: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+    }
+  }
+
+  static async updateUser(
+    uuid: string,
+    password: string,
+    config: UserData
+  ): Promise<void> {
+    return txQueue.enqueue(async () => {
+      const tx = await db.begin();
+      try {
+        const currentUser = await tx.execute(
+          'SELECT password_salt FROM users WHERE uuid = ?',
+          [uuid]
+        );
+
+        if (!currentUser.rows.length) {
+          await tx.rollback();
+          return Promise.reject(
+            new APIError(constants.ErrorCode.USER_NOT_FOUND)
+          );
+        }
+
+        const isValid = await this.verifyUserPassword(uuid, password);
+        if (!isValid) {
+          await tx.rollback();
+          return Promise.reject(
+            new APIError(constants.ErrorCode.USER_INVALID_PASSWORD)
+          );
+        }
+
+        const { encryptedConfig } = await this.encryptConfig(
+          config,
+          password,
+          currentUser.rows[0].password_salt
+        );
+
+        await tx.execute(
+          'UPDATE users SET config = ?, updated_at = CURRENT_TIMESTAMP WHERE uuid = ?',
+          [encryptedConfig, uuid]
+        );
+
+        await tx.commit();
+        logger.info(`Updated user ${uuid} with an updated configuration`);
+      } catch (error) {
+        await tx.rollback();
+        logger.error(
+          `Failed to update user ${uuid}: ${error instanceof Error ? error.message : String(error)}`
+        );
+        return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+      }
+    });
+  }
+
+  static async getUserCount(): Promise<number> {
+    try {
+      const result = await db.query('SELECT * FROM users');
+      return result.length;
+    } catch (error) {
+      logger.error(`Error getting user count: ${error}`);
+      return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+    }
+  }
+
+  static async deleteUser(uuid: string): Promise<void> {
+    return txQueue.enqueue(async () => {
+      const tx = await db.begin();
+      try {
+        const result = await tx.execute('DELETE FROM users WHERE uuid = ?', [
+          uuid,
+        ]);
+
+        if (result.rowCount === 0) {
+          await tx.rollback();
+          throw new APIError(constants.ErrorCode.USER_NOT_FOUND);
+        }
+
+        await tx.commit();
+        logger.info(`Deleted user ${uuid}`);
+      } catch (error) {
+        await tx.rollback();
+        logger.error(
+          `Failed to delete user ${uuid}: ${error instanceof Error ? error.message : String(error)}`
+        );
+        throw new APIError(constants.ErrorCode.USER_ERROR);
+      }
+    });
+  }
+
+  static async pruneUsers(maxDays: number = 30): Promise<void> {
+    try {
+      const query =
+        db.getDialect() === 'postgres'
+          ? `DELETE FROM users WHERE accessed_at < NOW() - INTERVAL ${maxDays} DAY`
+          : `DELETE FROM users WHERE accessed_at < datetime('now', '-' || ${maxDays} || ' days')`;
+      await db.execute(query);
+      logger.info(`Pruned users older than ${maxDays} days`);
+    } catch (error) {
+      logger.error('Failed to prune users:', error);
+      return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+    }
+  }
+
+  private static async verifyUserPassword(
+    uuid: string,
+    password: string
+  ): Promise<boolean> {
+    const result = await db.query(
+      'SELECT password_hash, password_salt FROM users WHERE uuid = ?',
+      [uuid]
+    );
+
+    if (!result.length) {
+      return false;
+    }
+
+    const { password_hash: hashedPassword, password_salt: salt } = result[0];
+    const { hash } = getTextHash(password, salt);
+    return hash === hashedPassword;
+  }
+
+  private static async encryptConfig(
+    config: UserData,
+    password: string,
+    salt?: string
+  ): Promise<{
+    encryptedConfig: string;
+    salt: string;
+  }> {
+    const { key, salt: saltUsed } = deriveKey(password, salt);
+    const configString = JSON.stringify(config);
+    const { success, data, error } = encryptString(configString, key);
+
+    if (!success) {
+      return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+    }
+
+    return { encryptedConfig: data, salt: saltUsed };
+  }
+
+  private static async decryptConfig(
+    encryptedConfig: string,
+    password: string,
+    salt: string
+  ): Promise<UserData> {
+    const { key } = deriveKey(password, salt);
+    const {
+      success,
+      data: decryptedString,
+      error,
+    } = decryptString(encryptedConfig, key);
+
+    if (!success || !decryptedString) {
+      return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+    }
+
+    return UserDataSchema.parse(JSON.parse(decryptedString));
+  }
+
+  private static async generateUUID(count: number = 1): Promise<string> {
+    if (count > 10) {
+      return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+    }
+
+    const uuid = generateUUID();
+    const existingUser = await this.checkUserExists(uuid);
+
+    if (existingUser) {
+      return this.generateUUID(count + 1);
+    }
+
+    return uuid;
+  }
+}

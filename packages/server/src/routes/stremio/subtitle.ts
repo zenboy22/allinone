@@ -1,0 +1,79 @@
+import { Router } from 'express';
+import { AIOStreams, constants } from '@aiostreams/core';
+import { createLogger } from '@aiostreams/core';
+import { createResponse } from '../../utils/responses';
+
+const logger = createLogger('stremio/subtitle');
+const router = Router();
+
+router.get('/:type/:id.json', async (req, res) => {
+  if (!req.userData) {
+    res.status(200).json(
+      createResponse(
+        {
+          success: false,
+          error: {
+            code: constants.ErrorCode.USER_NOT_FOUND,
+            message: 'Please configure the addon first',
+          },
+        },
+        req.originalUrl,
+        true
+      )
+    );
+    return;
+  }
+
+  try {
+    const { type, id } = req.params;
+    const { videoHash, videoSize } = req.query;
+    const extras = [videoHash, videoSize].filter(Boolean).join(',');
+
+    logger.debug('Subtitle request received', {
+      type,
+      id,
+      extras,
+      userData: req.userData,
+    });
+
+    const aiostreams = new AIOStreams(req.userData);
+    await aiostreams.initialise();
+
+    const { subtitles, errors } = await aiostreams.getSubtitles(
+      type,
+      id,
+      extras
+    );
+
+    res.status(200).json(
+      createResponse(
+        {
+          success: true,
+          data: {
+            subtitles,
+            addonErrors: errors.length > 0 ? errors : undefined,
+          },
+        },
+        req.originalUrl,
+        true
+      )
+    );
+  } catch (error) {
+    logger.error('Error processing subtitle request', { error });
+    res.status(200).json(
+      createResponse(
+        {
+          success: false,
+          error: {
+            code: constants.ErrorCode.INTERNAL_SERVER_ERROR,
+            message: error instanceof Error ? error.message : String(error),
+          },
+        },
+        req.originalUrl,
+        true
+      )
+    );
+  }
+});
+
+export default router;

@@ -7,13 +7,9 @@ COPY LICENSE ./
 
 # Copy the relevant package.json and package-lock.json files.
 COPY package*.json ./
-COPY packages/formatters/package*.json ./packages/formatters/
-COPY packages/parser/package*.json ./packages/parser/
-COPY packages/types/package*.json ./packages/types/
-COPY packages/wrappers/package*.json ./packages/wrappers/
-COPY packages/addon/package*.json ./packages/addon/
+COPY packages/server/package*.json ./packages/server/
+COPY packages/core/package*.json ./packages/core/
 COPY packages/frontend/package*.json ./packages/frontend/
-COPY packages/utils/package*.json ./packages/utils/
 
 # Install dependencies.
 RUN npm install
@@ -21,13 +17,12 @@ RUN npm install
 # Copy source files.
 COPY tsconfig.*json ./
 
-COPY packages/addon ./packages/addon
-COPY packages/formatters ./packages/formatters
-COPY packages/parser ./packages/parser
-COPY packages/types ./packages/types
-COPY packages/wrappers ./packages/wrappers
+COPY packages/server ./packages/server
+COPY packages/core ./packages/core
 COPY packages/frontend ./packages/frontend
-COPY packages/utils ./packages/utils
+COPY scripts ./scripts
+COPY resources ./resources
+
 
 # Build the project.
 RUN npm run build
@@ -43,25 +38,18 @@ WORKDIR /app
 # The package.json files must be copied as well for NPM workspace symlinks between local packages to work.
 COPY --from=builder /build/package*.json /build/LICENSE ./
 
-COPY --from=builder /build/packages/addon/package.*json ./packages/addon/
+COPY --from=builder /build/packages/core/package.*json ./packages/core/
 COPY --from=builder /build/packages/frontend/package.*json ./packages/frontend/
-COPY --from=builder /build/packages/formatters/package.*json ./packages/formatters/
-COPY --from=builder /build/packages/parser/package.*json ./packages/parser/
-COPY --from=builder /build/packages/types/package.*json ./packages/types/
-COPY --from=builder /build/packages/wrappers/package.*json ./packages/wrappers/
-COPY --from=builder /build/packages/utils/package.*json ./packages/utils/
+COPY --from=builder /build/packages/server/package.*json ./packages/server/
 
-
-COPY --from=builder /build/packages/addon/dist ./packages/addon/dist
+COPY --from=builder /build/packages/core/out ./packages/core/out
 COPY --from=builder /build/packages/frontend/out ./packages/frontend/out
-COPY --from=builder /build/packages/formatters/dist ./packages/formatters/dist
-COPY --from=builder /build/packages/parser/dist ./packages/parser/dist
-COPY --from=builder /build/packages/types/dist ./packages/types/dist
-COPY --from=builder /build/packages/wrappers/dist ./packages/wrappers/dist
-COPY --from=builder /build/packages/utils/dist ./packages/utils/dist
+COPY --from=builder /build/packages/server/dist ./packages/server/dist
+
+COPY --from=builder /build/resources ./resources
 
 COPY --from=builder /build/node_modules ./node_modules
 
 EXPOSE 3000
 
-ENTRYPOINT ["npm", "run", "start:addon"]
+ENTRYPOINT ["npm", "run", "start"]
