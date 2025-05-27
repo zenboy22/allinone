@@ -675,6 +675,10 @@ export const Env = cleanEnv(process.env, {
     default: 'https://easynews-cloudflare-worker.jqrw92fchz.workers.dev/',
     desc: 'Easynews++ URL',
   }),
+  EASYNEWS_PLUS_PLUS_PUBLIC_URL: url({
+    default: undefined,
+    desc: 'Easynews++ public URL',
+  }),
   DEFAULT_EASYNEWS_PLUS_PLUS_TIMEOUT: num({
     default: undefined,
     desc: 'Default Easynews++ timeout',
