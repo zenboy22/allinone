@@ -40,7 +40,7 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
           <TextInput
             label={name}
             value={value || undefined}
-            onChange={(e) => onChange(e.target.value)}
+            onValueChange={(value: string) => onChange(value)}
             required={required}
             minLength={constraints?.min}
             maxLength={constraints?.max}
@@ -55,9 +55,11 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
       return (
         <div>
           <NumberInput
-            value={parseInt(value)}
+            value={value}
             label={name}
-            onChange={(v) => onChange(v)}
+            onValueChange={(value: number, valueAsString: string) =>
+              onChange(value)
+            }
             required={required}
             min={constraints?.min}
             max={constraints?.max}
