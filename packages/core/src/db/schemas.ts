@@ -113,12 +113,8 @@ const AddonSchema = z.object({
 // preset objects are transformed into addons by a preset transformer.
 const PresetSchema = z.object({
   id: z.string().min(1),
-  name: z.string().min(1),
-  enabled: z.boolean().optional(),
-  baseUrl: z.string().url().optional(),
-  timeout: z.number().min(1).optional(),
-  resources: ResourceList.optional(),
-  options: z.record(z.string().min(1), z.any()).optional(),
+  enabled: z.boolean(),
+  options: z.record(z.string().min(1), z.any()),
 });
 
 const AddonList = z.array(AddonSchema);
@@ -156,7 +152,14 @@ const OptionDefinition = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
-  type: z.enum(['string', 'number', 'boolean', 'select', 'multi-select']),
+  type: z.enum([
+    'string',
+    'number',
+    'boolean',
+    'select',
+    'multi-select',
+    'url',
+  ]),
   required: z.boolean().optional(),
   default: z.any().optional(),
   sensitive: z.boolean().optional(),
@@ -170,9 +173,8 @@ const OptionDefinition = z.object({
     .optional(),
   constraints: z
     .object({
-      min: z.number().min(1).optional(),
-      max: z.number().min(1).optional(),
-      enum: z.array(z.any()).optional(),
+      min: z.number().min(1).optional(), // for string inputs, consider this the minimum length.
+      max: z.number().min(1).optional(), // and for number inputs, consider this the minimum and maximum value.
     })
     .optional(),
 });
@@ -250,8 +252,7 @@ export const UserDataSchema = z.object({
   precacheNextEpisode: z.boolean().optional(),
   hideZeroSeederResults: z.boolean().optional(),
   services: ServiceList.optional(),
-  addons: AddonList,
-  presets: PresetList.optional(),
+  presets: PresetList,
 });
 
 export type UserData = z.infer<typeof UserDataSchema>;
@@ -259,9 +260,9 @@ export type UserData = z.infer<typeof UserDataSchema>;
 export const TABLES = {
   USERS: `
       uuid TEXT PRIMARY KEY,
-      config TEXT NOT NULL,
       password_hash TEXT NOT NULL,
-      password_salt TEXT NOT NULL,
+      config TEXT NOT NULL,
+      config_salt TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -543,18 +544,21 @@ const PresetMetadataSchema = z.object({
   USER_AGENT: z.string(),
   SUPPORTED_SERVICES: z.array(z.string()),
   OPTIONS: z.array(OptionDefinition),
-  TAGS: z.array(z.string()),
-  RESOURCES: z.array(ResourceSchema),
-  REQUIRES_SERVICE: z.boolean(),
+  SUPPORTED_STREAM_TYPES: z.array(StreamTypes),
+  SUPPORTED_RESOURCES: z.array(ResourceSchema),
 });
 
 const StatusResponseSchema = z.object({
   version: z.string(),
+  tag: z.string(),
   commit: z.string(),
   buildTime: z.string(),
   commitTime: z.string(),
   users: z.number(),
   settings: z.object({
+    baseUrl: z.string().url().optional(),
+    addonName: z.string(),
+    customHtml: z.string().optional(),
     disabledAddons: z.array(z.string()),
     disabledServices: z.array(z.string()),
     forced: z.object({
@@ -578,6 +582,7 @@ const StatusResponseSchema = z.object({
         proxiedAddons: z.array(z.string()).or(z.null()),
         proxiedServices: z.array(z.string()).or(z.null()),
       }),
+      timeout: z.number().or(z.null()),
       preferredRegex: z.array(z.string()),
       requiredRegex: z.array(z.string()),
       excludedRegex: z.array(z.string()),

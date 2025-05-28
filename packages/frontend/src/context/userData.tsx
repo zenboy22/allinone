@@ -2,7 +2,7 @@ import React from 'react';
 import { UserData } from '@aiostreams/core';
 
 const DefaultUserData: UserData = {
-  addons: [],
+  presets: [],
   formatter: {
     id: 'gdrive',
   },
@@ -10,11 +10,15 @@ const DefaultUserData: UserData = {
 
 interface UserDataContextType {
   userData: UserData;
-  setUserData: (data: UserData | null) => void;
+  setUserData: (
+    data: UserData | null | ((prev: UserData) => UserData | null)
+  ) => void;
   uuid: string | null;
   setUuid: (uuid: string | null) => void;
   password: string | null;
   setPassword: (password: string | null) => void;
+  encryptedPassword: string | null;
+  setEncryptedPassword: (encryptedPassword: string | null) => void;
 }
 
 const UserDataContext = React.createContext<UserDataContextType | undefined>(
@@ -25,9 +29,19 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = React.useState<UserData>(DefaultUserData);
   const [uuid, setUuid] = React.useState<string | null>(null);
   const [password, setPassword] = React.useState<string | null>(null);
+  const [encryptedPassword, setEncryptedPassword] = React.useState<
+    string | null
+  >(null);
 
-  const safeSetUserData = (data: UserData | null) => {
-    if (data === null) {
+  const safeSetUserData = (
+    data: UserData | null | ((prev: UserData) => UserData | null)
+  ) => {
+    if (typeof data === 'function') {
+      setUserData((prev) => {
+        const result = (data as (prev: UserData) => UserData | null)(prev);
+        return result === null ? DefaultUserData : result;
+      });
+    } else if (data === null) {
       setUserData(DefaultUserData);
     } else {
       setUserData(data);
@@ -43,6 +57,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
         setUuid,
         password,
         setPassword,
+        encryptedPassword,
+        setEncryptedPassword,
       }}
     >
       {children}

@@ -496,12 +496,6 @@ const OPTION_TYPES = [
   MULTI_SELECT_OPTION_TYPE,
 ] as const;
 
-const P2P_TAG = 'p2p';
-const DIRECT_TAG = 'direct';
-const DEBRID_TAG = 'debrid';
-const USENET_TAG = 'usenet';
-const PRESET_TAGS = [P2P_TAG, DIRECT_TAG, DEBRID_TAG, USENET_TAG] as const;
-
 export const DEDUPLICATOR_KEYS = ['filename', 'infoHash'] as const;
 
 const RESOLUTIONS = [
@@ -588,15 +582,25 @@ const SORT_CRITERIA = [
 ] as const;
 const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 
+export const P2P_STREAM_TYPE = 'p2p' as const;
+export const LIVE_STREAM_TYPE = 'live' as const;
+export const USENET_STREAM_TYPE = 'usenet' as const;
+export const DEBRID_STREAM_TYPE = 'debrid' as const;
+export const HTTP_STREAM_TYPE = 'http' as const;
+export const EXTERNAL_STREAM_TYPE = 'external' as const;
+export const YOUTUBE_STREAM_TYPE = 'youtube' as const;
+
 const STREAM_TYPES = [
-  'p2p',
-  'live',
-  'usenet',
-  'debrid',
-  'http',
-  'external',
-  'youtube',
+  P2P_STREAM_TYPE,
+  LIVE_STREAM_TYPE,
+  USENET_STREAM_TYPE,
+  DEBRID_STREAM_TYPE,
+  HTTP_STREAM_TYPE,
+  EXTERNAL_STREAM_TYPE,
+  YOUTUBE_STREAM_TYPE,
 ] as const;
+
+export type StreamType = (typeof STREAM_TYPES)[number];
 
 const STREAM_RESOURCE = 'stream' as const;
 const SUBTITLES_RESOURCE = 'subtitles' as const;
@@ -808,7 +812,6 @@ export {
   LANGUAGES,
   RESOURCES,
   OPTION_TYPES,
-  PRESET_TAGS,
   STREAM_RESOURCE,
   SUBTITLES_RESOURCE,
   CATALOG_RESOURCE,
@@ -830,9 +833,5 @@ export {
   BOOLEAN_OPTION_TYPE,
   SELECT_OPTION_TYPE,
   MULTI_SELECT_OPTION_TYPE,
-  P2P_TAG,
-  DIRECT_TAG,
-  DEBRID_TAG,
-  USENET_TAG,
   HEADERS_FOR_IP_FORWARDING,
 };

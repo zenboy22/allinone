@@ -18,7 +18,12 @@ import {
   corsMiddleware,
 } from './middlewares';
 
-import { constants, createLogger } from '@aiostreams/core';
+import {
+  constants,
+  createErrorStream,
+  createLogger,
+  Env,
+} from '@aiostreams/core';
 import { createResponse } from './utils/responses';
 import path from 'path';
 const app = express();
@@ -65,6 +70,29 @@ app.get(
     res.sendFile(path.join(__dirname, '../../frontend/out', req.path));
   }
 );
+
+app.get('/', (req, res) => {
+  res.redirect('/stremio/configure');
+});
+
+// legacy route handler
+app.get('/:config?/stream/:type/:id.json', (req, res) => {
+  const baseUrl =
+    Env.BASE_URL ||
+    `${req.protocol}://${req.hostname}${
+      req.hostname === 'localhost' ? `:${Env.PORT}` : ''
+    }`;
+  res.json({
+    streams: [
+      createErrorStream({
+        name: '[❌] AIOStreams',
+        description:
+          'AIOStreams v2 requires you to reconfigure. Please click this stream to reconfigure.',
+        externalUrl: `${baseUrl}/stremio/configure`,
+      }),
+    ],
+  });
+});
 
 // 404 handler
 app.use((req, res) => {

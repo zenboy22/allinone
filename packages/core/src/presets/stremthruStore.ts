@@ -1,11 +1,11 @@
 import { Addon, Option, UserData, Resource } from '../db';
-import { Preset } from './preset';
+import { baseOptions, Preset } from './preset';
 import { Env } from '../utils';
 import { constants, ServiceId } from '../utils';
 
 export class StremthruStorePreset extends Preset {
   static override get METADATA() {
-    const supportedServices = [
+    const supportedServices: ServiceId[] = [
       constants.REALDEBRID_SERVICE,
       constants.PREMIUMIZE_SERVICE,
       constants.ALLEDEBRID_SERVICE,
@@ -15,30 +15,43 @@ export class StremthruStorePreset extends Preset {
       constants.OFFCLOUD_SERVICE,
     ];
 
+    const supportedResources = [
+      constants.STREAM_RESOURCE,
+      constants.CATALOG_RESOURCE,
+      constants.META_RESOURCE,
+    ];
+
     const options: Option[] = [
+      ...baseOptions(
+        'Stremthru Store',
+        supportedResources,
+        Env.DEFAULT_STREMTHRU_STORE_TIMEOUT
+      ),
       {
         id: 'services',
         name: 'Services',
-        description: 'The services to use',
+        description: 'The services that will be used',
         type: 'multi-select',
         required: true,
         options: supportedServices.map((service) => ({
           value: service,
-          label: service,
+          label: constants.SERVICE_DETAILS[service].name,
         })),
+        default: supportedServices,
       },
-      {
-        id: 'hideCatalog',
-        name: 'Hide Catalog',
-        description: 'Hide the catalog',
-        type: 'boolean',
-      },
-      {
-        id: 'hideStream',
-        name: 'Hide Stream',
-        description: 'Hide the stream',
-        type: 'boolean',
-      },
+      // THESE OPTIONS are covered by the resource option, so no need to provide them here.
+      // {
+      //   id: 'hideCatalog',
+      //   name: 'Hide Catalog',
+      //   description: 'Hide the catalog',
+      //   type: 'boolean',
+      // },
+      // {
+      //   id: 'hideStream',
+      //   name: 'Hide Stream',
+      //   description: 'Hide the stream',
+      //   type: 'boolean',
+      // },
       {
         id: 'webDl',
         name: 'Web DL',
@@ -49,46 +62,29 @@ export class StremthruStorePreset extends Preset {
 
     return {
       ID: 'stremthruStore',
-      NAME: 'Stremthru Store',
+      NAME: 'StremThru Store',
       LOGO: 'https://emojiapi.dev/api/v1/sparkles/256.png',
       URL: Env.STREMTHRU_STORE_URL,
       TIMEOUT: Env.DEFAULT_STREMTHRU_STORE_TIMEOUT || Env.DEFAULT_TIMEOUT,
       USER_AGENT:
         Env.DEFAULT_STREMTHRU_STORE_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: supportedServices,
-      REQUIRES_SERVICE: true,
-      DESCRIPTION: 'Stremthru Store preset',
+      DESCRIPTION:
+        'StremThru Store allows you to access streams from your debrid library, either through its own catalogs, or through streams for other catalogs.',
       OPTIONS: options,
-      TAGS: [constants.P2P_TAG, constants.DEBRID_TAG],
-      RESOURCES: [
-        constants.STREAM_RESOURCE,
-        constants.CATALOG_RESOURCE,
-        constants.META_RESOURCE,
-      ],
+      SUPPORTED_STREAM_TYPES: [constants.DEBRID_STREAM_TYPE],
+      SUPPORTED_RESOURCES: supportedResources,
     };
   }
 
   static async generateAddons(
     userData: UserData,
-    options?: Record<string, any>,
-    baseUrl?: string,
-    name?: string,
-    timeout?: number,
-    resources?: Resource[]
+    options: Record<string, any>
   ): Promise<Addon[]> {
-    // baseUrl can either be something like https://torrentio.com/ or it can be a custom manifest url.
+    // url can either be something like https://torrentio.com/ or it can be a custom manifest url.
     // if it is a custom manifest url, return a single addon with the custom manifest url.
-    if (baseUrl?.endsWith('/manifest.json')) {
-      return [
-        this.generateAddon(
-          userData,
-          undefined,
-          baseUrl,
-          timeout,
-          name,
-          resources
-        ),
-      ];
+    if (options?.url?.endsWith('/manifest.json')) {
+      return [this.generateAddon(userData, options, undefined)];
     }
 
     // get all services that are supported by the preset and enabled
@@ -110,44 +106,21 @@ export class StremthruStorePreset extends Preset {
     }
 
     return usableServices.map((service) =>
-      this.generateAddon(
-        userData,
-        service.id,
-        baseUrl,
-        timeout,
-        name,
-        resources,
-        options?.hideCatalog,
-        options?.hideStream,
-        options?.webDl
-      )
+      this.generateAddon(userData, options, service.id)
     );
   }
 
   private static generateAddon(
     userData: UserData,
-    serviceId: ServiceId | undefined,
-    baseUrl?: string,
-    timeout?: number,
-    name?: string,
-    resources?: Resource[],
-    hideCatalog?: boolean,
-    hideStream?: boolean,
-    webDl?: boolean
+    options: Record<string, any>,
+    serviceId?: ServiceId
   ): Addon {
     return {
-      name: name || this.METADATA.NAME,
-      manifestUrl: this.generateManifestUrl(
-        userData,
-        serviceId,
-        baseUrl,
-        hideCatalog,
-        hideStream,
-        webDl
-      ),
+      name: options.name || this.METADATA.NAME,
+      manifestUrl: this.generateManifestUrl(userData, options, serviceId),
       enabled: true,
-      resources: resources || this.METADATA.RESOURCES,
-      timeout: timeout || this.METADATA.TIMEOUT,
+      resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
+      timeout: options.timeout || this.METADATA.TIMEOUT,
       fromPresetId: this.METADATA.ID,
       headers: {
         'User-Agent': this.METADATA.USER_AGENT,
@@ -157,25 +130,23 @@ export class StremthruStorePreset extends Preset {
 
   private static generateManifestUrl(
     userData: UserData,
-    serviceId: ServiceId | undefined,
-    baseUrl?: string,
-    hideCatalog: boolean = false,
-    hideStream: boolean = false,
-    webDl: boolean = false
+    options: Record<string, any>,
+    serviceId: ServiceId | undefined
   ) {
-    const url = baseUrl || this.METADATA.URL;
+    let url = options.url || this.METADATA.URL;
     if (url.endsWith('/manifest.json')) {
       return url;
     }
+    url = url.replace(/\/$/, '');
     if (!serviceId) {
       throw new Error('Service is required');
     }
     const configString = this.base64EncodeJSON({
       store_name: serviceId,
       store_token: this.getServiceCredential(serviceId, userData),
-      hide_catalog: hideCatalog,
-      hide_stream: hideStream,
-      web_dl: webDl,
+      hide_catalog: false,
+      hide_stream: false,
+      web_dl: options.webDl ?? false,
     });
 
     return `${url}${configString ? '/' + configString : ''}/manifest.json`;

@@ -2,17 +2,20 @@
 
 import React, { createContext, useContext, useState } from 'react';
 
-export type MenuId =
-  | 'services'
-  | 'addons'
-  | 'filters'
-  | 'sorting'
-  | 'miscellaneous'
-  | 'save-install'
-  | 'about'
-  | 'formatter'
-  | 'load-config'
-  | 'unload-config';
+export const VALID_MENUS = [
+  'services',
+  'addons',
+  'filters',
+  'sorting',
+  'miscellaneous',
+  'save-install',
+  'about',
+  'formatter',
+  'load-config',
+  'unload-config',
+];
+
+export type MenuId = (typeof VALID_MENUS)[number];
 
 type MenuContextType = {
   selectedMenu: MenuId;

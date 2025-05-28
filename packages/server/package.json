@@ -1,6 +1,6 @@
 {
   "name": "@aiostreams/server",
-  "version": "2.0.0",
+  "version": "0.0.0",
   "main": "dist/server.js",
   "scripts": {
     "test": "vitest run --passWithNoTests",
@@ -10,7 +10,7 @@
   },
   "description": "Combine all your streams into one addon and display them with consistent formatting, sorting, and filtering.",
   "dependencies": {
-    "@aiostreams/core": "^2.0.0",
+    "@aiostreams/core": "^0.0.0",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0"
   },

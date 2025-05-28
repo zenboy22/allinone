@@ -21,15 +21,18 @@ import { toast } from 'sonner';
 
 const formatterChoices = Object.values(constants.FORMATTER_DETAILS);
 
-// Simple debounce utility
-function debounce<T extends (...args: any[]) => any>(
+// Simple throttle utility
+let lastCall = 0;
+function throttle<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
+    const now = Date.now();
+    if (now - lastCall >= wait) {
+      lastCall = now;
+      func(...args);
+    }
   };
 }
 
@@ -183,19 +186,31 @@ function Content() {
       };
       let data;
       if (selectedFormatter === constants.CUSTOM_FORMATTER) {
-        data = (
-          await UserConfigAPI.formatStream(stream, selectedFormatter, {
+        const res = await UserConfigAPI.formatStream(
+          stream,
+          selectedFormatter,
+          {
             name: customName,
             description: customDescription,
-          })
-        ).data;
+          }
+        );
+        if (!res.success) {
+          toast.error(res.error || 'Failed to format stream');
+          return;
+        }
+        data = res.data;
       } else {
-        data = (await UserConfigAPI.formatStream(stream, selectedFormatter))
-          .data;
+        const res = await UserConfigAPI.formatStream(stream, selectedFormatter);
+        if (!res.success) {
+          toast.error(res.error || 'Failed to format stream');
+          return;
+        }
+        data = res.data;
       }
       setFormattedStream(data ?? null);
     } catch (error) {
       console.error('Error formatting stream:', error);
+      toast.error('Failed to format stream');
     } finally {
       setIsFormatting(false);
     }
@@ -220,14 +235,14 @@ function Content() {
     regexMatched,
   ]);
 
-  // Debounced format function
-  const debouncedFormat = useCallback(debounce(formatStream, 200), [
+  // Throttled format function
+  const throttledFormat = useCallback(throttle(formatStream, 200), [
     formatStream,
   ]);
 
   // Call format whenever relevant values change
   useEffect(() => {
-    debouncedFormat();
+    throttledFormat();
   }, [
     filename,
     folder,

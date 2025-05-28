@@ -1,5 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { createLogger, APIError, constants, Env } from '@aiostreams/core';
+import {
+  createLogger,
+  APIError,
+  constants,
+  Env,
+  decryptString,
+} from '@aiostreams/core';
 import { UserDataSchema, UserRepository } from '@aiostreams/core';
 
 const logger = createLogger('server');
@@ -47,10 +53,21 @@ export const userDataMiddleware = async (
       return;
     }
 
+    let password = undefined;
+
+    // decrypt the encrypted password
+    const { success: successfulDecryption, data: decryptedPassword } =
+      decryptString(encryptedPassword!);
+    if (!successfulDecryption) {
+      // return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+      next(new APIError(constants.ErrorCode.USER_ERROR));
+      return;
+    }
+
     // Get and validate user data
     const decryptedConfig = await UserRepository.getUser(
       uuid,
-      encryptedPassword
+      decryptedPassword
     );
     if (!decryptedConfig) {
       next(new APIError(constants.ErrorCode.USER_INVALID_PASSWORD));

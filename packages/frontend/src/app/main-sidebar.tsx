@@ -5,7 +5,7 @@ import { AppSidebar, useAppSidebarContext } from '@/components/ui/app-layout';
 import { cn } from '@/components/ui/core/styling';
 import { VerticalMenu, VerticalMenuItem } from '@/components/ui/vertical-menu';
 import { useStatus } from '@/context/status';
-import { useMenu, MenuId } from '@/context/menu';
+import { useMenu, MenuId, VALID_MENUS } from '@/context/menu';
 import { useUserData } from '@/context/userData';
 import { ConfigModal } from '@/components/config-modal';
 import {
@@ -31,6 +31,7 @@ import {
 } from '@/components/shared/confirmation-dialog';
 import { Modal } from '@/components/ui/modal';
 import { TextInput } from '@/components/ui/text-input';
+import { toast } from 'sonner';
 
 type MenuItem = VerticalMenuItem & {
   id: MenuId;
@@ -56,6 +57,12 @@ export function MainSidebar() {
       setInitialUuid(extractedUuid);
       signInModal.open();
     }
+    // check for menu query param
+    const params = new URLSearchParams(window.location.search);
+    const menu = params.get('menu');
+    if (menu && VALID_MENUS.includes(menu)) {
+      setSelectedMenu(menu);
+    }
   }, [pathname]);
 
   const { status, error, loading } = useStatus();
@@ -66,6 +73,7 @@ export function MainSidebar() {
     onConfirm: () => {
       user.setUserData(null);
       user.setUuid(null);
+      user.setPassword(null);
     },
   });
 
@@ -194,7 +202,11 @@ export function MainSidebar() {
           <div className="mb-4 p-4 pb-0 flex flex-col items-center w-full">
             <img src="/logo.png" alt="logo" className="w-22.5 h-15" />
             <span className="text-xs text-gray-500">
-              {status ? `v${status.version}` : ''}
+              {status
+                ? status.tag.includes('nightly')
+                  ? 'nightly'
+                  : status.tag
+                : ''}
             </span>
           </div>
           <VerticalMenu
@@ -235,6 +247,7 @@ export function MainSidebar() {
         open={signInModal.isOpen}
         onSuccess={() => {
           signInModal.close();
+          toast.success('Signed in successfully');
         }}
         onOpenChange={(v) => {
           if (!v) {

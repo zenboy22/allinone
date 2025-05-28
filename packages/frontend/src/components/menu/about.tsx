@@ -1,5 +1,28 @@
 'use client';
 import { PageWrapper } from '../shared/page-wrapper';
+import { useStatus } from '@/context/status';
+import { SettingsCard } from '../shared/settings-card';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  InfoIcon,
+  GithubIcon,
+  BookOpenIcon,
+  HeartIcon,
+  CoffeeIcon,
+  MessageCircleIcon,
+} from 'lucide-react';
+import { FaGithub, FaDiscord } from 'react-icons/fa';
+import { BiDonateHeart } from 'react-icons/bi';
+import { AiOutlineDiscord } from 'react-icons/ai';
+import { FiGithub } from 'react-icons/fi';
+import Image from 'next/image';
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Skeleton } from '@/components/ui/skeleton/skeleton';
+import { useDisclosure } from '@/hooks/disclosure';
+import { Modal } from '../ui/modal';
+import { SiGithubsponsors, SiKofi } from 'react-icons/si';
 
 export function AboutMenu() {
   return (
@@ -12,17 +35,282 @@ export function AboutMenu() {
 }
 
 function Content() {
+  const { status, loading, error } = useStatus();
+  const addonName = status?.settings?.addonName || 'AIOStreams';
+  const version = status?.tag || 'Unknown';
+  const logo = '/logo.png';
+  const githubUrl = 'https://github.com/Viren070/AIOStreams';
+  const releasesUrl = 'https://github.com/Viren070/AIOStreams/releases';
+  const stremioGuideUrl =
+    'https://github.com/Viren070/AIOStreams/wiki/Stremio-Guide';
+  const configGuideUrl =
+    'https://github.com/Viren070/AIOStreams/wiki/Configuration-Guide';
+  const discordUrl = 'https://discord.viren070.me';
+  const donationModal = useDisclosure(false);
+  const customHtml = status?.settings?.customHtml;
+  // For demo, fallback description/tutorial
+
   return (
     <>
-      <div className="flex items-center w-full">
-        <div>
-          <h2>About</h2>
-          <p className="text-[--muted]">
-            Information about AIOStreams and its features.
+      <div className="flex flex-col gap-4 w-full">
+        {/* Top section: Responsive logo/name/about layout */}
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start w-full">
+          {/* Large logo left */}
+          <div className="flex-shrink-0 flex justify-center md:justify-start w-full md:w-auto">
+            <Image
+              src={logo}
+              alt="Logo"
+              width={140}
+              height={112}
+              className="rounded-lg shadow-lg"
+            />
+          </div>
+          {/* Name, version, about right */}
+          <div className="flex flex-col gap-2 w-full">
+            <div className="flex flex-col md:flex-row md:items-end md:gap-4">
+              <span className="text-3xl md:text-4xl font-bold tracking-tight text-gray-100">
+                {addonName}
+              </span>
+              <span className="text-xl md:text-2xl font-semibold text-gray-400 md:mb-1">
+                {version}{' '}
+                {version.includes('nightly') ? `(${status?.commit})` : ''}
+              </span>
+            </div>
+            <div className="text-base md:text-lg text-[--muted] font-medium mb-2">
+              AIOStreams consolidates multiple Stremio addons and debrid
+              services into a single, easily configurable addon. It allows
+              highly customisable filtering, sorting, and formatting of results
+              and supports proxying all your streams through MediaFlow Proxy or
+              StremThru for improved compatibility and IP restriction bypassing.
+            </div>
+          </div>
+        </div>
+        {/* Custom HTML section, styled like a card, only if present */}
+        {customHtml && (
+          <div className="rounded-[--radius] border border-gray-800 bg-gray-900 p-4 my-2">
+            <div
+              className="prose prose-invert max-w-none [&_a]:text-[--brand] [&_a]:hover:underline"
+              dangerouslySetInnerHTML={{ __html: customHtml }}
+            />
+          </div>
+        )}
+
+        {/* Main content: Quick Start & Guides and Changelog */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 h-full min-h-[220px]">
+          <SettingsCard
+            title="Quick Start & Guides"
+            description="How to use AIOStreams and helpful links"
+          >
+            <div className="space-y-2">
+              <div className="text-base text-muted-foreground">
+                <b>Welcome to AIOStreams!</b> <br />
+                <br />
+                <span>
+                  To get started, use the sidebar to configure each section to
+                  your preferences. When you're ready, visit the Install menu to
+                  create your personal configuration, protected by a password.
+                  You can then install the addon in Stremio or compatible apps.
+                  <br />
+                  <br />
+                  If you ever want to update your settings, simply log in with
+                  your UUID and password. For more details and tips, check out
+                  the guides below.
+                </span>
+              </div>
+              <ul className="list-disc list-inside text-sm mt-2 space-y-1">
+                <li>
+                  <a
+                    href={stremioGuideUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[--brand] hover:underline"
+                  >
+                    Stremio Guide
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={configGuideUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[--brand] hover:underline"
+                  >
+                    Configuration Guide
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[--brand] hover:underline"
+                  >
+                    GitHub Repository
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </SettingsCard>
+          <ChangelogBox version={version} />
+        </div>
+
+        {/* Social & donation row */}
+        <div className="flex flex-col items-center mt-4">
+          <div className="flex gap-6 flex-wrap items-center justify-center">
+            <a
+              href={discordUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Join Discord"
+              className="text-gray-400 hover:text-[--brand] transition-colors"
+            >
+              <AiOutlineDiscord className="w-7 h-7" />
+            </a>
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="GitHub"
+              className="text-gray-400 hover:text-[--brand] transition-colors"
+            >
+              <FiGithub className="w-7 h-7" />
+            </a>
+            <a
+              onClick={donationModal.open}
+              title="Support me"
+              className="text-gray-400 hover:text-[--brand] cursor-pointer transition-colors"
+            >
+              <CoffeeIcon className="w-7 h-7" />
+            </a>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 mt-4 text-xs text-gray-500">
+            <span>Developed by Viren070.</span>
+            <span>
+              This beautiful UI would not be possible without{' '}
+              <a
+                href="https://seanime.rahim.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[--brand] hover:underline"
+              >
+                Seanime
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+      <DonationModal
+        open={donationModal.isOpen}
+        onOpenChange={donationModal.toggle}
+      />
+    </>
+  );
+}
+
+function ChangelogBox({ version }: { version: string }) {
+  const [loading, setLoading] = React.useState(true);
+  const [markdown, setMarkdown] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!version || version === 'Unknown') {
+      setError('No version available.');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setMarkdown(null);
+    fetch(
+      `https://api.github.com/repos/viren070/aiostreams/releases/tags/${version}`
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch changelog');
+        return res.json();
+      })
+      .then((data) => {
+        if (!data.body) setError('No changelog found for this version.');
+        setMarkdown(data.body);
+      })
+      .catch((err) => {
+        setError('Failed to load changelog.');
+      })
+      .finally(() => setLoading(false));
+  }, [version]);
+
+  return (
+    <SettingsCard
+      title="What's New"
+      description="View the latest changes for this version"
+      className="h-full flex flex-col"
+    >
+      {loading ? (
+        <div className="flex-1 flex flex-col w-full h-full gap-6">
+          <Skeleton className="h-12 w-full flex-shrink-0" />
+          <Skeleton className="flex-1 w-full" />
+          <Skeleton className="h-12 w-full flex-shrink-0" />
+        </div>
+      ) : error ? (
+        <div className="text-xs text-muted-foreground">{error}</div>
+      ) : markdown ? (
+        <div className="prose prose-invert max-w-none text-xs">
+          <ReactMarkdown>{markdown}</ReactMarkdown>
+          <a
+            href={`https://github.com/Viren070/AIOStreams/releases/tag/${version}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[--brand] hover:underline flex items-center gap-2 mt-2"
+          >
+            <GithubIcon className="w-4 h-4" />
+            View on GitHub
+          </a>
+        </div>
+      ) : null}
+    </SettingsCard>
+  );
+}
+
+function DonationModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const githubSponsorsUrl = 'https://github.com/sponsors/Viren070';
+  const kofiUrl = 'https://ko-fi.com/Viren070';
+  return (
+    <Modal open={open} onOpenChange={onOpenChange} title="Support AIOStreams">
+      <div className="flex flex-col gap-5 items-center text-center p-2">
+        <div className="flex flex-col gap-2 items-center">
+          <span className="text-3xl">💖</span>
+          <h2 className="text-xl font-bold">Donate to Me</h2>
+          <p className="text-sm text-muted-foreground max-w-md">
+            AIOStreams is a solo project built and maintained by me in my free
+            time. If you find it useful, please consider supporting my work.
+            Your donation helps me keep the project alive and improve it for
+            everyone!
           </p>
         </div>
-        <div className="flex flex-1"></div>
+        <div className="flex flex-col gap-3 w-full mt-2">
+          <Button
+            intent="alert-subtle"
+            onClick={() => window.open(githubSponsorsUrl, '_blank')}
+            leftIcon={<SiGithubsponsors />}
+            className="w-full"
+          >
+            GitHub Sponsors
+          </Button>
+          <Button
+            intent="alert-subtle"
+            onClick={() => window.open(kofiUrl, '_blank')}
+            leftIcon={<SiKofi />}
+            className="w-full"
+          >
+            Ko-fi
+          </Button>
+        </div>
       </div>
-    </>
+    </Modal>
   );
 }

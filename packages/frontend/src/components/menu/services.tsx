@@ -1,6 +1,7 @@
 'use client';
+import { useStatus } from '@/context/status';
 import { PageWrapper } from '../shared/page-wrapper';
-
+import { SERVICE_DETAILS } from '@aiostreams/core';
 export function ServicesMenu() {
   return (
     <>
@@ -12,6 +13,8 @@ export function ServicesMenu() {
 }
 
 function Content() {
+  // const status = useStatus();
+
   return (
     <>
       <div className="flex items-center w-full">

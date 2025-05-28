@@ -3,7 +3,7 @@ import { constants } from '../utils';
 import FileParser from './file';
 
 class StreamParser {
-  constructor(private readonly addon: Addon) {}
+  constructor(protected readonly addon: Addon) {}
 
   parse(stream: Stream): ParsedStream {
     let parsedStream: ParsedStream = {
@@ -21,6 +21,7 @@ class StreamParser {
     parsedStream.service = this.getService(stream);
     parsedStream.duration = this.getDuration(stream);
     parsedStream.type = this.getStreamType(stream, parsedStream.service);
+    parsedStream.inLibrary = this.getInLibrary(stream);
 
     if (parsedStream.filename) {
       parsedStream.parsedFile = FileParser.parse(parsedStream.filename);
@@ -174,6 +175,10 @@ class StreamParser {
     }
 
     throw new Error('Invalid stream, missing a required stream property');
+  }
+
+  protected getInLibrary(stream: Stream): boolean {
+    return this.addon.library ?? false;
   }
 
   private normaliseFilename(filename: string): string {

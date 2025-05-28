@@ -1,0 +1,96 @@
+import { Addon, Option, UserData } from '../db';
+import { Preset, baseOptions } from './preset';
+import { Env, RESOURCES } from '../utils';
+
+export class CustomPreset extends Preset {
+  static override get METADATA() {
+    const options: Option[] = [
+      {
+        id: 'name',
+        name: 'Name',
+        description: 'What to call this addon',
+        type: 'string',
+        required: true,
+        default: 'Custom Addon',
+      },
+      {
+        id: 'manifestUrl',
+        name: 'Manifest URL',
+        description: 'Provide the Manifest URL for this custom addon.',
+        type: 'url',
+        required: true,
+      },
+      {
+        id: 'libraryAddon',
+        name: 'Library Addon',
+        description:
+          'Whether to mark this addon as a library addon. This will result in all streams from this addon being marked as library streams.',
+        type: 'boolean',
+        required: false,
+        default: false,
+      },
+      {
+        id: 'timeout',
+        name: 'Timeout',
+        description: 'The timeout for this addon',
+        type: 'number',
+        default: Env.DEFAULT_TIMEOUT,
+      },
+      {
+        id: 'resources',
+        name: 'Resources',
+        description:
+          'Optionally override the resources that are fetched from this addon ',
+        type: 'multi-select',
+        required: false,
+        default: undefined,
+        options: RESOURCES.map((resource) => ({
+          label: resource,
+          value: resource,
+        })),
+      },
+    ];
+
+    return {
+      ID: 'custom',
+      NAME: 'Custom',
+      LOGO: '',
+      URL: '',
+      TIMEOUT: Env.DEFAULT_TIMEOUT,
+      USER_AGENT: Env.DEFAULT_USER_AGENT,
+      SUPPORTED_SERVICES: [],
+      DESCRIPTION: 'Custom preset',
+      OPTIONS: options,
+      SUPPORTED_STREAM_TYPES: [],
+      SUPPORTED_RESOURCES: [],
+    };
+  }
+
+  static async generateAddons(
+    userData: UserData,
+    options: Record<string, any>
+  ): Promise<Addon[]> {
+    if (!options.url || !options.url.endsWith('/manifest.json')) {
+      throw new Error('Invalid manifest URL');
+    }
+    return [this.generateAddon(userData, options)];
+  }
+
+  private static generateAddon(
+    userData: UserData,
+    options: Record<string, any>
+  ): Addon {
+    return {
+      name: options.name || this.METADATA.NAME,
+      manifestUrl: options.url,
+      enabled: true,
+      library: options.libraryAddon ?? false,
+      resources: options.resources || [],
+      timeout: options.timeout || this.METADATA.TIMEOUT,
+      fromPresetId: this.METADATA.ID,
+      headers: {
+        'User-Agent': this.METADATA.USER_AGENT,
+      },
+    };
+  }
+}

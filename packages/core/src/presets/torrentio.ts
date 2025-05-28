@@ -1,6 +1,6 @@
 import { Addon, Option, UserData, Resource, Stream } from '../db';
-import { Preset } from './preset';
-import { Env } from '../utils';
+import { Preset, baseOptions } from './preset';
+import { Env, SERVICE_DETAILS } from '../utils';
 import { constants, ServiceId } from '../utils';
 import { StreamParser } from '../parser';
 
@@ -21,7 +21,7 @@ export class TorrentioPreset extends Preset {
   }
 
   static override get METADATA() {
-    const supportedServices = [
+    const supportedServices: ServiceId[] = [
       constants.REALDEBRID_SERVICE,
       constants.PREMIUMIZE_SERVICE,
       constants.ALLEDEBRID_SERVICE,
@@ -30,8 +30,18 @@ export class TorrentioPreset extends Preset {
       constants.PUTIO_SERVICE,
       constants.OFFCLOUD_SERVICE,
     ];
+    const supportedResources = [
+      constants.STREAM_RESOURCE,
+      constants.CATALOG_RESOURCE,
+      constants.META_RESOURCE,
+    ];
 
     const options: Option[] = [
+      ...baseOptions(
+        'Torrentio',
+        supportedResources,
+        Env.DEFAULT_TORRENTIO_TIMEOUT
+      ),
       {
         id: 'services',
         name: 'Services',
@@ -40,8 +50,9 @@ export class TorrentioPreset extends Preset {
         required: true,
         options: supportedServices.map((service) => ({
           value: service,
-          label: service,
+          label: constants.SERVICE_DETAILS[service].name,
         })),
+        default: supportedServices,
       },
       {
         id: 'useMultipleInstances',
@@ -65,8 +76,11 @@ export class TorrentioPreset extends Preset {
       REQUIRES_SERVICE: false,
       DESCRIPTION: 'Torrentio preset',
       OPTIONS: options,
-      TAGS: [constants.P2P_TAG, constants.DEBRID_TAG],
-      RESOURCES: [
+      SUPPORTED_STREAM_TYPES: [
+        constants.P2P_STREAM_TYPE,
+        constants.DEBRID_STREAM_TYPE,
+      ],
+      SUPPORTED_RESOURCES: [
         constants.STREAM_RESOURCE,
         constants.META_RESOURCE,
         constants.CATALOG_RESOURCE,
@@ -76,18 +90,12 @@ export class TorrentioPreset extends Preset {
 
   static async generateAddons(
     userData: UserData,
-    options?: Record<string, any>,
-    baseUrl?: string,
-    name?: string,
-    timeout?: number,
-    resources?: Resource[]
+    options: Record<string, any>
   ): Promise<Addon[]> {
     // baseUrl can either be something like https://torrentio.com/ or it can be a custom manifest url.
     // if it is a custom manifest url, return a single addon with the custom manifest url.
-    if (baseUrl?.endsWith('/manifest.json')) {
-      return [
-        this.generateAddon(userData, [], baseUrl, name, timeout, resources),
-      ];
+    if (options?.url?.endsWith('/manifest.json')) {
+      return [this.generateAddon(userData, options, [])];
     }
 
     // get all services that are supported by the preset and enabled
@@ -105,22 +113,13 @@ export class TorrentioPreset extends Preset {
 
     // if no services are usable, return a single addon with no services
     if (!usableServices || usableServices.length === 0) {
-      return [
-        this.generateAddon(userData, [], baseUrl, name, timeout, resources),
-      ];
+      return [this.generateAddon(userData, options, [])];
     }
 
     // if user has specified useMultipleInstances, return a single addon for each service
     if (options?.useMultipleInstances) {
       return usableServices.map((service) =>
-        this.generateAddon(
-          userData,
-          [service.id],
-          baseUrl,
-          name,
-          timeout,
-          resources
-        )
+        this.generateAddon(userData, options, [service.id])
       );
     }
 
@@ -128,28 +127,23 @@ export class TorrentioPreset extends Preset {
     return [
       this.generateAddon(
         userData,
-        usableServices.map((service) => service.id),
-        baseUrl,
-        name,
-        timeout
+        options,
+        usableServices.map((service) => service.id)
       ),
     ];
   }
 
   private static generateAddon(
     userData: UserData,
-    services: ServiceId[],
-    baseUrl?: string,
-    name?: string,
-    timeout?: number,
-    resources?: Resource[]
+    options: Record<string, any>,
+    services: ServiceId[]
   ): Addon {
     return {
-      name: name || this.METADATA.NAME,
-      manifestUrl: this.generateManifestUrl(userData, services, baseUrl),
+      name: options.name || this.METADATA.NAME,
+      manifestUrl: this.generateManifestUrl(userData, services, options.url),
       enabled: true,
-      resources: resources || this.METADATA.RESOURCES,
-      timeout: timeout || this.METADATA.TIMEOUT,
+      resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
+      timeout: options.timeout || this.METADATA.TIMEOUT,
       fromPresetId: this.METADATA.ID,
       headers: {
         'User-Agent': this.METADATA.USER_AGENT,
@@ -160,9 +154,9 @@ export class TorrentioPreset extends Preset {
   private static generateManifestUrl(
     userData: UserData,
     services: ServiceId[],
-    baseUrl?: string
+    url?: string
   ) {
-    const url = baseUrl || this.METADATA.URL;
+    url = url || this.METADATA.URL;
     if (url.endsWith('/manifest.json')) {
       return url;
     }

@@ -7,7 +7,10 @@ import {
   APIError,
 } from '@aiostreams/core';
 import * as constants from '@aiostreams/core';
+import { formatApiRateLimiter } from '../../middlewares/ratelimit';
 const router = Router();
+
+router.use(formatApiRateLimiter);
 
 const logger = createLogger('server');
 

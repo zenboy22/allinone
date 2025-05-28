@@ -26,6 +26,7 @@ export class AIOStreams {
   private finalCatalogs: Manifest['catalogs'] = [];
   private finalAddonCatalogs: Manifest['addonCatalogs'] = [];
   private isInitialised: boolean = false;
+  private addons: Addon[] = [];
 
   constructor(userData: UserData) {
     this.userData = userData;
@@ -310,29 +311,26 @@ export class AIOStreams {
     // step 4
     return addonCatalogs;
   }
-  // convers presets to addons
+  // converts all addons to
   private async applyPresets() {
     if (!this.userData.presets) {
       return;
     }
 
-    for (const preset of this.userData.presets) {
+    for (const preset of this.userData.presets.filter((p) => p.enabled)) {
       const addons = await PresetManager.fromId(preset.id).generateAddons(
         this.userData,
-        preset.options,
-        preset.baseUrl,
-        preset.name,
-        preset.timeout,
-        preset.resources
+        preset.options
       );
-      this.userData.addons.push(...addons);
+
+      this.addons.push(...addons);
     }
   }
 
   private async fetchManifests() {
     this.manifests = Object.fromEntries(
       await Promise.all(
-        this.userData.addons.map(async (addon, index) => [
+        this.addons.map(async (addon, index) => [
           index,
           await new Wrapper(addon).getManifest(),
         ])
@@ -356,7 +354,7 @@ export class AIOStreams {
         return resource;
       });
 
-      const addon = this.userData.addons[Number(index)];
+      const addon = this.addons[Number(index)];
 
       // Filter and merge resources
       for (const resource of addonResources) {
@@ -429,7 +427,7 @@ export class AIOStreams {
   }
 
   private getAddon(index: number): Addon {
-    return this.userData.addons[index];
+    return this.addons[index];
   }
 
   private shouldProxyAddon(addon: Addon): boolean {
@@ -524,7 +522,7 @@ export class AIOStreams {
     if (this.userData.proxy) {
       proxyIp = await this.getProxyIp();
     }
-    for (const addon of this.userData.addons) {
+    for (const addon of this.addons) {
       const proxy = this.shouldProxyAddon(addon);
       if (proxy) {
         addon.ip = proxyIp;

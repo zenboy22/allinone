@@ -163,6 +163,10 @@ export const Env = cleanEnv(process.env, {
     default: metadata?.version || 'unknown',
     desc: 'Version of the addon',
   }),
+  TAG: readonly({
+    default: metadata?.tag || 'unknown',
+    desc: 'Tag of the addon',
+  }),
   DESCRIPTION: readonly({
     default: metadata?.description || 'unknown',
     desc: 'Description of the addon',
@@ -176,10 +180,6 @@ export const Env = cleanEnv(process.env, {
     default: metadata?.commitHash || 'unknown',
     desc: 'Git commit hash of the addon',
   }),
-  GIT_TAG: readonly({
-    default: metadata?.latestTag || 'unknown',
-    desc: 'Git tag of the addon',
-  }),
   BUILD_TIME: readonly({
     default: metadata?.buildTime || 'unknown',
     desc: 'Build time of the addon',
@@ -187,6 +187,10 @@ export const Env = cleanEnv(process.env, {
   BUILD_COMMIT_TIME: readonly({
     default: metadata?.commitTime || 'unknown',
     desc: 'Build commit time of the addon',
+  }),
+  BASE_URL: url({
+    default: undefined,
+    desc: 'Base URL of the addon e.g. https://aiostreams.com',
   }),
   ADDON_NAME: str({
     default: 'AIOStreams',
@@ -200,9 +204,9 @@ export const Env = cleanEnv(process.env, {
     default: 3000,
     desc: 'Port to run the addon on',
   }),
-  BRANDING: str({
-    default: process.env.NEXT_PUBLIC_ELFHOSTED_BRANDING,
-    desc: 'Branding for the addon',
+  CUSTOM_HTML: str({
+    default: undefined,
+    desc: 'Custom HTML for the addon',
   }),
   SECRET_KEY: secretKey({
     desc: 'Secret key for the addon, used for encryption and must be 64 characters of hex',
@@ -769,6 +773,13 @@ export const Env = cleanEnv(process.env, {
   }),
   STREAM_API_RATE_LIMIT_MAX_REQUESTS: num({
     default: 20, // allow 100 requests per IP per minute
+  }),
+  FORMAT_API_RATE_LIMIT_WINDOW: num({
+    default: 10, // 10 seconds
+    desc: 'Time window for format API rate limiting in seconds',
+  }),
+  FORMAT_API_RATE_LIMIT_MAX_REQUESTS: num({
+    default: 50, // allow 50 requests per IP per 10 seconds
   }),
   STREMIO_STREAM_RATE_LIMIT_WINDOW: num({
     default: 60, // 1 minute

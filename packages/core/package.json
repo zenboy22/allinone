@@ -1,6 +1,6 @@
 {
   "name": "@aiostreams/core",
-  "version": "2.0.0",
+  "version": "0.0.0",
   "main": "dist/index.js",
   "scripts": {
     "test": "vitest run --passWithNoTests",
@@ -9,6 +9,7 @@
   },
   "description": "Combine all your streams into one addon and display them with consistent formatting, sorting, and filtering.",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "dotenv": "^16.4.7",
     "envalid": "^8.0.0",
     "moment-timezone": "^0.5.48",
@@ -22,6 +23,7 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.14.10",
     "@types/pg": "^8.15.2"
   }

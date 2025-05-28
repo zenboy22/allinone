@@ -11,6 +11,8 @@ import { cn } from '@/components/ui/core/styling';
 import { CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { DownloadIcon, ImportIcon, UploadIcon } from 'lucide-react';
+import { useStatus } from '@/context/status';
+// import { UserDataSchema } from '../../../../core/src/db/schemas';
 
 export function SaveInstallMenu() {
   return (
@@ -23,18 +25,36 @@ export function SaveInstallMenu() {
 }
 
 function Content() {
-  const { userData, setUserData, uuid, setUuid, password, setPassword } =
-    useUserData();
+  const {
+    userData,
+    setUserData,
+    uuid,
+    setUuid,
+    password,
+    setPassword,
+    encryptedPassword,
+    setEncryptedPassword,
+  } = useUserData();
   const [newPassword, setNewPassword] = React.useState('');
-  const [encryptedPassword, setEncryptedPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [passwordRequirements, setPasswordRequirements] = React.useState<
     string[]
   >([]);
-  const baseUrl = window.location.origin;
+  const { status } = useStatus();
+  const baseUrl = status?.settings?.baseUrl || window.location.origin;
+  const importFileRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     const requirements: string[] = [];
+
+    console.log(uuid, password);
+    // already created a config
+    if (uuid && password) {
+      return;
+    }
+
+    console.log(newPassword);
+    console.log('checking requirements');
 
     if (newPassword.length < 8) {
       requirements.push('Password must be at least 8 characters long');
@@ -105,7 +125,13 @@ function Content() {
     reader.onload = (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
+        // const validate = UserDataSchema.safeParse(json);
+        // if (!validate.success) {
+        //   toast.error('Failed to import configuration: Invalid JSON file');
+        //   return;
+        // }
         setUserData(json);
+        toast.success('Configuration imported successfully');
       } catch (err) {
         toast.error('Failed to import configuration: Invalid JSON file');
       }
@@ -274,9 +300,10 @@ function Content() {
               <input
                 type="file"
                 accept=".json"
-                onChange={handleImport}
                 className="hidden"
                 id="import-file"
+                onChange={handleImport}
+                ref={importFileRef}
               />
               <label htmlFor="import-file">
                 <Button
@@ -284,6 +311,7 @@ function Content() {
                   leftIcon={<DownloadIcon />}
                   type="button"
                   className="cursor-pointer"
+                  onClick={() => importFileRef.current?.click()}
                 >
                   Import
                 </Button>

@@ -1,6 +1,6 @@
 import app from './app';
 
-import { Env, createLogger, DB } from '@aiostreams/core';
+import { Env, createLogger, DB, UserRepository } from '@aiostreams/core';
 
 const logger = createLogger('server');
 
@@ -17,7 +17,6 @@ async function initialiseDatabase() {
 async function start() {
   try {
     await initialiseDatabase();
-
     app.listen(Env.PORT, () => {
       logger.info(`Server running on port ${Env.PORT}`);
     });

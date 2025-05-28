@@ -12,6 +12,7 @@ import {
   createLogger,
   constants,
   Env,
+  verifyHash,
 } from '../utils';
 
 const APIError = constants.APIError;
@@ -46,11 +47,11 @@ export class UserRepository {
       const uuid = await this.generateUUID();
       config.uuid = uuid;
 
-      const { encryptedConfig, salt } = await this.encryptConfig(
+      const { encryptedConfig, salt: configSalt } = await this.encryptConfig(
         config,
         password
       );
-      const { hash: hashedPassword } = getTextHash(password, salt);
+      const hashedPassword = await getTextHash(password);
 
       const { success, data } = encryptString(password);
       if (success === false) {
@@ -61,8 +62,8 @@ export class UserRepository {
       const tx = await db.begin();
       try {
         await tx.execute(
-          'INSERT INTO users (uuid, password_hash, password_salt, config) VALUES (?, ?, ?, ?)',
-          [uuid, hashedPassword, salt, encryptedConfig]
+          'INSERT INTO users (uuid, password_hash, config, config_salt) VALUES (?, ?, ?, ?)',
+          [uuid, hashedPassword, encryptedConfig, configSalt]
         );
         await tx.commit();
         logger.info(`Created a new user with UUID: ${uuid}`);
@@ -89,19 +90,17 @@ export class UserRepository {
     }
   }
 
+  // with stremio auth, we are given the encrypted password
+  // with api use, we are given the password
+  // GET /user should also return
+
   static async getUser(
     uuid: string,
-    encryptedPassword?: string,
-    password?: string
+    password: string
   ): Promise<UserData | null> {
     try {
-      if (!encryptedPassword && !password) {
-        return Promise.reject(
-          new APIError(constants.ErrorCode.MISSING_REQUIRED_FIELDS)
-        );
-      }
       const result = await db.query(
-        'SELECT config, password_salt FROM users WHERE uuid = ?',
+        'SELECT config, config_salt FROM users WHERE uuid = ?',
         [uuid]
       );
 
@@ -114,14 +113,6 @@ export class UserRepository {
         [uuid]
       );
 
-      if (!password) {
-        const { success, data } = decryptString(encryptedPassword!);
-        if (!success) {
-          return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
-        }
-        password = data;
-      }
-
       const isValid = await this.verifyUserPassword(uuid, password);
       if (!isValid) {
         return Promise.reject(
@@ -132,7 +123,7 @@ export class UserRepository {
       const decryptedConfig = await this.decryptConfig(
         result[0].config,
         password,
-        result[0].password_salt
+        result[0].config_salt
       );
 
       decryptedConfig.admin =
@@ -157,7 +148,7 @@ export class UserRepository {
       const tx = await db.begin();
       try {
         const currentUser = await tx.execute(
-          'SELECT password_salt FROM users WHERE uuid = ?',
+          'SELECT config_salt FROM users WHERE uuid = ?',
           [uuid]
         );
 
@@ -179,7 +170,7 @@ export class UserRepository {
         const { encryptedConfig } = await this.encryptConfig(
           config,
           password,
-          currentUser.rows[0].password_salt
+          currentUser.rows[0].config_salt
         );
 
         await tx.execute(
@@ -253,7 +244,7 @@ export class UserRepository {
     password: string
   ): Promise<boolean> {
     const result = await db.query(
-      'SELECT password_hash, password_salt FROM users WHERE uuid = ?',
+      'SELECT password_hash FROM users WHERE uuid = ?',
       [uuid]
     );
 
@@ -261,9 +252,8 @@ export class UserRepository {
       return false;
     }
 
-    const { password_hash: hashedPassword, password_salt: salt } = result[0];
-    const { hash } = getTextHash(password, salt);
-    return hash === hashedPassword;
+    const { password_hash: storedHash } = result[0];
+    return verifyHash(password, storedHash);
   }
 
   private static async encryptConfig(
@@ -274,7 +264,7 @@ export class UserRepository {
     encryptedConfig: string;
     salt: string;
   }> {
-    const { key, salt: saltUsed } = deriveKey(password, salt);
+    const { key, salt: saltUsed } = await deriveKey(password, salt);
     const configString = JSON.stringify(config);
     const { success, data, error } = encryptString(configString, key);
 
@@ -290,7 +280,7 @@ export class UserRepository {
     password: string,
     salt: string
   ): Promise<UserData> {
-    const { key } = deriveKey(password, salt);
+    const { key } = await deriveKey(password, salt);
     const {
       success,
       data: decryptedString,

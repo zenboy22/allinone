@@ -13,6 +13,7 @@ interface CreateUserResponse {
 
 interface LoadUserResponse {
   config: UserData;
+  encryptedPassword: string;
 }
 
 export class UserConfigAPI {
@@ -45,7 +46,8 @@ export class UserConfigAPI {
       return {
         success: true,
         data: {
-          config: data.data,
+          config: data.data.userData,
+          encryptedPassword: data.data.encryptedPassword,
         } as LoadUserResponse,
       };
     } catch (err) {

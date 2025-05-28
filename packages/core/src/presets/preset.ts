@@ -7,6 +7,7 @@ import {
   PresetMetadata,
 } from '../db';
 import { StreamParser } from '../parser';
+import { Env } from '../utils';
 /**
  *
  * What modifications are needed for each preset:
@@ -22,6 +23,55 @@ import { StreamParser } from '../parser';
  * torbox: need to use different regex for probably everything.
  * torrentio: extract folder name from first line
  */
+
+// name: z.string().min(1),
+// enabled: z.boolean().optional(),
+// baseUrl: z.string().url().optional(),
+// timeout: z.number().min(1).optional(),
+// resources: ResourceList.optional(),
+
+export const baseOptions = (
+  name: string,
+  resources: Resource[],
+  timeout: number = Env.DEFAULT_TIMEOUT
+): Option[] => [
+  {
+    id: 'name',
+    name: 'Name',
+    description: 'What to call this addon',
+    type: 'string',
+    required: true,
+    default: name,
+  },
+  {
+    id: 'url',
+    name: 'URL',
+    description:
+      'Optionally override either the manifest generated, or override the base url used when generating the manifests',
+    type: 'url',
+    required: false,
+    default: undefined,
+  },
+  {
+    id: 'timeout',
+    name: 'Timeout',
+    description: 'The timeout for this addon',
+    type: 'number',
+    default: timeout,
+  },
+  {
+    id: 'resources',
+    name: 'Resources',
+    description: 'Optionally override the resources to use ',
+    type: 'multi-select',
+    required: false,
+    default: resources,
+    options: resources.map((resource) => ({
+      label: resource,
+      value: resource,
+    })),
+  },
+];
 
 export abstract class Preset {
   static get METADATA(): PresetMetadata {

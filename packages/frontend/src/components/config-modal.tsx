@@ -4,6 +4,7 @@ import { TextInput } from '@/components/ui/text-input';
 import { Button } from '@/components/ui/button';
 import { UserConfigAPI } from '@/services/api';
 import { useUserData } from '@/context/userData';
+import { toast } from 'sonner';
 
 interface ConfigModalProps {
   open: boolean;
@@ -12,57 +13,39 @@ interface ConfigModalProps {
   initialUuid?: string;
 }
 
-{
-  /* <Modal
-title="Load Config"
-open={loadConfigModal.isOpen}
-onOpenChange={loadConfigModal.close}
->
-<div className="mt-5 text-center space-y-4">
-  <TextInput
-    label="Config ID"
-    placeholder="Enter config ID"
-    value={configId}
-    onChange={(e) => setConfigId(e.target.value)}
-  />
-
-</div>
-</Modal> */
-}
-
 export function ConfigModal({
   open,
   onSuccess,
   onOpenChange,
   initialUuid,
 }: ConfigModalProps) {
-  const { setUserData, setUuid, setPassword } = useUserData();
+  const { setUserData, setUuid, setPassword, setEncryptedPassword } =
+    useUserData();
   const [uuid, setUuidInput] = React.useState(initialUuid || '');
   const [password, setPasswordInput] = React.useState('');
-  const [error, setError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
   console.log(`received initialUuid: ${initialUuid}`);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
       const result = await UserConfigAPI.loadConfig(uuid, password);
 
       if (!result.success || !result.data) {
-        setError(result.error || 'Failed to load configuration');
+        toast.error(result.error || 'Failed to load configuration');
         return;
       }
 
       setUserData(result.data.config);
       setUuid(uuid);
       setPassword(password);
+      setEncryptedPassword(result.data.encryptedPassword);
       onSuccess();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error ? err.message : 'Failed to load configuration'
       );
     } finally {
@@ -74,7 +57,6 @@ export function ConfigModal({
   React.useEffect(() => {
     if (!open) {
       setPasswordInput('');
-      setError('');
     }
   }, [open]);
 
@@ -120,7 +102,6 @@ export function ConfigModal({
             required
           />
         </div>
-        {error && <div className="text-red-500 text-sm">{error}</div>}
         <div className="flex justify-end gap-2">
           <Button type="button" onClick={handleCancel}>
             Cancel

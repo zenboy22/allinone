@@ -62,6 +62,10 @@ export function SettingsCard({
     setPosition({ x, y });
   };
 
+  // If the card is set to h-full or flex, make CardContent stretch
+  const stretchContent =
+    className?.includes('h-full') || className?.includes('flex');
+
   return (
     <>
       <Card
@@ -86,7 +90,13 @@ export function SettingsCard({
             {description && <CardDescription>{description}</CardDescription>}
           </CardHeader>
         )}
-        <CardContent className={cn(!title && 'pt-4', 'space-y-3 flex-wrap')}>
+        <CardContent
+          className={cn(
+            !title && 'pt-4',
+            'space-y-3 flex-wrap',
+            stretchContent && 'flex-1 h-full flex flex-col'
+          )}
+        >
           {children}
         </CardContent>
       </Card>

@@ -10,11 +10,15 @@ const router = Router();
 router.get('/', async (req: Request, res: Response) => {
   const info: StatusResponse = {
     version: Env.VERSION,
+    tag: Env.TAG,
     commit: Env.GIT_COMMIT,
     buildTime: Env.BUILD_TIME,
     commitTime: Env.BUILD_COMMIT_TIME,
     users: await UserRepository.getUserCount(),
     settings: {
+      baseUrl: Env.BASE_URL,
+      addonName: Env.ADDON_NAME,
+      customHtml: Env.CUSTOM_HTML,
       disabledAddons: [],
       disabledServices: [],
       forced: {
@@ -46,6 +50,7 @@ router.get('/', async (req: Request, res: Response) => {
           proxiedAddons: Env.DEFAULT_PROXY_PROXIED_ADDONS ?? null,
           proxiedServices: Env.DEFAULT_PROXY_PROXIED_SERVICES ?? null,
         },
+        timeout: Env.DEFAULT_TIMEOUT ?? null,
         preferredRegex: Env.DEFAULT_PREFERRED_REGEX_PATTERNS ?? null,
         requiredRegex: Env.DEFAULT_REQUIRED_REGEX_PATTERNS ?? null,
         excludedRegex: Env.DEFAULT_EXCLUDED_REGEX_PATTERNS ?? null,

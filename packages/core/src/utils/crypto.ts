@@ -6,11 +6,14 @@ import {
   pbkdf2Sync,
   randomUUID,
 } from 'crypto';
+import { genSalt, hash, compare } from 'bcrypt';
 import { deflateSync, inflateSync } from 'zlib';
 import { Env } from './env';
 import { createLogger } from './logger';
 
 const logger = createLogger('crypto');
+
+const saltRounds = 10;
 
 const compressData = (data: string): Buffer => {
   return deflateSync(Buffer.from(data, 'utf-8'), {
@@ -129,58 +132,29 @@ export function decryptString(data: string, secretKey?: Buffer): Response {
 }
 
 export function getSimpleTextHash(text: string): string {
-  // Use SHA-256 for a simple hash for non-sensitive data
-  const hash = createHash('sha256').update(text).digest('hex');
-  return hash;
+  return createHash('sha256').update(text).digest('hex');
 }
 
 /**
  * Creates a secure hash of text using PBKDF2
  * @param text Text to hash
- * @param salt Optional salt, will be generated if not provided
- * @param iterations Number of iterations for PBKDF2, defaults to 10000
  * @returns Object containing the hash and salt used
  */
-export function getTextHash(
-  text: string,
-  salt?: string,
-  iterations: number = 10000
-): { hash: string; salt: string } {
-  // Generate a random salt if not provided
-  const usedSalt = salt || randomBytes(16).toString('hex');
-
-  // Use PBKDF2 with SHA-512
-  const hash = createHash('sha512')
-    .update(text + usedSalt)
-    .digest('hex');
-
-  // Apply multiple iterations
-  let result = hash;
-  for (let i = 0; i < iterations; i++) {
-    result = createHash('sha512')
-      .update(result + usedSalt)
-      .digest('hex');
-  }
-
-  return { hash: result, salt: usedSalt };
+export async function getTextHash(text: string): Promise<string> {
+  return await hash(text, await genSalt(saltRounds));
 }
 
 /**
  * Verifies if the provided text matches a previously generated hash
  * @param text Text to verify
  * @param storedHash Previously generated hash
- * @param salt Salt used in the original hash
- * @param iterations Number of iterations used in the original hash
  * @returns Boolean indicating if the text matches the hash
  */
-export function verifyHash(
+export async function verifyHash(
   text: string,
-  storedHash: string,
-  salt: string,
-  iterations: number = 10000
-): boolean {
-  const { hash } = getTextHash(text, salt, iterations);
-  return hash === storedHash;
+  storedHash: string
+): Promise<boolean> {
+  return compare(text, storedHash);
 }
 
 /**
@@ -189,11 +163,11 @@ export function verifyHash(
  * @param salt Optional salt, will be generated if not provided
  * @returns Object containing the key and salt used
  */
-export function deriveKey(
+export async function deriveKey(
   password: string,
   salt?: string
-): { key: Buffer; salt: string } {
-  salt = salt || randomBytes(16).toString('hex');
+): Promise<{ key: Buffer; salt: string }> {
+  salt = salt || (await genSalt(saltRounds));
   const key = pbkdf2Sync(
     Buffer.from(password, 'utf-8'),
     Buffer.from(salt, 'hex'),

@@ -2,10 +2,21 @@ const { writeFileSync, mkdirSync } = require('fs');
 const { execSync } = require('child_process');
 const path = require('path');
 
+// check if --nightly flag is passed
+const isNightly =
+  process.argv.includes('--nightly') || process.env.NIGHTLY === 'true';
+
 // Get the version from package.json
-const { version, description } = require('../package.json');
-// get the version from latest git tag
-const latestTag = execSync('git describe --tags --abbrev=0').toString().trim();
+let { version, description } = require('../package.json');
+
+let tag;
+if (isNightly) {
+  tag = execSync('git describe --tags --abbrev=0').toString().trim();
+} else {
+  tag = execSync('git tag --sort=-version:refname | head -n 1')
+    .toString()
+    .trim();
+}
 
 // Get the current Git commit hash
 const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
@@ -17,7 +28,7 @@ const commitTime = execSync('git log -1 --format=%cd --date=iso')
 const versionInfo = {
   version,
   description,
-  latestTag,
+  tag,
   commitHash,
   buildTime: new Date().toISOString(),
   commitTime: new Date(commitTime).toISOString(),

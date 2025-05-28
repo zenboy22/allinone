@@ -3,6 +3,7 @@ import {
   APIError,
   constants,
   createLogger,
+  encryptString,
   UserRepository,
 } from '@aiostreams/core';
 import { userApiRateLimiter } from '../../middlewares/ratelimit';
@@ -65,7 +66,7 @@ router.get('/', async (req, res, next) => {
   }
   let userData = null;
   try {
-    userData = await UserRepository.getUser(uuid, undefined, password);
+    userData = await UserRepository.getUser(uuid, password);
   } catch (error: any) {
     if (error instanceof APIError) {
       next(error);
@@ -75,13 +76,21 @@ router.get('/', async (req, res, next) => {
     return;
   }
 
+  const { success: successfulEncryption, data: encryptedPassword } =
+    encryptString(password);
+
+  if (!successfulEncryption) {
+    next(new APIError(constants.ErrorCode.USER_ERROR));
+    return;
+  }
+
   res.status(200).json(
     createResponse({
       success: true,
       message: 'User details retrieved successfully',
       data: {
-        uuid,
-        userData,
+        userData: userData,
+        encryptedPassword: encryptedPassword,
       },
     })
   );
