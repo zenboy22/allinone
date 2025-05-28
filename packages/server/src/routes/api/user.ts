@@ -10,6 +10,8 @@ import { userApiRateLimiter } from '../../middlewares/ratelimit';
 import { createResponse } from '../../utils/responses';
 const router = Router();
 
+const logger = createLogger('server');
+
 router.use(userApiRateLimiter);
 
 // checking existence of a user
@@ -164,6 +166,7 @@ router.post('/', async (req, res, next) => {
     if (error instanceof APIError) {
       next(error);
     } else {
+      logger.error(error);
       next(new APIError(constants.ErrorCode.USER_ERROR));
     }
   }

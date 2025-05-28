@@ -20,18 +20,25 @@ const logger = createLogger('core');
 
 export class AIOStreams {
   private readonly userData: UserData;
-  private manifests: Record<number, Manifest>;
+  private manifests: Record<number, Manifest | null>;
   private supportedResources: Record<number, StrictManifestResource[]>;
   private finalResources: StrictManifestResource[] = [];
   private finalCatalogs: Manifest['catalogs'] = [];
   private finalAddonCatalogs: Manifest['addonCatalogs'] = [];
   private isInitialised: boolean = false;
   private addons: Addon[] = [];
+  private skipFailedAddons: boolean = true;
+  private addonInitialisationErrors: {
+    addon: Addon;
+    error: string;
+  }[] = [];
 
-  constructor(userData: UserData) {
+  constructor(userData: UserData, skipFailedAddons: boolean = true) {
+    this.addonInitialisationErrors = [];
     this.userData = userData;
     this.manifests = {};
     this.supportedResources = {};
+    this.skipFailedAddons = skipFailedAddons;
   }
 
   public async initialise() {
@@ -288,7 +295,8 @@ export class AIOStreams {
     }
 
     // Request subtitles from all supported addons in parallel
-    let errors: { addon: Addon; error: string }[] = [];
+    let errors: { addon: Addon; error: string }[] =
+      this.addonInitialisationErrors;
     let allSubtitles: Subtitle[] = [];
 
     await Promise.all(
@@ -360,10 +368,25 @@ export class AIOStreams {
   private async fetchManifests() {
     this.manifests = Object.fromEntries(
       await Promise.all(
-        this.addons.map(async (addon, index) => [
-          index,
-          await new Wrapper(addon).getManifest(),
-        ])
+        this.addons.map(async (addon, index) => {
+          try {
+            return [index, await new Wrapper(addon).getManifest()];
+          } catch (error: any) {
+            if (this.skipFailedAddons) {
+              this.addonInitialisationErrors.push({
+                addon: addon,
+                error: error.message,
+              });
+              logger.error(
+                `Failed to fetch manifest for ${addon.name}: ${error.message}, filtering out`
+              );
+              return [index, null];
+            }
+            throw new Error(
+              `Failed to fetch manifest for ${addon.name}: ${error.message}`
+            );
+          }
+        })
       )
     );
   }
@@ -590,7 +613,8 @@ export class AIOStreams {
     );
 
     // fetch all streams in parallel, maintaining a list of errors too,
-    let errors: { addon: Addon; error: string }[] = [];
+    let errors: { addon: Addon; error: string }[] =
+      this.addonInitialisationErrors;
     let parsedStreams: ParsedStream[] = [];
     await Promise.all(
       supportedAddons.map(async (addon) => {

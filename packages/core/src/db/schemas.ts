@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { constants } from '../utils';
+import * as constants from '../utils/constants';
 
 const ServiceIds = z.enum(constants.SERVICES);
 
@@ -77,20 +77,15 @@ const SizeFilterOptions = z.object({
   resolution: SizeFilter.optional(),
 });
 
-const Service = z.object({
+const ServiceSchema = z.object({
   id: ServiceIds,
   enabled: z.boolean().optional(),
-  credentials: z.object({
-    username: z.string().min(1).optional(),
-    password: z.string().min(1).optional(),
-    email: z.string().min(1).optional(),
-    token: z.string().min(1).optional(),
-    clientId: z.string().min(1).optional(),
-    apiKey: z.string().min(1).optional(),
-  }),
+  credentials: z.record(z.string().min(1), z.string().min(1)).optional(),
 });
 
-const ServiceList = z.array(Service);
+export type Service = z.infer<typeof ServiceSchema>;
+
+const ServiceList = z.array(ServiceSchema);
 
 const ResourceSchema = z.enum(constants.RESOURCES);
 
@@ -116,6 +111,8 @@ const PresetSchema = z.object({
   enabled: z.boolean(),
   options: z.record(z.string().min(1), z.any()),
 });
+
+export type PresetObject = z.infer<typeof PresetSchema>;
 
 const AddonList = z.array(AddonSchema);
 const PresetList = z.array(PresetSchema);

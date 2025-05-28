@@ -13,6 +13,7 @@ import {
   constants,
   Env,
   verifyHash,
+  validateConfig,
 } from '../utils';
 
 const APIError = constants.APIError;
@@ -41,6 +42,18 @@ export class UserRepository {
       ) {
         return Promise.reject(
           new APIError(constants.ErrorCode.USER_NEW_PASSWORD_TOO_SIMPLE)
+        );
+      }
+
+      try {
+        await validateConfig(config);
+      } catch (error: any) {
+        return Promise.reject(
+          new APIError(
+            constants.ErrorCode.USER_INVALID_CONFIG,
+            undefined,
+            error.message
+          )
         );
       }
 
@@ -156,6 +169,19 @@ export class UserRepository {
           await tx.rollback();
           return Promise.reject(
             new APIError(constants.ErrorCode.USER_NOT_FOUND)
+          );
+        }
+
+        try {
+          await validateConfig(config);
+        } catch (error: any) {
+          await tx.rollback();
+          return Promise.reject(
+            new APIError(
+              constants.ErrorCode.USER_INVALID_CONFIG,
+              undefined,
+              error.message
+            )
           );
         }
 

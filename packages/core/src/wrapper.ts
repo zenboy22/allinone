@@ -76,24 +76,33 @@ export class Wrapper {
         logger.debug(
           `Fetching manifest for ${this.addon.name} (${this.makeLogSafeUrl(this.addon.manifestUrl)})`
         );
-        const res = await makeRequest(
-          this.addon.manifestUrl,
-          this.addon.timeout,
-          this.addon.headers
-        );
-        if (!res.ok) {
-          logger.error(
-            `Failed to fetch manifest for ${this.addon.name}: ${res.status} - ${res.statusText}`
+        try {
+          const res = await makeRequest(
+            this.addon.manifestUrl,
+            this.addon.timeout,
+            this.addon.headers
           );
-          throw new Error(`Failed to fetch manifest for ${this.addon.name}`);
+          if (!res.ok) {
+            logger.error(
+              `Failed to fetch manifest for ${this.addon.name}: ${res.status} - ${res.statusText}`
+            );
+            throw new Error(`Failed to fetch manifest for ${this.addon.name}`);
+          }
+          const manifest = ManifestSchema.safeParse(await res.json());
+          if (!manifest.success) {
+            logger.error(`Manifest response was unexpected`);
+            logger.error(manifest.error);
+            throw new Error(`Failed to parse manifest for ${this.addon.name}`);
+          }
+          return manifest.data;
+        } catch (error: any) {
+          logger.error(
+            `Failed to fetch manifest for ${this.addon.name}: ${error.message}`
+          );
+          throw new Error(
+            `Failed to fetch manifest for ${this.addon.name}: ${error.message}`
+          );
         }
-        const manifest = ManifestSchema.safeParse(await res.json());
-        if (!manifest.success) {
-          logger.error(`Manifest response was unexpected`);
-          logger.error(manifest.error);
-          throw new Error(`Failed to parse manifest for ${this.addon.name}`);
-        }
-        return manifest.data;
       },
       this.addon.manifestUrl,
       MANIFEST_TTL
@@ -180,34 +189,43 @@ export class Wrapper {
     logger.debug(
       `Fetching ${resource} of type ${type} with id ${id} and extras ${extras} (${this.makeLogSafeUrl(url)})`
     );
-    const res = await makeRequest(
-      url,
-      this.addon.timeout,
-      this.addon.headers,
-      this.addon.ip
-    );
-    if (!res.ok) {
-      logger.error(
-        `Failed to fetch ${resource} resource for ${this.addon.name}: ${res.status} - ${res.statusText}`
+    try {
+      const res = await makeRequest(
+        url,
+        this.addon.timeout,
+        this.addon.headers,
+        this.addon.ip
       );
+      if (!res.ok) {
+        logger.error(
+          `Failed to fetch ${resource} resource for ${this.addon.name}: ${res.status} - ${res.statusText}`
+        );
 
+        throw new Error(
+          `Failed to fetch ${resource} resource for ${this.addon.name}`
+        );
+      }
+      const data = await res.json();
+      const parsed = schema.safeParse(data);
+      if (!parsed.success) {
+        logger.error(`Resource response was unexpected`);
+        logger.error(JSON.stringify(parsed.error, null, 2));
+        throw new Error(
+          `Failed to parse ${resource} resource for ${this.addon.name}`
+        );
+      }
+      if (cache) {
+        resourceCache.set(url, parsed.data, RESOURCE_TTL);
+      }
+      return parsed.data;
+    } catch (error: any) {
+      logger.error(
+        `Failed to fetch ${resource} resource for ${this.addon.name}: ${error.message}`
+      );
       throw new Error(
         `Failed to fetch ${resource} resource for ${this.addon.name}`
       );
     }
-    const data = await res.json();
-    const parsed = schema.safeParse(data);
-    if (!parsed.success) {
-      logger.error(`Resource response was unexpected`);
-      logger.error(JSON.stringify(parsed.error, null, 2));
-      throw new Error(
-        `Failed to parse ${resource} resource for ${this.addon.name}`
-      );
-    }
-    if (cache) {
-      resourceCache.set(url, parsed.data, RESOURCE_TTL);
-    }
-    return parsed.data;
   }
 
   private buildResourceUrl(

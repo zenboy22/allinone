@@ -5,6 +5,7 @@ import {
   constants,
   Env,
   decryptString,
+  validateConfig,
 } from '@aiostreams/core';
 import { UserDataSchema, UserRepository } from '@aiostreams/core';
 
@@ -73,22 +74,15 @@ export const userDataMiddleware = async (
       next(new APIError(constants.ErrorCode.USER_INVALID_PASSWORD));
       return;
     }
-
-    // Check if API key matches if required
-    if (Env.API_KEY && decryptedConfig.apiKey !== Env.API_KEY) {
-      next(new APIError(constants.ErrorCode.USER_INVALID_CONFIG));
-      return;
-    }
-
-    // Validate config schema
-    const { success, data, error } = UserDataSchema.safeParse(decryptedConfig);
-    if (!success) {
+    try {
+      validateConfig(decryptedConfig, true);
+    } catch (error) {
       next(new APIError(constants.ErrorCode.USER_INVALID_CONFIG));
       return;
     }
 
     // Attach validated data to request
-    req.userData = data;
+    req.userData = decryptedConfig;
     req.userData.ip = req.userIp;
     req.uuid = uuid;
     next();

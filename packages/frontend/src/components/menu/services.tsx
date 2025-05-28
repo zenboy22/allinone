@@ -241,9 +241,7 @@ function Content() {
                             const missingCredentials =
                               svcMeta.credentials.filter(
                                 (cred) =>
-                                  !existingService.credentials[
-                                    cred.id as keyof typeof existingService.credentials
-                                  ]
+                                  !existingService.credentials?.[cred.id]
                               );
                             const invalidService = svcMeta.name;
                             if (missingCredentials.length > 0) {
