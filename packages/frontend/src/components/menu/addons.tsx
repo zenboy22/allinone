@@ -112,6 +112,7 @@ function Content() {
       const newKey = getPresetUniqueKey(newPreset);
       // Prevent adding if a preset with the same unique key already exists
       if (userData.presets.some((a) => getPresetUniqueKey(a) === newKey)) {
+        toast.error('You already have an addon with the same options added.');
         setModalOpen(false);
         return;
       }
@@ -361,9 +362,9 @@ function SortableAddonItem({
   };
   return (
     <li ref={setNodeRef} style={style}>
-      <div className="px-2.5 py-2 bg-[var(--background)] border-[--red] rounded-[--radius-md] border flex gap-3 relative">
+      <div className="px-2.5 py-2 bg-[var(--background)] rounded-[--radius-md] border flex gap-3 relative">
         <div
-          className="rounded-full w-4 h-auto bg-[--muted] md:bg-[--subtle] md:hover:bg-[--subtle-highlight] cursor-move"
+          className="rounded-full w-6 h-auto bg-[--muted] md:bg-[--subtle] md:hover:bg-[--subtle-highlight] cursor-move"
           {...attributes}
           {...listeners}
         />

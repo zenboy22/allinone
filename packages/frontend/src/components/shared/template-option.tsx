@@ -5,7 +5,7 @@ import { Select } from '../ui/select';
 import { Combobox } from '../ui/combobox';
 import { Option } from '@aiostreams/core';
 import React from 'react';
-
+import MarkdownLite from './markdown-lite';
 // this component, accepts an option and returns a component that renders the option.
 // string - TextInput
 // number - NumberInput
@@ -47,7 +47,9 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
             disabled={isDisabled}
           />
           {description && (
-            <div className="text-xs text-[--muted] mt-1">{description}</div>
+            <div className="text-xs text-[--muted] mt-1">
+              <MarkdownLite>{description}</MarkdownLite>
+            </div>
           )}
         </div>
       );
@@ -66,7 +68,9 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
             disabled={isDisabled}
           />
           {description && (
-            <div className="text-xs text-[--muted] mt-1">{description}</div>
+            <div className="text-xs text-[--muted] mt-1">
+              <MarkdownLite>{description}</MarkdownLite>
+            </div>
           )}
         </div>
       );
@@ -78,7 +82,9 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
             <Switch value={!!value} onValueChange={onChange} />
           </div>
           {description && (
-            <div className="text-xs text-[--muted] mt-1">{description}</div>
+            <div className="text-xs text-[--muted] mt-1">
+              <MarkdownLite>{description}</MarkdownLite>
+            </div>
           )}
         </div>
       );
@@ -121,7 +127,9 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
             required={required}
           />
           {description && (
-            <div className="text-xs text-[--muted] mt-1">{description}</div>
+            <div className="text-xs text-[--muted] mt-1">
+              <MarkdownLite>{description}</MarkdownLite>
+            </div>
           )}
         </div>
       );
@@ -137,7 +145,9 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
             disabled={isDisabled}
           />
           {description && (
-            <div className="text-xs text-[--muted] mt-1">{description}</div>
+            <div className="text-xs text-[--muted] mt-1">
+              <MarkdownLite>{description}</MarkdownLite>
+            </div>
           )}
         </div>
       );
