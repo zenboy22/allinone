@@ -20,7 +20,13 @@ import { Switch } from '../ui/switch';
 import { Modal } from '../ui/modal';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
-import { DndContext } from '@dnd-kit/core';
+import {
+  DndContext,
+  useSensors,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+} from '@dnd-kit/core';
 import TemplateOption from '../shared/template-option';
 import { Button } from '../ui/button';
 import MarkdownLite from '../shared/markdown-lite';
@@ -50,6 +56,7 @@ function Content() {
   const [modalService, setModalService] = useState<ServiceId | null>(null);
   const [modalValues, setModalValues] = useState<Record<string, any>>({});
   const [invalidServices, setInvalidServices] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   // DND logic
   function handleDragEnd(event: any) {
@@ -64,6 +71,11 @@ function Content() {
         return { ...prev, services: newServices };
       });
     }
+    setIsDragging(false);
+  }
+
+  function handleDragStart(event: any) {
+    setIsDragging(true);
   }
 
   // Modal handlers
@@ -126,6 +138,34 @@ function Content() {
     }
   }, [userData.services, setUserData]);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 8,
+      },
+    })
+  );
+
+  useEffect(() => {
+    function preventTouchMove(e: TouchEvent) {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    }
+    if (isDragging) {
+      document.body.addEventListener('touchmove', preventTouchMove, {
+        passive: false,
+      });
+    } else {
+      document.body.removeEventListener('touchmove', preventTouchMove);
+    }
+    return () => {
+      document.body.removeEventListener('touchmove', preventTouchMove);
+    };
+  }, [isDragging]);
+
   // Render
   return (
     <>
@@ -163,6 +203,8 @@ function Content() {
         <DndContext
           modifiers={[restrictToVerticalAxis]}
           onDragEnd={handleDragEnd}
+          onDragStart={handleDragStart}
+          sensors={sensors}
         >
           <SortableContext
             items={userData.services?.map((s) => s.id) || []}

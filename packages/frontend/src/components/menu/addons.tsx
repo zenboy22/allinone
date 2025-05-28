@@ -7,7 +7,13 @@ import { SettingsCard } from '../shared/settings-card';
 import { Button, IconButton } from '../ui/button';
 import { Modal } from '../ui/modal';
 import { Switch } from '../ui/switch';
-import { DndContext } from '@dnd-kit/core';
+import {
+  DndContext,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  TouchSensor,
+} from '@dnd-kit/core';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
   arrayMove,
@@ -52,7 +58,7 @@ function Content() {
     Record<string, any>
   >({});
   const [editingAddonId, setEditingAddonId] = useState<string | null>(null);
-
+  const [isDragging, setIsDragging] = useState(false);
   // Filtering and search for marketplace
   const filteredPresets = useMemo(() => {
     if (!status?.settings?.presets) return [];
@@ -152,6 +158,11 @@ function Content() {
         presets: newPresets,
       }));
     }
+    setIsDragging(false);
+  }
+
+  function handleDragStart(event: any) {
+    setIsDragging(true);
   }
 
   // Service, stream type, and resource options
@@ -168,6 +179,34 @@ function Content() {
   const activeFilterCount =
     serviceFilters.length + streamTypeFilters.length + resourceFilters.length;
 
+  // DND-kit setup
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 8,
+      },
+    })
+  );
+
+  useEffect(() => {
+    function preventTouchMove(e: TouchEvent) {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    }
+    if (isDragging) {
+      document.body.addEventListener('touchmove', preventTouchMove, {
+        passive: false,
+      });
+    } else {
+      document.body.removeEventListener('touchmove', preventTouchMove);
+    }
+    return () => {
+      document.body.removeEventListener('touchmove', preventTouchMove);
+    };
+  }, [isDragging]);
   return (
     <>
       <div className="flex items-center w-full">
@@ -248,6 +287,8 @@ function Content() {
         <DndContext
           modifiers={[restrictToVerticalAxis]}
           onDragEnd={handleDragEnd}
+          onDragStart={handleDragStart}
+          sensors={sensors}
         >
           <SortableContext
             items={userData.presets.map((a) => getPresetUniqueKey(a))}
