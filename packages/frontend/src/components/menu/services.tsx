@@ -49,7 +49,7 @@ function Content() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalService, setModalService] = useState<ServiceId | null>(null);
   const [modalValues, setModalValues] = useState<Record<string, any>>({});
-  const [alerts, setAlerts] = useState<string[]>([]);
+  const [invalidServices, setInvalidServices] = useState<string[]>([]);
 
   // DND logic
   function handleDragEnd(event: any) {
@@ -85,6 +85,11 @@ function Content() {
       const newUserData = { ...prev };
       newUserData.services = (newUserData.services ?? []).map((service) => {
         if (service.id === modalService) {
+          if (invalidServices.includes(SERVICE_DETAILS[service.id].name)) {
+            setInvalidServices((prev) =>
+              prev.filter((a) => a !== SERVICE_DETAILS[service.id].name)
+            );
+          }
           return {
             ...service,
             credentials: values,
@@ -128,18 +133,30 @@ function Content() {
         <div>
           <h2>Services</h2>
           <p className="text-[--muted]">
-            Configure and manage your streaming services.
+            Provide credentials for any services you want to use.
           </p>
         </div>
         <div className="flex flex-1"></div>
       </div>
-      {alerts.length > 0 && (
+      {invalidServices.length > 0 && (
         <div className="mb-6">
-          {alerts.map((alert) => (
-            <Alert intent="alert" key={alert}>
-              {alert}
-            </Alert>
-          ))}
+          <Alert
+            intent="alert"
+            title="Missing Credentials"
+            description={
+              <>
+                The following services are missing credentials:
+                <div className="flex flex-col gap-1 mt-2">
+                  {invalidServices.map((service) => (
+                    <div key={service} className="flex items-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-current mr-2" />
+                      {service}
+                    </div>
+                  ))}
+                </div>
+              </>
+            }
+          />
         </div>
       )}
       <div className="bg-[--card] border border-[--border] rounded-xl p-4 mb-6 shadow-sm">
@@ -173,27 +190,6 @@ function Content() {
                         meta={svcMeta}
                         onEdit={() => handleServiceClick(service.id)}
                         onToggleEnabled={(v: boolean) => {
-                          // const existingService = userData.services?.find(
-                          //   (s) => s.id === service.id
-                          // );
-                          // const missingCredentials = svcMeta.credentials.filter(
-                          //   (cred) =>
-                          //     !existingService?.credentials[
-                          //       cred.id as keyof typeof existingService.credentials
-                          //     ]
-                          // );
-                          // if (missingCredentials.length > 0 && v) {
-                          //   setAlerts((prev) => [
-                          //     ...prev,
-                          //     `Please provide all required credentials for ${svcMeta.name}`,
-                          //   ]);
-                          // }
-                          // setUserData((prev) => ({
-                          //   ...prev,
-                          //   services: (prev.services ?? []).map((s) =>
-                          //     s.id === service.id ? { ...s, enabled: v } : s
-                          //   ),
-                          // }));
                           setUserData((prev) => {
                             const existingService = prev.services?.find(
                               (s) => s.id === service.id
@@ -206,21 +202,24 @@ function Content() {
                                     cred.id as keyof typeof existingService.credentials
                                   ]
                               );
-                            const alertMsg = `Please provide all required credentials for ${svcMeta.name}`;
+                            const invalidService = svcMeta.name;
                             if (missingCredentials.length > 0) {
                               if (v) {
-                                if (!alerts.includes(alertMsg)) {
-                                  setAlerts((prev) => [...prev, alertMsg]);
+                                if (!invalidServices.includes(invalidService)) {
+                                  setInvalidServices((prev) => [
+                                    ...prev,
+                                    invalidService,
+                                  ]);
                                 }
                               } else {
-                                setAlerts((prev) =>
-                                  prev.filter((a) => a !== alertMsg)
+                                setInvalidServices((prev) =>
+                                  prev.filter((a) => a !== invalidService)
                                 );
                               }
                             } else {
-                              if (alerts.includes(alertMsg)) {
-                                setAlerts((prev) =>
-                                  prev.filter((a) => a !== alertMsg)
+                              if (invalidServices.includes(invalidService)) {
+                                setInvalidServices((prev) =>
+                                  prev.filter((a) => a !== invalidService)
                                 );
                               }
                             }
@@ -290,7 +289,7 @@ function SortableServiceItem({
           <span className="font-mono text-base truncate">
             {meta?.name || service.id}
           </span>
-          <span className="text-sm text-[--muted] font-normal italic truncate">
+          <span className="text-sm text-[--muted] font-normal italic break-words">
             <MarkdownLite>{meta?.signUpText}</MarkdownLite>
           </span>
         </div>
@@ -349,9 +348,6 @@ function ServiceModal({
           />
         ))}
         <div className="flex gap-2">
-          <Button type="submit" className="w-full">
-            Save
-          </Button>
           <Button
             type="button"
             className="w-full"
@@ -359,6 +355,9 @@ function ServiceModal({
             onClick={onClose}
           >
             Cancel
+          </Button>
+          <Button type="submit" className="w-full">
+            Save
           </Button>
         </div>
       </form>
