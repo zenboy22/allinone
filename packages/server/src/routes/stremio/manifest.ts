@@ -1,9 +1,16 @@
 import { Router } from 'express';
-import { AIOStreams, Env, getSimpleTextHash, UserData } from '@aiostreams/core';
+import {
+  AIOStreams,
+  APIError,
+  constants,
+  Env,
+  getSimpleTextHash,
+  UserData,
+} from '@aiostreams/core';
 import { Manifest } from '@aiostreams/core';
 import { createLogger } from '@aiostreams/core';
 
-const logger = createLogger('stremio/manifest');
+const logger = createLogger('server');
 const router = Router();
 
 export default router;
@@ -18,7 +25,9 @@ const manifest = async (config?: UserData): Promise<Manifest> => {
   if (config) {
     const aiostreams = new AIOStreams(config);
     // wait till initialized
+
     await aiostreams.initialise();
+
     catalogs = aiostreams.getCatalogs();
     resources = aiostreams.getResources();
   }
@@ -50,7 +59,13 @@ const manifest = async (config?: UserData): Promise<Manifest> => {
   };
 };
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   logger.debug('Manifest request received', { userData: req.userData });
-  res.status(200).json(await manifest(req.userData));
+  try {
+    res.status(200).json(await manifest(req.userData));
+  } catch (error) {
+    logger.error(`Failed to generate manifest: ${error}`);
+    logger.verbose(JSON.stringify(req.userData, null, 2));
+    next(new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR));
+  }
 });

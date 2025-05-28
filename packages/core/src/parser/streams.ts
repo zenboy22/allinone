@@ -10,6 +10,13 @@ class StreamParser {
       addon: this.addon,
       type: this.getStreamType(stream, undefined),
       parsedFile: {},
+      url: stream.url,
+      externalUrl: stream.externalUrl,
+      ytId: stream.ytId,
+      requestHeaders: stream.behaviorHints?.proxyHeaders?.request,
+      responseHeaders: stream.behaviorHints?.proxyHeaders?.response,
+      notWebReady: stream.behaviorHints?.notWebReady,
+      videoHash: stream.behaviorHints?.videoHash,
     };
 
     this.raiseErrorIfNecessary(stream);

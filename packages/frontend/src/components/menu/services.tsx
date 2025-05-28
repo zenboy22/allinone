@@ -104,6 +104,7 @@ function Content() {
           }
           return {
             ...service,
+            enabled: true,
             credentials: values,
           };
         }

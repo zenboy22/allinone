@@ -411,7 +411,7 @@ const MetaPreviewSchema = z.object({
   id: z.string().min(1),
   type: z.string().min(1),
   name: z.string().min(1),
-  poster: z.string(),
+  poster: z.string().optional(),
   posterShape: z.enum(['square', 'poster', 'landscape']).optional(),
   // discover sidebar
   //@deprecated use links instead

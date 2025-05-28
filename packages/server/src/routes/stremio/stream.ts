@@ -49,6 +49,8 @@ router.get('/:type/:id.json', async (req, res) => {
       errors,
     });
 
+    logger.info(`Returning ${transformedStreams.length} streams`);
+
     res.status(200).json(
       createResponse(
         {

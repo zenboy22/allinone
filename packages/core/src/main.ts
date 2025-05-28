@@ -57,7 +57,7 @@ export class AIOStreams {
     streams: ParsedStream[];
     errors: { addon: Addon; error: string }[];
   }> {
-    logger.info(`getStreams: ${id}`);
+    logger.info(`Handling stream request`, { type, id });
 
     // step 1
     // get the public IP of the requesting user, using the proxy server if configured
@@ -72,6 +72,10 @@ export class AIOStreams {
     // and that support the type and match the id prefix
 
     const { streams, errors } = await this.getStreamsFromAddons(type, id);
+
+    logger.info(
+      `Received ${streams.length} streams and ${errors.length} errors`
+    );
 
     // step 3
     // apply all filters to the streams.
@@ -104,6 +108,9 @@ export class AIOStreams {
 
     // step 9
     // return the final list of streams, followed by the error streams.
+    logger.info(
+      `Returning ${proxifiedStreams.length} streams and ${errors.length} errors`
+    );
     return {
       streams: proxifiedStreams,
       errors: errors,
@@ -117,7 +124,7 @@ export class AIOStreams {
     streams: ParsedStream[];
     errors: { addon: Addon; error: string }[];
   }): Promise<Stream[]> {
-    const transformedStreams: Stream[] = [];
+    let transformedStreams: Stream[] = [];
     // need to generate a name, description, and other stremio-specific fields
     // use the configured formatter to generate the name and description.
     let formatter;
@@ -131,7 +138,11 @@ export class AIOStreams {
       formatter = createFormatter(this.userData.formatter.id);
     }
 
-    await Promise.all(
+    logger.info(
+      `Transforming ${streams.length} streams, using formatter ${this.userData.formatter.id}`
+    );
+
+    transformedStreams = await Promise.all(
       streams.map(async (stream: ParsedStream): Promise<Stream> => {
         const { name, description } = formatter.format(stream);
         const bingeGroup = `${stream.proxied ? 'proxied.' : ''}${stream.parsedFile.resolution}|${stream.parsedFile.quality}|${stream.parsedFile.encode}`;
@@ -214,25 +225,44 @@ export class AIOStreams {
   }
 
   public async getMeta(type: string, id: string) {
-    logger.info(`getMeta: ${id}`);
+    logger.info(`Handling meta request`, { type, id });
     // step 1
-    // determine what addon has a meta resource with an id prefix that matches this id
-
+    // First try to find an addon that has a matching idPrefix
     for (const [index, resources] of Object.entries(this.supportedResources)) {
-      const resource = resources.find((r) =>
-        r.name === 'meta' && r.types.includes(type) && r.idPrefixes
-          ? r.idPrefixes.some((prefix) => id.startsWith(prefix))
-          : true
+      const resource = resources.find(
+        (r) =>
+          r.name === 'meta' &&
+          r.types.includes(type) &&
+          r.idPrefixes?.some((prefix) => id.startsWith(prefix))
       );
       if (resource) {
         const addon = this.getAddon(Number(index));
-        logger.info(`Found addon that supports the requested meta resource`, {
+        logger.info(`Found addon with matching id prefix for meta resource`, {
           addonName: addon.name,
           addonIndex: index,
         });
         return new Wrapper(addon).getMeta(type, id);
       }
     }
+
+    // step 2
+    // If no matching prefix found, use any addon that supports meta for this type
+    for (const [index, resources] of Object.entries(this.supportedResources)) {
+      const resource = resources.find(
+        (r) => r.name === 'meta' && r.types.includes(type)
+      );
+      if (resource) {
+        const addon = this.getAddon(Number(index));
+        logger.info(`Using fallback addon for meta resource`, {
+          addonName: addon.name,
+          addonIndex: index,
+        });
+        return new Wrapper(addon).getMeta(type, id);
+      }
+    }
+
+    logger.error(`No addon found supporting meta resource for type ${type}`);
+    throw new Error(`No addon found supporting meta resource for type ${type}`);
   }
 
   // subtitle resource
@@ -552,21 +582,47 @@ export class AIOStreams {
       }
     }
 
+    logger.info(
+      `Found ${supportedAddons.length} addons that support the stream resource`,
+      {
+        supportedAddons: supportedAddons.map((a) => a.name),
+      }
+    );
+
     // fetch all streams in parallel, maintaining a list of errors too,
     let errors: { addon: Addon; error: string }[] = [];
     let parsedStreams: ParsedStream[] = [];
     await Promise.all(
       supportedAddons.map(async (addon) => {
+        let summaryMsg = '';
+
         try {
           const streams = await new Wrapper(addon).getStreams(type, id);
           parsedStreams.push(...streams);
+
+          summaryMsg = `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🟢 [${addon.name}] Scrape Summary
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✔ Status      : SUCCESS
+  📦 Streams    : ${streams.length}
+  📋 Details    : Successfully fetched streams.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
           return streams;
         } catch (error) {
-          errors.push({
-            addon: addon,
-            error: error instanceof Error ? error.message : String(error),
-          });
+          const errMsg = error instanceof Error ? error.message : String(error);
+          errors.push({ addon, error: errMsg });
+          summaryMsg = `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🔴 [${addon.name}] Scrape Summary
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✖ Status      : FAILED
+  🚫 Error      : ${errMsg}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    `;
           return [];
+        } finally {
+          logger.info(summaryMsg);
         }
       })
     );
