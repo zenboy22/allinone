@@ -99,7 +99,10 @@ function Content() {
     setModalPreset(preset);
     setModalInitialValues({
       options: Object.fromEntries(
-        (preset.OPTIONS || []).map((opt: any) => [opt.id, opt.default ?? ''])
+        (preset.OPTIONS || []).map((opt: any) => [
+          opt.id,
+          opt.default ?? undefined,
+        ])
       ),
     });
     setModalMode('add');

@@ -48,19 +48,24 @@ export class Cache<K, V> {
    * @param ttl Time-To-Live in seconds for the cached value
    * @param args The arguments to pass to the function
    */
-  wrap<T extends (...args: any[]) => any>(
+  async wrap<T extends (...args: any[]) => any>(
     fn: T,
     key: K,
     ttl: number,
     ...args: Parameters<T>
-  ): ReturnType<T> {
+  ): Promise<ReturnType<T>> {
     const cachedValue = this.get(key);
     if (cachedValue !== undefined) {
       return cachedValue as ReturnType<T>;
     }
-    const result = fn(...args);
-    this.set(key, result, ttl);
-    return result;
+    try {
+      const result = await fn(...args);
+      this.set(key, result, ttl);
+      return result;
+    } catch (error) {
+      // Don't cache errors
+      throw error;
+    }
   }
 
   get(key: K): V | undefined {

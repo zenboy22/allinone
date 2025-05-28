@@ -28,8 +28,16 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
   onChange,
   disabled,
 }) => {
-  const { id, name, description, type, required, options, constraints } =
-    option;
+  const {
+    id,
+    name,
+    description,
+    type,
+    required,
+    options,
+    constraints,
+    emptyIsUndefined = false,
+  } = option;
 
   const isDisabled = disabled;
 
@@ -39,8 +47,10 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
         <div>
           <TextInput
             label={name}
-            value={value || undefined}
-            onValueChange={(value: string) => onChange(value)}
+            value={value}
+            onValueChange={(value: string) =>
+              onChange(emptyIsUndefined ? value || undefined : value)
+            }
             required={required}
             minLength={constraints?.min}
             maxLength={constraints?.max}
@@ -113,7 +123,15 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
           <Combobox
             label={name}
             value={Array.isArray(value) ? value : undefined}
-            onValueChange={onChange}
+            onValueChange={(value: any) =>
+              onChange(
+                emptyIsUndefined
+                  ? value?.length === 0
+                    ? undefined
+                    : value
+                  : value
+              )
+            }
             options={
               options?.map((opt) => ({
                 label: opt.label,
@@ -138,8 +156,10 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
         <div>
           <TextInput
             label={name}
-            value={value ?? ''}
-            onChange={(e) => onChange(e.target.value)}
+            value={value}
+            onValueChange={(value: string) =>
+              onChange(emptyIsUndefined ? value || undefined : value)
+            }
             required={required}
             type="url"
             disabled={isDisabled}

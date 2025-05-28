@@ -100,6 +100,8 @@ class StreamParser {
 
     if (typeof size === 'string') {
       size = parseInt(size);
+    } else if (typeof size === 'number') {
+      size = Math.round(size);
     }
 
     return size;
@@ -190,10 +192,7 @@ class StreamParser {
 
   private normaliseFilename(filename: string): string {
     // remove all non-alphanumeric characters, replace spaces with . and remove trailing and leading . or spaces
-    return filename
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .replace(/\s+/g, '.')
-      .replace(/^\.+|\.+$/g, '');
+    return filename.replace(/\s+/g, '.').replace(/^\.+|\.+$/g, '');
   }
 
   private calculateBytesFromSizeString(size: string, k: number = 1024): number {

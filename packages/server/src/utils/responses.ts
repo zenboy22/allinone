@@ -1,5 +1,8 @@
-import { createErrorStream, createLogger } from '@aiostreams/core';
-import { maskPath } from '../middlewares/logger';
+import {
+  createErrorStream,
+  createLogger,
+  makeUrlLogSafe,
+} from '@aiostreams/core';
 const logger = createLogger('server');
 
 type ApiResponseOptions = {
@@ -39,19 +42,9 @@ export function createResponse(
     success,
     error,
     type,
-    path: path ? maskPath(path) : undefined,
+    path: path ? makeUrlLogSafe(path) : undefined,
     adaptResponses,
   });
-  // return type === 'stream' && success === false
-  //   ? {
-  //       streams: [createErrorStream({ description: error?.message })],
-  //     }
-  //   : {
-  //       success,
-  //       message: options.message || null,
-  //       data: data || null,
-  //       error: error || null,
-  //     };
 
   switch (type) {
     case 'stream':

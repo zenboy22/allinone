@@ -45,14 +45,16 @@ export class TorrentioPreset extends Preset {
       {
         id: 'services',
         name: 'Services',
-        description: 'The services to use',
+        description:
+          'Optionally override the services that are used. If not specified, then the services that are enabled and supported will be used.',
         type: 'multi-select',
-        required: true,
+        required: false,
         options: supportedServices.map((service) => ({
           value: service,
           label: constants.SERVICE_DETAILS[service].name,
         })),
-        default: supportedServices,
+        default: undefined,
+        emptyIsUndefined: true,
       },
       {
         id: 'useMultipleInstances',
@@ -103,6 +105,21 @@ export class TorrentioPreset extends Preset {
       (service) =>
         this.METADATA.SUPPORTED_SERVICES.includes(service.id) && service.enabled
     );
+
+    // if the user specified services, then we must throw an error if those services are not enabled or have missing credentials
+    if (options?.services) {
+      for (const service of options.services) {
+        const userService = userData.services?.find((s) => s.id === service);
+        const meta = Object.values(constants.SERVICE_DETAILS).find(
+          (s) => s.id === service
+        );
+        if (!userService || !userService.enabled || !userService.credentials) {
+          throw new Error(
+            `You have specified ${meta?.name || service} in your ${this.METADATA.NAME} configuration, but it is not enabled or has missing credentials`
+          );
+        }
+      }
+    }
 
     // if user has specified services, filter the usable services to only include the specified services
     if (options?.services) {

@@ -1,15 +1,15 @@
 import { Router } from 'express';
 import { AIOStreams, constants } from '@aiostreams/core';
 import { stremioStreamRateLimiter } from '../../middlewares/ratelimit';
-import { createLogger } from '@aiostreams/core';
+import { createLogger, APIError } from '@aiostreams/core';
 import { createResponse } from '../../utils/responses';
-
-const logger = createLogger('stremio/stream');
 const router = Router();
+
+const logger = createLogger('server');
 
 router.use(stremioStreamRateLimiter);
 
-router.get('/:type/:id.json', async (req, res) => {
+router.get('/:type/:id.json', async (req, res, next) => {
   // Check if we have user data (set by middleware in authenticated routes)
   if (!req.userData) {
     // Return a response indicating configuration is needed
@@ -31,11 +31,6 @@ router.get('/:type/:id.json', async (req, res) => {
 
   try {
     const { type, id } = req.params;
-    logger.debug('Stream request received', {
-      type,
-      id,
-      userData: req.userData,
-    });
 
     const aiostreams = new AIOStreams(req.userData);
     await aiostreams.initialise();
@@ -49,8 +44,6 @@ router.get('/:type/:id.json', async (req, res) => {
       errors,
     });
 
-    logger.info(`Returning ${transformedStreams.length} streams`);
-
     res.status(200).json(
       createResponse(
         {
@@ -62,14 +55,14 @@ router.get('/:type/:id.json', async (req, res) => {
       )
     );
   } catch (error) {
-    logger.error('Error processing stream request', { error });
+    logger.error(error);
     res.status(200).json(
       createResponse(
         {
           success: false,
           error: {
             code: constants.ErrorCode.INTERNAL_SERVER_ERROR,
-            message: error instanceof Error ? error.message : String(error),
+            message: `An error occurred while fetching streams: ${error instanceof Error ? error.message : String(error)}`,
           },
         },
         req.originalUrl,

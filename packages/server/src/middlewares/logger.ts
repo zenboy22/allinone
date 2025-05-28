@@ -3,22 +3,10 @@ import {
   createLogger,
   getTimeTakenSincePoint,
   maskSensitiveInfo,
+  makeUrlLogSafe,
 } from '@aiostreams/core';
 
 const logger = createLogger('server');
-
-export const maskPath = (path: string) => {
-  // for each component of the path, if it is longer than 10 characters, mask it
-  return path
-    .split('/')
-    .map((component) => {
-      if (component.length > 10) {
-        return maskSensitiveInfo(component);
-      }
-      return component;
-    })
-    .join('/');
-};
 
 export const loggerMiddleware = (
   req: Request,
@@ -31,12 +19,12 @@ export const loggerMiddleware = (
   logger.http({
     type: 'request',
     method: req.method,
-    path: maskPath(req.originalUrl),
+    path: makeUrlLogSafe(req.originalUrl),
     query: Object.keys(req.query).length ? req.query : undefined,
     ip: req.userIp ? maskSensitiveInfo(req.userIp) : undefined,
     contentType: req.get('content-type'),
     userAgent: req.get('user-agent'),
-    formatted: `${req.method} ${maskPath(req.originalUrl)}${req.userIp ? ` - ${maskSensitiveInfo(req.userIp)}` : ''} - ${req.get('content-type')} - ${req.get('user-agent')}`,
+    formatted: `${req.method} ${makeUrlLogSafe(req.originalUrl)}${req.userIp ? ` - ${maskSensitiveInfo(req.userIp)}` : ''} - ${req.get('content-type')} - ${req.get('user-agent')}`,
   });
 
   // Capture response finish event
@@ -48,13 +36,13 @@ export const loggerMiddleware = (
     logger.http({
       type: 'response',
       method: req.method,
-      path: maskPath(req.originalUrl),
+      path: makeUrlLogSafe(req.originalUrl),
       statusCode: res.statusCode,
       duration,
       ip: req.userIp ? maskSensitiveInfo(req.userIp) : undefined,
       contentType: res.get('content-type'),
       contentLength: res.get('content-length'),
-      formatted: `${req.method} ${maskPath(req.originalUrl)}${req.userIp ? ` - ${maskSensitiveInfo(req.userIp)}` : ''} - Response: ${res.statusCode} - ${duration}ms`,
+      formatted: `${req.method} ${makeUrlLogSafe(req.originalUrl)}${req.userIp ? ` - ${maskSensitiveInfo(req.userIp)}` : ''} - Response: ${res.statusCode} - ${duration}ms`,
     });
   });
 

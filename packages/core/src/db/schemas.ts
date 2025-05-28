@@ -149,6 +149,7 @@ const OptionDefinition = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
+  emptyIsUndefined: z.boolean().optional(),
   type: z.enum([
     'string',
     'number',

@@ -1,9 +1,23 @@
 import { HEADERS_FOR_IP_FORWARDING } from './constants';
 import { Env } from './env';
-import { createLogger } from './logger';
+import { createLogger, maskSensitiveInfo } from './logger';
 import { fetch, ProxyAgent } from 'undici';
 
 const logger = createLogger('http');
+
+export function makeUrlLogSafe(url: string) {
+  // for each component of the path, if it is longer than 10 characters, mask it
+  return url
+    .split('/')
+    .filter((component) => !component.includes('.'))
+    .map((component) => {
+      if (component.length > 10) {
+        return maskSensitiveInfo(component);
+      }
+      return component;
+    })
+    .join('/');
+}
 
 export function makeRequest(
   url: string,
@@ -18,7 +32,11 @@ export function makeRequest(
       headers.set(header, forwardIp);
     }
   }
-
+  logger.debug(
+    `Making a ${useProxy ? 'proxied' : 'direct'} request to ${makeUrlLogSafe(
+      url
+    )}`
+  );
   let response = fetch(url, {
     dispatcher: useProxy ? new ProxyAgent(Env.ADDON_PROXY!) : undefined,
     method: 'GET',

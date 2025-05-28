@@ -50,6 +50,7 @@ export const baseOptions = (
       'Optionally override either the manifest generated, or override the base url used when generating the manifests',
     type: 'url',
     required: false,
+    emptyIsUndefined: true,
     default: undefined,
   },
   {

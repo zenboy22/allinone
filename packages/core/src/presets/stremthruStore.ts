@@ -30,14 +30,16 @@ export class StremthruStorePreset extends Preset {
       {
         id: 'services',
         name: 'Services',
-        description: 'The services that will be used',
+        description:
+          'Optionally override the services that are used. If not specified, then the services that are enabled and supported will be used.',
         type: 'multi-select',
-        required: true,
+        required: false,
         options: supportedServices.map((service) => ({
           value: service,
           label: constants.SERVICE_DETAILS[service].name,
         })),
-        default: supportedServices,
+        default: undefined,
+        emptyIsUndefined: true,
       },
       // THESE OPTIONS are covered by the resource option, so no need to provide them here.
       // {
@@ -93,6 +95,19 @@ export class StremthruStorePreset extends Preset {
         this.METADATA.SUPPORTED_SERVICES.includes(service.id) && service.enabled
     );
 
+    if (options?.services) {
+      for (const service of options.services) {
+        const userService = userData.services?.find((s) => s.id === service);
+        const meta = Object.values(constants.SERVICE_DETAILS).find(
+          (s) => s.id === service
+        );
+        if (!userService || !userService.enabled || !userService.credentials) {
+          throw new Error(
+            `You have specified service ${meta?.name || service} in your ${this.METADATA.NAME} configuration, but it is not enabled or has missing credentials`
+          );
+        }
+      }
+    }
     // if user has specified services, filter the usable services to only include the specified services
     if (options?.services) {
       usableServices = usableServices?.filter((service) =>
@@ -102,7 +117,11 @@ export class StremthruStorePreset extends Preset {
 
     // if no services are usable, throw an error
     if (!usableServices || usableServices.length === 0) {
-      throw new Error('No services are usable');
+      throw new Error(
+        `${this.METADATA.NAME} requires at least one usable service, but none were found. Please enable at least one of the following services: ${this.METADATA.SUPPORTED_SERVICES.join(
+          ', '
+        )}`
+      );
     }
 
     return usableServices.map((service) =>

@@ -25,6 +25,7 @@ const moduleMap: { [key: string]: string } = {
   regex: '🅰️  REGEX',
   database: '🗃️  DATABASE',
   users: '👤  USERS',
+  http: '🌐  HTTP',
 };
 
 // Define colors for each log level using full names

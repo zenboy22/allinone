@@ -377,14 +377,10 @@ export class AIOStreams {
                 addon: addon,
                 error: error.message,
               });
-              logger.error(
-                `Failed to fetch manifest for ${addon.name}: ${error.message}, filtering out`
-              );
+              logger.error(`${error.message}, skipping`);
               return [index, null];
             }
-            throw new Error(
-              `Failed to fetch manifest for ${addon.name}: ${error.message}`
-            );
+            throw error;
           }
         })
       )

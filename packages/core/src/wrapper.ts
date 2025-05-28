@@ -26,6 +26,7 @@ import {
   createLogger,
   constants,
   maskSensitiveInfo,
+  makeUrlLogSafe,
 } from './utils';
 import { PresetManager } from './presets';
 import { StreamParser } from './parser';
@@ -54,27 +55,11 @@ export class Wrapper {
     this.baseUrl = this.addon.manifestUrl.split('/').slice(0, -1).join('/');
   }
 
-  private makeLogSafeUrl(url: string): string {
-    // make the url safe for logging.
-    // use maskSensitiveInfo on the componenent that is the longest
-    // and only mask the longest if it is longer than 10 characters
-    const urlObj = new URL(url);
-    const path = urlObj.pathname;
-    // get the longest component
-    const longestComponent = path
-      .split('/')
-      .reduce((a, b) => (a.length > b.length ? a : b));
-    if (longestComponent.length > 10) {
-      return `${urlObj.protocol}//${urlObj.host}${urlObj.port ? `:${urlObj.port}` : ''}${path.replace(longestComponent, maskSensitiveInfo(longestComponent))}`;
-    }
-    return url;
-  }
-
   async getManifest(): Promise<Manifest> {
-    return manifestCache.wrap(
+    return await manifestCache.wrap(
       async () => {
         logger.debug(
-          `Fetching manifest for ${this.addon.name} (${this.makeLogSafeUrl(this.addon.manifestUrl)})`
+          `Fetching manifest for ${this.addon.name} (${makeUrlLogSafe(this.addon.manifestUrl)})`
         );
         try {
           const res = await makeRequest(
@@ -181,13 +166,13 @@ export class Wrapper {
       const cached = resourceCache.get(url);
       if (cached) {
         logger.debug(
-          `Returning cached ${resource} for ${this.addon.name} (${this.makeLogSafeUrl(url)})`
+          `Returning cached ${resource} for ${this.addon.name} (${makeUrlLogSafe(url)})`
         );
         return cached;
       }
     }
     logger.debug(
-      `Fetching ${resource} of type ${type} with id ${id} and extras ${extras} (${this.makeLogSafeUrl(url)})`
+      `Fetching ${resource} of type ${type} with id ${id} and extras ${extras} (${makeUrlLogSafe(url)})`
     );
     try {
       const res = await makeRequest(
@@ -201,9 +186,7 @@ export class Wrapper {
           `Failed to fetch ${resource} resource for ${this.addon.name}: ${res.status} - ${res.statusText}`
         );
 
-        throw new Error(
-          `Failed to fetch ${resource} resource for ${this.addon.name}`
-        );
+        throw new Error(`${res.status} - ${res.statusText}`);
       }
       const data = await res.json();
       const parsed = schema.safeParse(data);
@@ -222,9 +205,7 @@ export class Wrapper {
       logger.error(
         `Failed to fetch ${resource} resource for ${this.addon.name}: ${error.message}`
       );
-      throw new Error(
-        `Failed to fetch ${resource} resource for ${this.addon.name}`
-      );
+      throw error;
     }
   }
 
