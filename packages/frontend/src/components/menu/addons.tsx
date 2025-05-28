@@ -410,10 +410,8 @@ function SortableAddonItem({
           {...listeners}
         />
 
-        <div className="flex-1">
-          <p className="text-sm text-[--muted] font-normal italic line-clamp-1">
-            {addon.options.name}
-          </p>
+        <div className="flex-1 flex items-center">
+          <p className="text-base line-clamp-1">{addon.options.name}</p>
         </div>
 
         <div className="flex items-center gap-2">
