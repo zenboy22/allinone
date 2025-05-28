@@ -241,13 +241,13 @@ const SERVICE_DETAILS: Record<
     shortName: 'RD',
     knownNames: ['RD', 'Real Debrid', 'RealDebrid', 'Real-Debrid'],
     signUpText:
-      "Don't have an account? [Sign up here](https://real-debrid.com/signup?aid=9483829)",
+      "Don't have an account? [Sign up here](https://real-debrid.com/?id=9483829)",
     credentials: [
       {
         id: 'apiKey',
         name: 'API Key',
         description:
-          'The API key for the Real-Debrid service. Obtain it from [here](https://real-debrid.com/settings/api)',
+          'The API key for the Real-Debrid service. Obtain it from [here](https://real-debrid.com/apitoken)',
         type: 'string',
         required: true,
         sensitive: true,
@@ -342,7 +342,7 @@ const SERVICE_DETAILS: Record<
         id: 'apiKey',
         name: 'API Key',
         description:
-          'Your Offcloud API key. Obtain it from [here](https://offcloud.com/settings)',
+          'Your Offcloud API key. Obtain it from [here](https://offcloud.com/#/account) on the `API Key` tab. ',
         type: 'string',
         required: true,
         sensitive: true,
@@ -376,7 +376,7 @@ const SERVICE_DETAILS: Record<
         id: 'clientId',
         name: 'Client ID',
         description:
-          'Your put.io Client ID. Obtain it from [here](https://put.io/oauth)',
+          'Your put.io Client ID. Obtain it from [here](https://app.put.io/oauth)',
         type: 'string',
         required: true,
         sensitive: true,
@@ -385,7 +385,7 @@ const SERVICE_DETAILS: Record<
         id: 'token',
         name: 'Token',
         description:
-          'Your put.io Token. Obtain it from [here](https://put.io/oauth)',
+          'Your put.io Token. Obtain it from [here](https://app.put.io/oauth)',
         type: 'string',
         required: true,
         sensitive: true,
@@ -429,7 +429,7 @@ const SERVICE_DETAILS: Record<
         id: 'apiKey',
         name: 'API Key',
         description:
-          'Your EasyDebrid API key. Obtain it from [here](https://paradise-cloud.com/products/easydebrid)',
+          'Your EasyDebrid API key. Obtain it from [here](https://paradise-cloud.com/dashboard/)',
         type: 'string',
         required: true,
         sensitive: true,
