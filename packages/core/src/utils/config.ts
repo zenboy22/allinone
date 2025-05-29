@@ -29,14 +29,10 @@ function getServiceCredentialDefault(
   credentialId: string
 ) {
   // env mapping
-  logger.info(`Getting default credential for ${serviceId} ${credentialId}`);
   switch (serviceId) {
     case constants.REALDEBRID_SERVICE:
       switch (credentialId) {
         case 'apiKey':
-          logger.info(
-            `Default credential for ${serviceId} ${credentialId} is ${Env.DEFAULT_REALDEBRID_API_KEY}`
-          );
           return Env.DEFAULT_REALDEBRID_API_KEY;
       }
       break;
