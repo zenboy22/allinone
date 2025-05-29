@@ -201,15 +201,27 @@ function Content() {
         e.preventDefault();
       }
     }
+
+    function handleDragEnd() {
+      setIsDragging(false);
+    }
+
     if (isDragging) {
       document.body.addEventListener('touchmove', preventTouchMove, {
         passive: false,
       });
+      // Add listeners for when drag ends outside context
+      document.addEventListener('pointerup', handleDragEnd);
+      document.addEventListener('touchend', handleDragEnd);
     } else {
       document.body.removeEventListener('touchmove', preventTouchMove);
     }
+
+    // Cleanup
     return () => {
       document.body.removeEventListener('touchmove', preventTouchMove);
+      document.removeEventListener('pointerup', handleDragEnd);
+      document.removeEventListener('touchend', handleDragEnd);
     };
   }, [isDragging]);
 
