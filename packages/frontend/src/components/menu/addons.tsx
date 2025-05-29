@@ -666,7 +666,7 @@ function AddonFilterPopover({
       className="p-4 max-w-full w-full"
     >
       <div className="flex flex-col gap-3">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="flex flex-col max-h-60 overflow-y-auto">
             <div className="mb-2 font-semibold text-sm text-muted-foreground">
               Services
