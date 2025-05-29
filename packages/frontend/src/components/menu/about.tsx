@@ -3,7 +3,8 @@ import { PageWrapper } from '../shared/page-wrapper';
 import { useStatus } from '@/context/status';
 import { SettingsCard } from '../shared/settings-card';
 import { Alert } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { Button, IconButton } from '@/components/ui/button';
+import { TextInput } from '@/components/ui/text-input';
 import {
   InfoIcon,
   GithubIcon,
@@ -11,18 +12,21 @@ import {
   HeartIcon,
   CoffeeIcon,
   MessageCircleIcon,
+  PencilIcon,
 } from 'lucide-react';
 import { FaGithub, FaDiscord } from 'react-icons/fa';
 import { BiDonateHeart } from 'react-icons/bi';
 import { AiOutlineDiscord } from 'react-icons/ai';
 import { FiGithub } from 'react-icons/fi';
 import Image from 'next/image';
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Skeleton } from '@/components/ui/skeleton/skeleton';
 import { useDisclosure } from '@/hooks/disclosure';
 import { Modal } from '../ui/modal';
 import { SiGithubsponsors, SiKofi } from 'react-icons/si';
+import { useUserData } from '@/context/userData';
+import { toast } from 'sonner';
 
 export function AboutMenu() {
   return (
@@ -36,9 +40,11 @@ export function AboutMenu() {
 
 function Content() {
   const { status, loading, error } = useStatus();
-  const addonName = status?.settings?.addonName || 'AIOStreams';
+  const { userData, setUserData } = useUserData();
+  const addonName =
+    userData.addonName || status?.settings?.addonName || 'AIOStreams';
   const version = status?.tag || 'Unknown';
-  const logo = '/logo.png';
+  const customLogo = userData.addonLogo;
   const githubUrl = 'https://github.com/Viren070/AIOStreams';
   const releasesUrl = 'https://github.com/Viren070/AIOStreams/releases';
   const stremioGuideUrl =
@@ -47,8 +53,8 @@ function Content() {
     'https://github.com/Viren070/AIOStreams/wiki/Configuration-Guide';
   const discordUrl = 'https://discord.viren070.me';
   const donationModal = useDisclosure(false);
+  const customizeModal = useDisclosure(false);
   const customHtml = status?.settings?.customHtml;
-  // For demo, fallback description/tutorial
 
   return (
     <>
@@ -58,7 +64,7 @@ function Content() {
           {/* Large logo left */}
           <div className="flex-shrink-0 flex justify-center md:justify-start w-full md:w-auto">
             <Image
-              src={logo}
+              src={customLogo || '/logo.png'}
               alt="Logo"
               width={140}
               height={112}
@@ -68,9 +74,18 @@ function Content() {
           {/* Name, version, about right */}
           <div className="flex flex-col gap-2 w-full">
             <div className="flex flex-col md:flex-row md:items-end md:gap-4">
-              <span className="text-3xl md:text-4xl font-bold tracking-tight text-gray-100">
-                {addonName}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-3xl md:text-4xl font-bold tracking-tight text-gray-100">
+                  {addonName}
+                </span>
+                <IconButton
+                  icon={<PencilIcon className="w-4 h-4" />}
+                  intent="primary-subtle"
+                  onClick={customizeModal.open}
+                  className="rounded-full"
+                  size="sm"
+                />
+              </div>
               <span className="text-xl md:text-2xl font-semibold text-gray-400 md:mb-1">
                 {version}{' '}
                 {/* {version.includes('nightly') ? `(${status?.commit})` : ''} */}
@@ -213,6 +228,12 @@ function Content() {
         open={donationModal.isOpen}
         onOpenChange={donationModal.toggle}
       />
+      <CustomizeModal
+        open={customizeModal.isOpen}
+        onOpenChange={customizeModal.toggle}
+        currentName={addonName}
+        currentLogo={customLogo}
+      />
     </>
   );
 }
@@ -321,6 +342,89 @@ function DonationModal({
           </Button>
         </div>
       </div>
+    </Modal>
+  );
+}
+
+function CustomizeModal({
+  open,
+  onOpenChange,
+  currentName,
+  currentLogo,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentName: string;
+  currentLogo: string | undefined;
+}) {
+  const { userData, setUserData } = useUserData();
+  const [name, setName] = useState(currentName);
+  const [logo, setLogo] = useState(currentLogo);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      toast.error('Name cannot be empty');
+      return;
+    }
+
+    setUserData((prev) => ({
+      ...prev,
+      addonName: name.trim(),
+      addonLogo: logo?.trim(),
+    }));
+
+    toast.success('Customization saved');
+    onOpenChange(false);
+  };
+
+  const handleLogoChange = (value: string) => {
+    setLogo(value);
+  };
+
+  return (
+    <Modal open={open} onOpenChange={onOpenChange} title="Customize Addon">
+      <form onSubmit={handleSubmit}>
+        <div className="flex flex-col gap-4">
+          <div className="space-y-2">
+            <TextInput
+              label="Addon Name"
+              value={name}
+              onValueChange={setName}
+              placeholder="Enter addon name"
+            />
+            <p className="text-xs text-[--muted]">
+              This name will be displayed in Stremio
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <TextInput
+              label="Logo URL"
+              value={logo}
+              onValueChange={handleLogoChange}
+              placeholder="Enter logo URL"
+              type="url"
+            />
+            <p className="text-xs text-[--muted]">
+              Enter a valid URL for your addon's logo image. Leave blank for
+              default logo.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <Button
+              intent="primary-outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" intent="primary">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </form>
     </Modal>
   );
 }

@@ -204,7 +204,11 @@ export function MainSidebar() {
 
         <div>
           <div className="mb-4 p-4 pb-0 flex flex-col items-center w-full">
-            <img src="/logo.png" alt="logo" className="w-22.5 h-15" />
+            <img
+              src={user.userData.addonLogo || '/logo.png'}
+              alt="logo"
+              className="w-22.5 h-15"
+            />
             <span className="text-xs text-gray-500">
               {status
                 ? status.tag.includes('nightly')
