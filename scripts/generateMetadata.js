@@ -2,9 +2,8 @@ const { writeFileSync, mkdirSync } = require('fs');
 const { execSync } = require('child_process');
 const path = require('path');
 
-// check if --nightly flag is passed
-const isNightly =
-  process.argv.includes('--nightly') || process.env.NIGHTLY === 'true';
+const channel = process.argv.find((arg) => arg.startsWith('--channel='));
+const isNightly = channel === '--channel=nightly';
 
 // Get the version from package.json
 let { version, description } = require('../package.json');
