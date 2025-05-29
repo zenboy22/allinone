@@ -73,7 +73,17 @@ function Content() {
               </span>
               <span className="text-xl md:text-2xl font-semibold text-gray-400 md:mb-1">
                 {version}{' '}
-                {version.includes('nightly') ? `(${status?.commit})` : ''}
+                {/* {version.includes('nightly') ? `(${status?.commit})` : ''} */}
+                {version.includes('nightly') ? (
+                  <a
+                    href={`https://github.com/Viren070/AIOStreams/commit/${status?.commit}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[--brand] hover:underline"
+                  >
+                    ({status?.commit})
+                  </a>
+                ) : null}
               </span>
             </div>
             <div className="text-base md:text-lg text-[--muted] font-medium mb-2">
