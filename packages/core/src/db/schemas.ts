@@ -263,9 +263,9 @@ export const TABLES = {
       password_hash TEXT NOT NULL,
       config TEXT NOT NULL,
       config_salt TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+      updated_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+      accessed_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
     `,
 };
 
