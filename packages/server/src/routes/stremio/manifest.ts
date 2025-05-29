@@ -17,14 +17,13 @@ export default router;
 
 const manifest = async (config?: UserData): Promise<Manifest> => {
   let addonId = Env.ADDON_ID;
-  if (config && Env.DETERMINISTIC_ADDON_ID) {
+  if (config) {
     addonId = addonId += `.${config.uuid?.substring(0, 12)}`;
   }
   let catalogs: Manifest['catalogs'] = [];
   let resources: Manifest['resources'] = [];
   if (config) {
     const aiostreams = new AIOStreams(config);
-    // wait till initialized
 
     await aiostreams.initialise();
 
@@ -65,7 +64,6 @@ router.get('/', async (req, res, next) => {
     res.status(200).json(await manifest(req.userData));
   } catch (error) {
     logger.error(`Failed to generate manifest: ${error}`);
-    logger.verbose(JSON.stringify(req.userData, null, 2));
     next(new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR));
   }
 });

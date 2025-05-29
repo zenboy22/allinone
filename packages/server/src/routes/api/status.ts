@@ -1,9 +1,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { Env, PresetManager, UserRepository } from '@aiostreams/core';
-// import { PresetMetadata } from '@aiostreams/core/src/presets';
-import { PresetMetadata, StatusResponse } from '@aiostreams/core';
-import { APIError } from '@aiostreams/core/';
-import { constants, encryptString } from '@aiostreams/core';
+import {
+  Env,
+  getEnvironmentServiceDetails,
+  PresetManager,
+  UserRepository,
+} from '@aiostreams/core';
+import { StatusResponse } from '@aiostreams/core';
+import { encryptString } from '@aiostreams/core';
 
 const router = Router();
 
@@ -56,6 +59,7 @@ router.get('/', async (req: Request, res: Response) => {
         excludedRegex: Env.DEFAULT_EXCLUDED_REGEX_PATTERNS ?? null,
       },
       presets: PresetManager.getPresetList(),
+      services: getEnvironmentServiceDetails(),
     },
   };
   res.status(200).json({

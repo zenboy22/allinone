@@ -34,7 +34,7 @@ const StreamProxyConfig = z.object({
   id: z.enum(constants.PROXY_SERVICES),
   url: z.string().url(),
   credentials: z.string().min(1),
-  publicIp: z.string().min(1).optional(),
+  publicIp: z.string().ip().optional(),
   proxiedAddons: z.array(z.string().min(1)),
   proxiedServices: z.array(z.string().min(1)),
 });
@@ -80,7 +80,7 @@ const SizeFilterOptions = z.object({
 const ServiceSchema = z.object({
   id: ServiceIds,
   enabled: z.boolean().optional(),
-  credentials: z.record(z.string().min(1), z.string().min(1)).optional(),
+  credentials: z.record(z.string().min(1), z.string().min(1)),
 });
 
 export type Service = z.infer<typeof ServiceSchema>;
@@ -152,6 +152,7 @@ const OptionDefinition = z.object({
   emptyIsUndefined: z.boolean().optional(),
   type: z.enum([
     'string',
+    'password',
     'number',
     'boolean',
     'select',
@@ -160,7 +161,8 @@ const OptionDefinition = z.object({
   ]),
   required: z.boolean().optional(),
   default: z.any().optional(),
-  sensitive: z.boolean().optional(),
+  // sensitive: z.boolean().optional(),
+  forced: z.any().optional(),
   options: z
     .array(
       z.object({
@@ -586,6 +588,17 @@ const StatusResponseSchema = z.object({
       excludedRegex: z.array(z.string()),
     }),
     presets: z.array(PresetMetadataSchema),
+    services: z.record(
+      z.enum(constants.SERVICES),
+      z.object({
+        id: z.enum(constants.SERVICES),
+        name: z.string(),
+        shortName: z.string(),
+        knownNames: z.array(z.string()),
+        signUpText: z.string(),
+        credentials: z.array(OptionDefinition),
+      })
+    ),
   }),
 });
 

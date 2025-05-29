@@ -9,9 +9,8 @@ export function makeUrlLogSafe(url: string) {
   // for each component of the path, if it is longer than 10 characters, mask it
   return url
     .split('/')
-    .filter((component) => !component.includes('.'))
     .map((component) => {
-      if (component.length > 10) {
+      if (component.length > 10 && !component.includes('.')) {
         return maskSensitiveInfo(component);
       }
       return component;

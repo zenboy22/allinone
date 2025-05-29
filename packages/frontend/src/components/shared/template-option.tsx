@@ -36,12 +36,34 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
     required,
     options,
     constraints,
+    forced,
+    default: defaultValue,
     emptyIsUndefined = false,
   } = option;
 
-  const isDisabled = disabled;
+  const isDisabled = disabled || !!forced;
 
   switch (type) {
+    case 'password':
+      return (
+        <div>
+          <TextInput
+            type="password"
+            label={name}
+            value={forced || defaultValue || value}
+            onValueChange={(value: string) =>
+              onChange(emptyIsUndefined ? value || undefined : value)
+            }
+            required={required}
+            disabled={isDisabled}
+          />
+          {description && (
+            <div className="text-xs text-[--muted] mt-1">
+              <MarkdownLite>{description}</MarkdownLite>
+            </div>
+          )}
+        </div>
+      );
     case 'string':
       return (
         <div>

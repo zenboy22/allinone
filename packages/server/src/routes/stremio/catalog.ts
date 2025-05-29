@@ -7,7 +7,7 @@ const router = Router();
 
 router.use(stremioCatalogRateLimiter);
 
-router.get('/:type/:id/:extras?.json', async (req, res) => {
+router.get('/:type/:id/:extras?.json', async (req, res, next) => {
   if (!req.userData) {
     res.status(200).json(
       createResponse(
@@ -61,19 +61,7 @@ router.get('/:type/:id/:extras?.json', async (req, res) => {
       )
     );
   } catch (error) {
-    res.status(200).json(
-      createResponse(
-        {
-          success: false,
-          error: {
-            code: constants.ErrorCode.INTERNAL_SERVER_ERROR,
-            message: error instanceof Error ? error.message : String(error),
-          },
-        },
-        req.originalUrl,
-        true
-      )
-    );
+    next(error);
   }
 });
 

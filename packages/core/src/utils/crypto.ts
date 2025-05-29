@@ -71,6 +71,9 @@ type ErrorResponse = {
 
 export type Response = SuccessResponse | ErrorResponse;
 
+export function isEncrypted(data: string): boolean {
+  return data.startsWith('aioEncrypt:');
+}
 /**
  * Encrypts a string using AES-256-CBC encryption, returns a string in the format "iv:encrypted" where
  * iv and encrypted are url encoded.
@@ -87,7 +90,7 @@ export function encryptString(data: string, secretKey?: Buffer): Response {
     const { iv, data: encrypted } = encryptData(secretKey, compressed);
     return {
       success: true,
-      data: `${encodeURIComponent(iv)}:${encodeURIComponent(encrypted)}`,
+      data: `aioEncrypt:${encodeURIComponent(iv)}:${encodeURIComponent(encrypted)}`,
       error: null,
     };
   } catch (error: any) {
@@ -111,7 +114,7 @@ export function decryptString(data: string, secretKey?: Buffer): Response {
     secretKey = Buffer.from(Env.SECRET_KEY, 'hex');
   }
   try {
-    const [ivHex, encryptedHex] = data.split(':').map(decodeURIComponent);
+    const [_, ivHex, encryptedHex] = data.split(':').map(decodeURIComponent);
     const iv = Buffer.from(ivHex, 'base64');
     const encrypted = Buffer.from(encryptedHex, 'base64');
     const decrypted = decryptData(secretKey, encrypted, iv);

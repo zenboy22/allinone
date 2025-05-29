@@ -2,7 +2,7 @@
 import { useStatus } from '@/context/status';
 import { PageWrapper } from '../shared/page-wrapper';
 import {
-  SERVICE_DETAILS,
+  // SERVICE_DETAILS,
   ServiceId,
 } from '../../../../core/src/utils/constants';
 import { useUserData } from '@/context/userData';
@@ -49,13 +49,13 @@ export function ServicesMenu() {
 //
 
 function Content() {
-  const status = useStatus();
+  const { status } = useStatus();
+  if (!status) return null;
   const { setUserData, userData } = useUserData();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalService, setModalService] = useState<ServiceId | null>(null);
   const [modalValues, setModalValues] = useState<Record<string, any>>({});
-  const [invalidServices, setInvalidServices] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
   // DND logic
@@ -97,11 +97,6 @@ function Content() {
       const newUserData = { ...prev };
       newUserData.services = (newUserData.services ?? []).map((service) => {
         if (service.id === modalService) {
-          if (invalidServices.includes(SERVICE_DETAILS[service.id].name)) {
-            setInvalidServices((prev) =>
-              prev.filter((a) => a !== SERVICE_DETAILS[service.id].name)
-            );
-          }
           return {
             ...service,
             enabled: true,
@@ -116,28 +111,79 @@ function Content() {
   };
 
   useEffect(() => {
-    const allServiceIds = Object.keys(SERVICE_DETAILS);
+    const allServiceIds: ServiceId[] = Object.keys(
+      status.settings.services
+    ) as ServiceId[];
     const currentServices = userData.services ?? [];
-    // Remove any services not in SERVICE_DETAILS
-    let filtered = currentServices.filter((s: { id: string }) =>
-      allServiceIds.includes(s.id)
-    );
+
+    // Remove any services not in SERVICE_DETAILS and apply forced/default credentials
+    let filtered = currentServices
+      .filter((s) => allServiceIds.includes(s.id))
+      .map((service) => {
+        const svcMeta = status.settings.services[service.id]!;
+        const updatedCredentials = { ...service.credentials };
+        let hasChanges = false;
+
+        svcMeta.credentials.forEach((cred) => {
+          // Always apply forced credentials, regardless of existing value
+          if (cred.forced) {
+            if (updatedCredentials[cred.id] !== cred.forced) {
+              updatedCredentials[cred.id] = cred.forced;
+              hasChanges = true;
+            }
+          }
+          // Only apply defaults for missing credentials
+          else if (!service.credentials?.[cred.id] && cred.default) {
+            updatedCredentials[cred.id] = cred.default;
+            hasChanges = true;
+          }
+        });
+
+        // Only create a new object if there were changes
+        return hasChanges
+          ? {
+              ...service,
+              credentials: updatedCredentials,
+            }
+          : service;
+      });
+
     // Add any missing services from SERVICE_DETAILS
     const missing = allServiceIds.filter(
-      (id) => !filtered.some((s: { id: string }) => s.id === id)
+      (id) => !filtered.some((s) => s.id === id)
     );
+
     if (missing.length > 0 || filtered.length !== currentServices.length) {
-      const toAdd = missing.map((id) => ({
-        id,
-        enabled: false,
-        credentials: {},
-      }));
+      const toAdd = missing.map((id) => {
+        const svcMeta = status.settings.services[id]!;
+        const credentials: Record<string, any> = {};
+        let enabled = false;
+
+        // Apply forced/default credentials for new services
+        svcMeta.credentials.forEach((cred) => {
+          if (cred.forced) {
+            credentials[cred.id] = cred.forced;
+            // enable the service if it has forced credentials
+            enabled = true;
+          } else if (cred.default) {
+            credentials[cred.id] = cred.default;
+            enabled = true;
+          }
+        });
+
+        return {
+          id,
+          enabled,
+          credentials,
+        };
+      });
+
       setUserData((prev: any) => ({
         ...prev,
         services: [...filtered, ...toAdd],
       }));
     }
-  }, [userData.services, setUserData]);
+  }, [status.settings.services]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -167,6 +213,19 @@ function Content() {
     };
   }, [isDragging]);
 
+  const invalidServices =
+    userData.services
+      ?.filter((service) => {
+        const svcMeta = status.settings.services[service.id];
+        if (!svcMeta) return false;
+        // Check if any required credential is missing
+        return (
+          service.enabled &&
+          svcMeta.credentials.some((cred) => !service.credentials?.[cred.id])
+        );
+      })
+      .map((service) => status.settings.services[service.id]?.name) ?? [];
+
   // Render
   return (
     <>
@@ -179,7 +238,7 @@ function Content() {
         </div>
         <div className="flex flex-1"></div>
       </div>
-      {invalidServices.length > 0 && (
+      {invalidServices && invalidServices.length > 0 && (
         <div className="mb-6">
           <Alert
             intent="alert"
@@ -225,7 +284,7 @@ function Content() {
                   </li>
                 ) : (
                   userData.services?.map((service, idx) => {
-                    const svcMeta = SERVICE_DETAILS[service.id];
+                    const svcMeta = status.settings.services[service.id]!;
                     return (
                       <SortableServiceItem
                         key={service.id}
@@ -234,36 +293,6 @@ function Content() {
                         onEdit={() => handleServiceClick(service.id)}
                         onToggleEnabled={(v: boolean) => {
                           setUserData((prev) => {
-                            const existingService = prev.services?.find(
-                              (s) => s.id === service.id
-                            );
-                            if (!existingService) return prev;
-                            const missingCredentials =
-                              svcMeta.credentials.filter(
-                                (cred) =>
-                                  !existingService.credentials?.[cred.id]
-                              );
-                            const invalidService = svcMeta.name;
-                            if (missingCredentials.length > 0) {
-                              if (v) {
-                                if (!invalidServices.includes(invalidService)) {
-                                  setInvalidServices((prev) => [
-                                    ...prev,
-                                    invalidService,
-                                  ]);
-                                }
-                              } else {
-                                setInvalidServices((prev) =>
-                                  prev.filter((a) => a !== invalidService)
-                                );
-                              }
-                            } else {
-                              if (invalidServices.includes(invalidService)) {
-                                setInvalidServices((prev) =>
-                                  prev.filter((a) => a !== invalidService)
-                                );
-                              }
-                            }
                             return {
                               ...prev,
                               services: (prev.services ?? []).map((s) =>
@@ -318,6 +347,9 @@ function SortableServiceItem({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+  const disableEdit = meta.credentials.every((cred: any) => {
+    return cred.forced;
+  });
   return (
     <li ref={setNodeRef} style={style}>
       <div className="px-2.5 py-2 bg-[var(--background)] rounded-[--radius-md] border flex gap-3 relative">
@@ -335,11 +367,16 @@ function SortableServiceItem({
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <Switch value={!!service.enabled} onValueChange={onToggleEnabled} />
+          <Switch
+            value={!!service.enabled}
+            onValueChange={onToggleEnabled}
+            disabled={disableEdit}
+          />
           <IconButton
             icon={<FiSettings />}
             intent="primary-outline"
             onClick={onEdit}
+            disabled={disableEdit}
           />
         </div>
       </div>
@@ -364,8 +401,10 @@ function ServiceModal({
   onSubmit: (v: Record<string, any>) => void;
   onClose: () => void;
 }) {
+  const { status } = useStatus();
+  if (!status) return null;
   if (!serviceId) return null;
-  const meta = SERVICE_DETAILS[serviceId];
+  const meta = status.settings.services[serviceId]!;
   const credentials = meta.credentials || [];
   return (
     <Modal
@@ -384,7 +423,7 @@ function ServiceModal({
           <TemplateOption
             key={opt.id}
             option={opt}
-            value={values[opt.id]}
+            value={opt.forced || opt.default || values[opt.id]}
             onChange={(v) => onChange({ ...values, [opt.id]: v })}
           />
         ))}

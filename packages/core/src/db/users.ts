@@ -45,8 +45,9 @@ export class UserRepository {
         );
       }
 
+      let validatedConfig: UserData;
       try {
-        await validateConfig(config);
+        validatedConfig = await validateConfig(config);
       } catch (error: any) {
         return Promise.reject(
           new APIError(
@@ -61,7 +62,7 @@ export class UserRepository {
       config.uuid = uuid;
 
       const { encryptedConfig, salt: configSalt } = await this.encryptConfig(
-        config,
+        validatedConfig,
         password
       );
       const hashedPassword = await getTextHash(password);
@@ -139,11 +140,24 @@ export class UserRepository {
         result[0].config_salt
       );
 
-      decryptedConfig.admin =
+      let validatedConfig: UserData;
+      try {
+        validatedConfig = await validateConfig(decryptedConfig);
+      } catch (error: any) {
+        return Promise.reject(
+          new APIError(
+            constants.ErrorCode.USER_INVALID_CONFIG,
+            undefined,
+            error.message
+          )
+        );
+      }
+
+      validatedConfig.admin =
         Env.ADMIN_UUIDS?.split(',').some((u) => new RegExp(u).test(uuid)) ??
         false;
       logger.info(`Retrieved configuration for user ${uuid}`);
-      return decryptedConfig;
+      return validatedConfig;
     } catch (error) {
       logger.error(
         `Error retrieving user ${uuid}: ${error instanceof Error ? error.message : String(error)}`
@@ -172,8 +186,9 @@ export class UserRepository {
           );
         }
 
+        let validatedConfig: UserData;
         try {
-          await validateConfig(config);
+          validatedConfig = await validateConfig(config);
         } catch (error: any) {
           await tx.rollback();
           return Promise.reject(
@@ -194,7 +209,7 @@ export class UserRepository {
         }
 
         const { encryptedConfig } = await this.encryptConfig(
-          config,
+          validatedConfig,
           password,
           currentUser.rows[0].config_salt
         );

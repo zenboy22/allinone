@@ -7,7 +7,7 @@ import {
   decryptString,
   validateConfig,
 } from '@aiostreams/core';
-import { UserDataSchema, UserRepository } from '@aiostreams/core';
+import { UserDataSchema, UserRepository, UserData } from '@aiostreams/core';
 
 const logger = createLogger('server');
 
@@ -74,19 +74,17 @@ export const userDataMiddleware = async (
       next(new APIError(constants.ErrorCode.USER_INVALID_PASSWORD));
       return;
     }
-    try {
-      validateConfig(decryptedConfig, true);
-    } catch (error) {
-      next(new APIError(constants.ErrorCode.USER_INVALID_CONFIG));
-      return;
-    }
-
     // Attach validated data to request
     req.userData = decryptedConfig;
     req.userData.ip = req.userIp;
     req.uuid = uuid;
     next();
-  } catch (error) {
-    next(new APIError(constants.ErrorCode.USER_ERROR));
+  } catch (error: any) {
+    logger.error(error.message);
+    if (error instanceof APIError) {
+      next(error);
+    } else {
+      next(new APIError(constants.ErrorCode.USER_ERROR));
+    }
   }
 };

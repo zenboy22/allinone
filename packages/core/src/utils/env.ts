@@ -216,14 +216,6 @@ export const Env = cleanEnv(process.env, {
     default: '',
     desc: 'API key for the addon, can be set to anything',
   }),
-  SHOW_DIE: bool({
-    default: false,
-    desc: 'Show a game die emoji in streams for non-custom formats',
-  }),
-  DETERMINISTIC_ADDON_ID: bool({
-    default: true,
-    desc: 'Deterministic addon ID',
-  }),
   DATABASE_URI: str({
     default: 'sqlite://./data/db.sqlite',
     desc: 'Database URI for the addon',
@@ -247,10 +239,6 @@ export const Env = cleanEnv(process.env, {
   TMDB_ACCESS_TOKEN: str({
     default: undefined,
     desc: 'TMDB Read Access Token. Used for fetching metadata for the strict title matching option.',
-  }),
-  DISABLE_CUSTOM_CONFIG_GENERATOR_ROUTE: bool({
-    default: false,
-    desc: 'Disable custom config generator route',
   }),
 
   // logging settings
@@ -409,79 +397,153 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default proxy proxied services',
   }),
 
-  // // MediaFlow settings
-  // FORCE_MEDIAFLOW_URL: url({
-  //   default: undefined,
-  //   desc: 'Force MediaFlow URL',
-  // }),
-  // FORCE_MEDIAFLOW_API_PASSWORD: str({
-  //   default: undefined,
-  //   desc: 'Force MediaFlow API password',
-  // }),
-  // FORCE_MEDIAFLOW_PUBLIC_IP: str({
-  //   default: undefined,
-  //   desc: 'Force MediaFlow public IP',
-  // }),
-  // DEFAULT_MEDIAFLOW_URL: url({
-  //   default: '',
-  //   desc: 'Default MediaFlow URL',
-  // }),
-  // DEFAULT_MEDIAFLOW_API_PASSWORD: str({
-  //   default: '',
-  //   desc: 'Default MediaFlow API password',
-  // }),
-  // DEFAULT_MEDIAFLOW_PUBLIC_IP: str({
-  //   default: '',
-  //   desc: 'Default MediaFlow public IP',
-  // }),
-  // MEDIAFLOW_IP_TIMEOUT: num({
-  //   default: 30000,
-  //   desc: 'MediaFlow IP timeout',
-  // }),
   ENCRYPT_MEDIAFLOW_URLS: bool({
     default: true,
     desc: 'Encrypt MediaFlow URLs',
   }),
 
-  // // StremThru settings
-  // FORCE_STREMTHRU_URL: url({
-  //   default: undefined,
-  //   desc: 'Force StremThru URL',
-  // }),
-  // FORCE_STREMTHRU_CREDENTIAL: str({
-  //   default: undefined,
-  //   desc: 'Force StremThru credential',
-  // }),
-  // FORCE_STREMTHRU_PUBLIC_IP: str({
-  //   default: undefined,
-  //   desc: 'Force StremThru public IP',
-  // }),
-  // DEFAULT_STREMTHRU_URL: url({
-  //   default: '',
-  //   desc: 'Default StremThru URL',
-  // }),
-  // DEFAULT_STREMTHRU_CREDENTIAL: str({
-  //   default: '',
-  //   desc: 'Default StremThru credential',
-  // }),
-  // DEFAULT_STREMTHRU_PUBLIC_IP: str({
-  //   default: '',
-  //   desc: 'Default StremThru public IP',
-  // }),
-  // STREMTHRU_TIMEOUT: num({
-  //   default: 30000,
-  //   desc: 'StremThru timeout',
-  // }),
   ENCRYPT_STREMTHRU_URLS: bool({
     default: true,
     desc: 'Encrypt StremThru URLs',
+  }),
+
+  // service settings
+  DEFAULT_REALDEBRID_API_KEY: str({
+    default: undefined,
+    desc: 'Default RealDebrid API key',
+  }),
+  DEFAULT_ALLDEBRID_API_KEY: str({
+    default: undefined,
+    desc: 'Default AllDebrid API key',
+  }),
+  DEFAULT_PREMIUMIZE_API_KEY: str({
+    default: undefined,
+    desc: 'Default Premiumize API key',
+  }),
+  DEFAULT_DEBRIDLINK_API_KEY: str({
+    default: undefined,
+    desc: 'Default DebridLink API key',
+  }),
+  DEFAULT_TORBOX_API_KEY: str({
+    default: undefined,
+    desc: 'Default Torbox API key',
+  }),
+  DEFAULT_OFFCLOUD_API_KEY: str({
+    default: undefined,
+    desc: 'Default OffCloud API key',
+  }),
+  DEFAULT_OFFCLOUD_EMAIL: str({
+    default: undefined,
+    desc: 'Default OffCloud email',
+  }),
+  DEFAULT_OFFCLOUD_PASSWORD: str({
+    default: undefined,
+    desc: 'Default OffCloud password',
+  }),
+  DEFAULT_PUTIO_CLIENT_ID: str({
+    default: undefined,
+    desc: 'Default Putio client id',
+  }),
+  DEFAULT_PUTIO_CLIENT_SECRET: str({
+    default: undefined,
+    desc: 'Default Putio client secret',
+  }),
+  DEFAULT_EASYNEWS_USERNAME: str({
+    default: undefined,
+    desc: 'Default EasyNews username',
+  }),
+  DEFAULT_EASYNEWS_PASSWORD: str({
+    default: undefined,
+    desc: 'Default EasyNews password',
+  }),
+  DEFAULT_EASYDEBRID_API_KEY: str({
+    default: undefined,
+    desc: 'Default EasyDebrid API key',
+  }),
+  DEFAULT_PIKPAK_EMAIL: str({
+    default: undefined,
+    desc: 'Default PikPak email',
+  }),
+  DEFAULT_PIKPAK_PASSWORD: str({
+    default: undefined,
+    desc: 'Default PikPak password',
+  }),
+  DEFAULT_SEEDR_ENCODED_TOKEN: str({
+    default: undefined,
+    desc: 'Default Seedr encoded token',
+  }),
+
+  // forced services
+  FORCED_REALDEBRID_API_KEY: str({
+    default: undefined,
+    desc: 'Forced RealDebrid API key',
+  }),
+  FORCED_ALLDEBRID_API_KEY: str({
+    default: undefined,
+    desc: 'Forced AllDebrid API key',
+  }),
+  FORCED_PREMIUMIZE_API_KEY: str({
+    default: undefined,
+    desc: 'Forced Premiumize API key',
+  }),
+  FORCED_DEBRIDLINK_API_KEY: str({
+    default: undefined,
+    desc: 'Forced DebridLink API key',
+  }),
+  FORCED_TORBOX_API_KEY: str({
+    default: undefined,
+    desc: 'Forced Torbox API key',
+  }),
+  FORCED_OFFCLOUD_API_KEY: str({
+    default: undefined,
+    desc: 'Forced OffCloud API key',
+  }),
+  FORCED_OFFCLOUD_EMAIL: str({
+    default: undefined,
+    desc: 'Forced OffCloud email',
+  }),
+  FORCED_OFFCLOUD_PASSWORD: str({
+    default: undefined,
+    desc: 'Forced OffCloud password',
+  }),
+  FORCED_PUTIO_CLIENT_ID: str({
+    default: undefined,
+    desc: 'Forced Putio client id',
+  }),
+  FORCED_PUTIO_CLIENT_SECRET: str({
+    default: undefined,
+    desc: 'Forced Putio client secret',
+  }),
+  FORCED_EASYNEWS_USERNAME: str({
+    default: undefined,
+    desc: 'Forced EasyNews username',
+  }),
+  FORCED_EASYNEWS_PASSWORD: str({
+    default: undefined,
+    desc: 'Forced EasyNews password',
+  }),
+  FORCED_EASYDEBRID_API_KEY: str({
+    default: undefined,
+    desc: 'Forced EasyDebrid API key',
+  }),
+  FORCED_PIKPAK_EMAIL: str({
+    default: undefined,
+    desc: 'Forced PikPak email',
+  }),
+  FORCED_PIKPAK_PASSWORD: str({
+    default: undefined,
+    desc: 'Forced PikPak password',
+  }),
+  FORCED_SEEDR_ENCODED_TOKEN: str({
+    default: undefined,
+    desc: 'Forced Seedr encoded token',
   }),
 
   COMET_URL: url({
     default: 'https://comet.elfhosted.com/',
     desc: 'Comet URL',
   }),
-  COMET_INDEXERS: json({
+  DEFAULT_COMET_INDEXERS: json({
     default: ['dmm_public_hash_shares_only'],
     desc: 'Comet indexers',
   }),

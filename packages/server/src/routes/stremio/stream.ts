@@ -55,20 +55,7 @@ router.get('/:type/:id.json', async (req, res, next) => {
       )
     );
   } catch (error) {
-    logger.error(error);
-    res.status(200).json(
-      createResponse(
-        {
-          success: false,
-          error: {
-            code: constants.ErrorCode.INTERNAL_SERVER_ERROR,
-            message: `An error occurred while fetching streams: ${error instanceof Error ? error.message : String(error)}`,
-          },
-        },
-        req.originalUrl,
-        true
-      )
-    );
+    next(error);
   }
 });
 
