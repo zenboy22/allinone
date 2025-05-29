@@ -128,7 +128,7 @@ export abstract class BaseFormatter {
         regexMatched: stream.regexMatched?.name || null,
         encode: stream.parsedFile.encode || null,
         indexer: stream.indexer || null,
-        seeders: stream.torrent?.seeders || null,
+        seeders: stream.torrent?.seeders ?? null,
         year: stream.parsedFile.year || null,
         type: stream.type || null,
         title: stream.parsedFile.title || null,
