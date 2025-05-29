@@ -11,7 +11,7 @@ export class TorrentioFormatter extends BaseFormatter {
 {stream.message::exists["ℹ️{stream.message}"||""]}
 {stream.folderName::exists["{stream.folderName}"||""]}
 {stream.filename::exists["{stream.filename}"||""]}
-{stream.size::>0["💾{stream.size::bytes2} "||""]}{stream.seeders::>0["👤{stream.seeders} "||""]}{stream.age::exists["📅{stream.age} "||""]}{stream.indexer::exists["⚙️{stream.indexer}"||""]}
+{stream.size::>0["💾{stream.size::bytes2} "||""]}{stream.seeders::>=0["👤{stream.seeders} "||""]}{stream.age::exists["📅{stream.age} "||""]}{stream.indexer::exists["⚙️{stream.indexer}"||""]}
 {stream.languageEmojis::exists["{stream.languageEmojis::join( / ')}"||""]}
 `,
     });
