@@ -42,7 +42,7 @@ COPY --from=builder /build/packages/core/package.*json ./packages/core/
 COPY --from=builder /build/packages/frontend/package.*json ./packages/frontend/
 COPY --from=builder /build/packages/server/package.*json ./packages/server/
 
-COPY --from=builder /build/packages/core/out ./packages/core/out
+COPY --from=builder /build/packages/core/dist ./packages/core/dist
 COPY --from=builder /build/packages/frontend/out ./packages/frontend/out
 COPY --from=builder /build/packages/server/dist ./packages/server/dist
 
