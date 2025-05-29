@@ -224,15 +224,15 @@ function Content() {
 
       {/* Marketplace Section */}
       <div className="bg-[--card] border border-[--border] rounded-xl p-4 mb-6 shadow-sm">
-        <div className="flex flex-wrap gap-2 items-center mb-4 justify-start">
-          <div className="flex items-center gap-2">
+        <div className="flex justify-center mb-4">
+          <div className="w-full sm:w-[500px] flex gap-2">
             <TextInput
               value={search}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setSearch(e.target.value)
               }
               placeholder="Search addons..."
-              className="w-64"
+              className="flex-1"
               leftIcon={<SearchIcon className="w-4 h-4" />}
             />
             <AddonFilterPopover
@@ -521,7 +521,7 @@ function AddonCard({
       </div>
       {/* Button at bottom */}
       <div className="mt-auto pt-3 flex items-end">
-        <Button size="sm" className="w-full" onClick={onAdd}>
+        <Button size="md" className="w-full" onClick={onAdd}>
           Add Addon
         </Button>
       </div>
@@ -654,11 +654,11 @@ function AddonFilterPopover({
       onOpenChange={setOpen}
       trigger={children}
       modal={false}
-      className="p-4 w-[32rem] max-w-full"
+      className="p-4 max-w-full w-full"
     >
       <div className="flex flex-col gap-3">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="flex flex-col max-h-60 overflow-y-auto min-w-[9rem]">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="flex flex-col max-h-60 overflow-y-auto">
             <div className="mb-2 font-semibold text-sm text-muted-foreground">
               Services
             </div>
@@ -682,7 +682,7 @@ function AddonFilterPopover({
               </div>
             ))}
           </div>
-          <div className="flex flex-col max-h-60 overflow-y-auto min-w-[9rem]">
+          <div className="flex flex-col max-h-60 overflow-y-auto">
             <div className="mb-2 font-semibold text-sm text-muted-foreground">
               Stream Types
             </div>
@@ -706,7 +706,7 @@ function AddonFilterPopover({
               </div>
             ))}
           </div>
-          <div className="flex flex-col max-h-60 overflow-y-auto min-w-[9rem]">
+          <div className="flex flex-col max-h-60 overflow-y-auto">
             <div className="mb-2 font-semibold text-sm text-muted-foreground">
               Resources
             </div>
