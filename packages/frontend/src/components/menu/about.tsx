@@ -19,7 +19,7 @@ import { BiDonateHeart } from 'react-icons/bi';
 import { AiOutlineDiscord } from 'react-icons/ai';
 import { FiGithub } from 'react-icons/fi';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Skeleton } from '@/components/ui/skeleton/skeleton';
 import { useDisclosure } from '@/hooks/disclosure';
@@ -44,7 +44,6 @@ function Content() {
   const addonName =
     userData.addonName || status?.settings?.addonName || 'AIOStreams';
   const version = status?.tag || 'Unknown';
-  const customLogo = userData.addonLogo;
   const githubUrl = 'https://github.com/Viren070/AIOStreams';
   const releasesUrl = 'https://github.com/Viren070/AIOStreams/releases';
   const stremioGuideUrl =
@@ -64,7 +63,7 @@ function Content() {
           {/* Large logo left */}
           <div className="flex-shrink-0 flex justify-center md:justify-start w-full md:w-auto">
             <Image
-              src={customLogo || '/logo.png'}
+              src={userData.addonLogo || '/logo.png'}
               alt="Logo"
               width={140}
               height={112}
@@ -74,15 +73,15 @@ function Content() {
           {/* Name, version, about right */}
           <div className="flex flex-col gap-2 w-full">
             <div className="flex flex-col md:flex-row md:items-end md:gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-3xl md:text-4xl font-bold tracking-tight text-gray-100">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-3xl md:text-4xl font-bold tracking-tight text-gray-100 truncate">
                   {addonName}
                 </span>
                 <IconButton
                   icon={<PencilIcon className="w-4 h-4" />}
                   intent="primary-subtle"
                   onClick={customizeModal.open}
-                  className="rounded-full"
+                  className="rounded-full flex-shrink-0"
                   size="sm"
                 />
               </div>
@@ -232,7 +231,7 @@ function Content() {
         open={customizeModal.isOpen}
         onOpenChange={customizeModal.toggle}
         currentName={addonName}
-        currentLogo={customLogo}
+        currentLogo={userData.addonLogo}
       />
     </>
   );
@@ -360,6 +359,12 @@ function CustomizeModal({
   const { userData, setUserData } = useUserData();
   const [name, setName] = useState(currentName);
   const [logo, setLogo] = useState(currentLogo);
+
+  // Update state when props change
+  useEffect(() => {
+    setName(currentName);
+    setLogo(currentLogo);
+  }, [currentName, currentLogo]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
