@@ -49,6 +49,9 @@ stremioRouter.use(corsMiddleware);
 stremioRouter.use('/manifest.json', manifest);
 stremioRouter.use('/stream', stream);
 stremioRouter.use('/configure', configure);
+stremioRouter.use('/configure.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/out/index.txt'));
+});
 
 // Protected routes with authentication
 const stremioAuthRouter = express.Router({ mergeParams: true });
@@ -57,6 +60,9 @@ stremioAuthRouter.use(userDataMiddleware);
 stremioAuthRouter.use('/manifest.json', manifest);
 stremioAuthRouter.use('/stream', stream);
 stremioAuthRouter.use('/configure', configure);
+stremioAuthRouter.use('/configure.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/out/index.txt'));
+});
 stremioAuthRouter.use('/meta', meta);
 stremioAuthRouter.use('/catalog', catalog);
 stremioAuthRouter.use('/subtitles', subtitle);
