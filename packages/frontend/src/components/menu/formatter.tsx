@@ -18,6 +18,7 @@ import { useDisclosure } from '@/hooks/disclosure';
 import { Button } from '../ui/button';
 import { CopyIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { NumberInput } from '../ui/number-input';
 
 const formatterChoices = Object.values(constants.FORMATTER_DETAILS);
 
@@ -373,12 +374,13 @@ function Content() {
               onChange={(e) => setIndexer(e.target.value)}
               className="w-full"
             />
-            <TextInput
+            <NumberInput
               label={<span className="truncate block">Seeders</span>}
-              type="number"
-              value={seeders.toString()}
-              onChange={(e) => setSeeders(parseInt(e.target.value) || 0)}
+              value={seeders}
+              onValueChange={(value) => setSeeders(value)}
               className="w-full"
+              min={0}
+              defaultValue={0}
             />
             <TextInput
               label={<span className="truncate block">Age</span>}
@@ -386,19 +388,23 @@ function Content() {
               onChange={(e) => setAge(e.target.value)}
               className="w-full"
             />
-            <TextInput
+            <NumberInput
               label={<span className="truncate block">Duration (s)</span>}
-              type="number"
-              value={duration.toString()}
-              onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
+              value={duration}
+              onValueChange={(value) => setDuration(value)}
               className="w-full"
+              min={0}
+              step={1000}
+              defaultValue={0}
             />
-            <TextInput
+            <NumberInput
               label={<span className="truncate block">File Size (bytes)</span>}
-              type="number"
-              value={fileSize.toString()}
-              onChange={(e) => setFileSize(parseInt(e.target.value) || 0)}
+              value={fileSize}
+              onValueChange={(value) => setFileSize(value)}
               className="w-full"
+              step={1000000000}
+              defaultValue={0}
+              min={0}
             />
             <TextInput
               label={<span className="truncate block">Regex Matched</span>}
