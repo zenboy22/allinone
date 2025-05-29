@@ -35,8 +35,8 @@ router.get('/', async (req: Request, res: Response) => {
           credentials: !!Env.FORCE_PROXY_CREDENTIALS
             ? encryptString(Env.FORCE_PROXY_CREDENTIALS).data
             : null,
-          proxiedAddons: Env.FORCE_PROXY_PROXIED_ADDONS ?? null,
           proxiedServices: Env.FORCE_PROXY_PROXIED_SERVICES ?? null,
+          disableProxiedAddons: Env.FORCE_PROXY_DISABLE_PROXIED_ADDONS,
         },
       },
       defaults: {
@@ -50,7 +50,6 @@ router.get('/', async (req: Request, res: Response) => {
           credentials: !!Env.DEFAULT_PROXY_CREDENTIALS
             ? encryptString(Env.DEFAULT_PROXY_CREDENTIALS).data
             : null,
-          proxiedAddons: Env.DEFAULT_PROXY_PROXIED_ADDONS ?? null,
           proxiedServices: Env.DEFAULT_PROXY_PROXIED_SERVICES ?? null,
         },
         timeout: Env.DEFAULT_TIMEOUT ?? null,

@@ -205,6 +205,7 @@ export const PROXY_SERVICE_DETAILS: Record<
     id: ProxyServiceId;
     name: string;
     description: string;
+    credentialDescription: string;
     url: string;
   }
 > = {
@@ -213,6 +214,8 @@ export const PROXY_SERVICE_DETAILS: Record<
     name: 'MediaFlow',
     description:
       'MediaFlow is a proxy service that allows you to proxy your requests to the server.',
+    credentialDescription:
+      'The value of your MediaFlow Proxy instance `API_PASSWORD` environment variable.',
     url: 'https://github.com/mhdzumair/mediaflow-proxy',
   },
   [STREMTHRU_SERVICE]: {
@@ -220,6 +223,8 @@ export const PROXY_SERVICE_DETAILS: Record<
     name: 'StremThru',
     description:
       'StremThru is a proxy service that allows you to proxy your requests to the server.',
+    credentialDescription:
+      'A valid credential for your StremThru instance, defined in the `STREMTHRU_PROXY_AUTH` environment variable.',
     url: 'https://github.com/MunifTanjim/stremthru',
   },
 };

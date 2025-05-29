@@ -554,13 +554,16 @@ export class AIOStreams {
     maxRetries: number = 3
   ): Promise<T> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      const result = await getter();
-      if (result) {
-        return result;
+      try {
+        const result = await getter();
+        if (result) {
+          return result;
+        }
+      } catch (error) {
+        logger.warn(
+          `Failed to get ${label}, retrying... (${attempt}/${maxRetries})`
+        );
       }
-      logger.warn(
-        `Failed to get ${label}, retrying... (${attempt}/${maxRetries})`
-      );
     }
     throw new Error(`Failed to get ${label} after ${maxRetries} attempts`);
   }

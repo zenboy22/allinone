@@ -35,8 +35,8 @@ const StreamProxyConfig = z.object({
   url: z.string().url(),
   credentials: z.string().min(1),
   publicIp: z.string().ip().optional(),
-  proxiedAddons: z.array(z.string().min(1)),
-  proxiedServices: z.array(z.string().min(1)),
+  proxiedAddons: z.array(z.string().min(1)).optional(),
+  proxiedServices: z.array(z.string().min(1)).optional(),
 });
 
 export type StreamProxyConfig = z.infer<typeof StreamProxyConfig>;
@@ -568,7 +568,7 @@ const StatusResponseSchema = z.object({
         url: z.string().or(z.null()),
         publicIp: z.string().or(z.null()),
         credentials: z.string().or(z.null()),
-        proxiedAddons: z.array(z.string()).or(z.null()),
+        disableProxiedAddons: z.boolean(),
         proxiedServices: z.array(z.string()).or(z.null()),
       }),
     }),
@@ -579,7 +579,6 @@ const StatusResponseSchema = z.object({
         url: z.string().or(z.null()),
         publicIp: z.string().or(z.null()),
         credentials: z.string().or(z.null()),
-        proxiedAddons: z.array(z.string()).or(z.null()),
         proxiedServices: z.array(z.string()).or(z.null()),
       }),
       timeout: z.number().or(z.null()),

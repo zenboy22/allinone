@@ -142,7 +142,7 @@ export class UserRepository {
 
       let validatedConfig: UserData;
       try {
-        validatedConfig = await validateConfig(decryptedConfig);
+        validatedConfig = await validateConfig(decryptedConfig, true);
       } catch (error: any) {
         return Promise.reject(
           new APIError(

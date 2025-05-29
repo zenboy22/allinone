@@ -230,7 +230,7 @@ export function getEnvironmentServiceDetails(): typeof constants.SERVICE_DETAILS
 
 export async function validateConfig(
   data: any,
-  skipFailedAddons: boolean = false
+  skipErrorsFromAddonsOrProxies: boolean = false
 ): Promise<UserData> {
   const { success, data: config, error } = UserDataSchema.safeParse(data);
   if (!success) {
@@ -258,11 +258,14 @@ export async function validateConfig(
   }
 
   if (config.proxy) {
-    config.proxy = await validateProxy(config.proxy);
+    config.proxy = await validateProxy(
+      config.proxy,
+      skipErrorsFromAddonsOrProxies
+    );
   }
 
   try {
-    await new AIOStreams(config, skipFailedAddons).initialise();
+    await new AIOStreams(config, skipErrorsFromAddonsOrProxies).initialise();
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -396,7 +399,8 @@ function validateOption(option: Option, value: any): any {
 }
 
 async function validateProxy(
-  proxy: StreamProxyConfig
+  proxy: StreamProxyConfig,
+  skipProxyErrors: boolean = false
 ): Promise<StreamProxyConfig> {
   // apply forced values if they exist
   proxy.enabled = Env.FORCE_PROXY_ENABLED ?? proxy.enabled;
@@ -404,7 +408,9 @@ async function validateProxy(
   proxy.url = Env.FORCE_PROXY_URL ?? proxy.url;
   proxy.credentials = Env.FORCE_PROXY_CREDENTIALS ?? proxy.credentials;
   proxy.publicIp = Env.FORCE_PROXY_PUBLIC_IP ?? proxy.publicIp;
-  proxy.proxiedAddons = Env.FORCE_PROXY_PROXIED_ADDONS ?? proxy.proxiedAddons;
+  proxy.proxiedAddons = Env.FORCE_PROXY_DISABLE_PROXIED_ADDONS
+    ? undefined
+    : proxy.proxiedAddons;
   proxy.proxiedServices =
     Env.FORCE_PROXY_PROXIED_SERVICES ?? proxy.proxiedServices;
   if (proxy.enabled) {
@@ -423,9 +429,11 @@ async function validateProxy(
     try {
       proxy.publicIp || (await ProxyService.getPublicIp());
     } catch (error) {
-      throw new Error(
-        `Failed to get the public IP of the proxy service ${proxy.id}: ${error}`
-      );
+      if (!skipProxyErrors) {
+        throw new Error(
+          `Failed to get the public IP of the proxy service ${proxy.id}: ${error}`
+        );
+      }
     }
 
     if (isEncrypted(proxy.credentials)) {

@@ -359,9 +359,9 @@ export const Env = cleanEnv(process.env, {
     default: undefined,
     desc: 'Force proxy public ip',
   }),
-  FORCE_PROXY_PROXIED_ADDONS: json({
-    default: undefined,
-    desc: 'Force proxy proxied addons',
+  FORCE_PROXY_DISABLE_PROXIED_ADDONS: bool({
+    default: false,
+    desc: 'Force proxy disable proxied addons',
   }),
   FORCE_PROXY_PROXIED_SERVICES: json({
     default: undefined,
@@ -387,10 +387,6 @@ export const Env = cleanEnv(process.env, {
   DEFAULT_PROXY_PUBLIC_IP: str({
     default: undefined,
     desc: 'Default proxy public ip',
-  }),
-  DEFAULT_PROXY_PROXIED_ADDONS: json({
-    default: undefined,
-    desc: 'Default proxy proxied addons',
   }),
   DEFAULT_PROXY_PROXIED_SERVICES: json({
     default: undefined,

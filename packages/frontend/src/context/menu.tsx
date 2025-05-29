@@ -13,6 +13,7 @@ export const VALID_MENUS = [
   'formatter',
   'load-config',
   'unload-config',
+  'proxy',
 ];
 
 export type MenuId = (typeof VALID_MENUS)[number];

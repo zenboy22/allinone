@@ -9,20 +9,18 @@ import { useMenu, MenuId, VALID_MENUS } from '@/context/menu';
 import { useUserData } from '@/context/userData';
 import { ConfigModal } from '@/components/config-modal';
 import {
-  CloudIcon,
-  FunnelIcon,
-  HeartIcon,
-  ImportIcon,
-  InfoIcon,
-  PuzzleIcon,
-  SaveIcon,
-  SettingsIcon,
-  SortAscIcon,
-  KeyIcon,
-  LogOutIcon,
-  LogInIcon,
-  PenIcon,
-} from 'lucide-react';
+  BiPen,
+  BiInfoCircle,
+  BiCloud,
+  BiExtension,
+  BiFilterAlt,
+  BiSave,
+  BiSort,
+  BiLogInCircle,
+  BiLogOutCircle,
+  BiCog,
+  BiServer,
+} from 'react-icons/bi';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDisclosure } from '@/hooks/disclosure';
 import {
@@ -80,49 +78,55 @@ export function MainSidebar() {
   const topMenuItems: MenuItem[] = [
     {
       name: 'About',
-      iconType: InfoIcon,
+      iconType: BiInfoCircle,
       isCurrent: selectedMenu === 'about',
       id: 'about',
     },
     {
       name: 'Services',
-      iconType: CloudIcon,
+      iconType: BiCloud,
       isCurrent: selectedMenu === 'services',
       id: 'services',
     },
     {
       name: 'Addons',
-      iconType: PuzzleIcon,
+      iconType: BiExtension,
       isCurrent: selectedMenu === 'addons',
       id: 'addons',
     },
     {
       name: 'Filters',
-      iconType: FunnelIcon,
+      iconType: BiFilterAlt,
       isCurrent: selectedMenu === 'filters',
       id: 'filters',
     },
     {
       name: 'Sorting',
-      iconType: SortAscIcon,
+      iconType: BiSort,
       isCurrent: selectedMenu === 'sorting',
       id: 'sorting',
     },
     {
       name: 'Formatter',
-      iconType: PenIcon,
+      iconType: BiPen,
       isCurrent: selectedMenu === 'formatter',
       id: 'formatter',
     },
     {
+      name: 'Proxy',
+      iconType: BiServer,
+      isCurrent: selectedMenu === 'proxy',
+      id: 'proxy',
+    },
+    {
       name: 'Miscellaneous',
-      iconType: SettingsIcon,
+      iconType: BiCog,
       isCurrent: selectedMenu === 'miscellaneous',
       id: 'miscellaneous',
     },
     {
       name: 'Save & Install',
-      iconType: SaveIcon,
+      iconType: BiSave,
       isCurrent: selectedMenu === 'save-install',
       id: 'save-install',
     },
@@ -132,8 +136,8 @@ export function MainSidebar() {
     ...(user.uuid && user.password
       ? [
           {
-            name: 'Sign Out',
-            iconType: LogOutIcon,
+            name: 'Log Out',
+            iconType: BiLogOutCircle,
             isCurrent: false,
             id: 'unload-config' as MenuId,
             onClick: () => {
@@ -143,8 +147,8 @@ export function MainSidebar() {
         ]
       : [
           {
-            name: 'Login',
-            iconType: LogInIcon,
+            name: 'Log In',
+            iconType: BiLogInCircle,
             isCurrent: signInModal.isOpen,
             id: 'sign-in' as MenuId,
             onClick: () => {
