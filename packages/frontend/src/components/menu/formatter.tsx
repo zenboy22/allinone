@@ -171,6 +171,7 @@ function Content() {
         },
         torrent: {
           infoHash: type === 'p2p' ? '1234567890' : undefined,
+          seeders,
         },
         service:
           providerId === 'none'
