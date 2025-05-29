@@ -166,7 +166,10 @@ export class DB {
           query: string,
           params?: any[]
         ): Promise<UnifiedQueryResult> => {
-          const result = await client.query(query, params);
+          const result = await client.query(
+            adaptQuery(query, 'postgres'),
+            params
+          );
           return {
             rows: result.rows,
             rowCount: result.rowCount || 0,
@@ -188,7 +191,7 @@ export class DB {
           query: string,
           params?: any[]
         ): Promise<UnifiedQueryResult> => {
-          const result = await db.all(query, params);
+          const result = await db.all(adaptQuery(query, 'sqlite'), params);
           return {
             rows: result,
             rowCount: result.length || 0,
