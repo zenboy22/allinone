@@ -31,6 +31,7 @@ import { Popover } from '../ui/popover';
 import { BiEdit, BiTrash } from 'react-icons/bi';
 import { Option, Resource } from '@aiostreams/core';
 import { toast } from 'sonner';
+import { Tooltip } from '../ui/tooltip';
 
 export function AddonsMenu() {
   return (
@@ -484,16 +485,27 @@ function AddonCard({
               Services:
             </span>
           )}
-          {preset.SUPPORTED_SERVICES?.map((sid: string) => (
-            <span
-              key={sid}
-              className="bg-gray-800 text-xs px-2 py-0.5 rounded text-[--brand] font-mono"
-            >
-              {constants.SERVICE_DETAILS[
+          {preset.SUPPORTED_SERVICES?.map((sid: string) => {
+            const service =
+              constants.SERVICE_DETAILS[
                 sid as keyof typeof constants.SERVICE_DETAILS
-              ]?.shortName || sid}
-            </span>
-          ))}
+              ];
+            return (
+              <Tooltip
+                key={sid}
+                side="top"
+                trigger={
+                  <span className="bg-gray-800 text-xs px-2 py-0.5 rounded text-[--brand] font-mono">
+                    {service?.shortName || sid}
+                  </span>
+                }
+              >
+                <span className="bg-gray-800 text-xs px-2 py-0.5 rounded text-[--brand] font-mono">
+                  {service?.name || sid}
+                </span>
+              </Tooltip>
+            );
+          })}
         </div>
         <div className="flex flex-wrap gap-1 items-center min-h-[1.5rem]">
           {preset.SUPPORTED_RESOURCES?.length > 0 && (
