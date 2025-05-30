@@ -21,8 +21,17 @@ export class TorrentioFormatter extends BaseFormatter {
 export class TorboxFormatter extends BaseFormatter {
   constructor() {
     super({
-      name: '{stream.title} {stream.quality}',
-      description: '{stream.size::bytes} {stream.seeders} seeders',
+      name: `
+{stream.proxied::istrue["🕵️‍♂️ "||""]}{addon.name}{stream.inLibrary::istrue[" (Your Media) "||""]}{service.cached::istrue[" (Instant "||""]}{service.cached::isfalse[" ("||""]}{service.id::exists["{service.shortName})"||""]}{stream.resolution::exists[" ({stream.resolution})"||""]}
+      `,
+      description: `
+Quality: {stream.quality::exists["{stream.quality}"||"Unknown"]}
+Name: {stream.filename::exists["{stream.filename}"||"Unknown"]}
+Size: {stream.size::>0["{stream.size::bytes}"||""]}{stream.indexer::exists[" | Source: {stream.indexer}"||""]}{stream.duration::>0[" | Duration: {stream.duration::time}"||""]}
+Language: {stream.languages::exists["{stream.languages::join(', ')}"||""]}
+Type: {stream.type::title}{stream.seeders::>=0[" | Seeders: {stream.seeders}"||""]}{stream.age::exists[" | Age: {stream.age}"||""]}
+{stream.message::exists["Message: {stream.message}"||""]}
+      `,
     });
   }
 }
@@ -30,8 +39,17 @@ export class TorboxFormatter extends BaseFormatter {
 export class GDriveFormatter extends BaseFormatter {
   constructor() {
     super({
-      name: '{stream.title} {stream.quality}',
-      description: '{stream.size::bytes} {stream.seeders} seeders',
+      name: `
+{stream.proxied::istrue["🕵️ "||""]}{stream.type::=p2p["[P2P]"||""]}{service.shortName::exists["[{service.shortName}"||""]}{service.cached::istrue["⚡] "||""]}{service.cached::isfalse["⏳]"||""]}{addon.name}{stream.personal::istrue[" (Your Media)"||""]} {stream.resolution::exists["{stream.resolution}"||""]}
+      `,
+      description: `
+{stream.quality::exists["🎥 {stream.quality} "||""]}{stream.encode::exists["🎞️ {stream.encode} "||""]}{stream.releaseGroup::exists["🏷️ {stream.releaseGroup}"||""]}
+{stream.visualTags::exists["📺 {stream.visualTags::join(' | ')} "||""]}{stream.audioTags::exists["🎧 {stream.audioTags::join(' | ')}"||""]}
+{stream.size::>0["📦 {stream.size::bytes} "||""]}{stream.duration::>0["⏱️ {stream.duration::time} "||""]}{stream.seeders::>0["👥 {stream.seeders} "||""]}{stream.age::exists["📅 {stream.age} "||""]}{stream.indexer::exists["🔍 {stream.indexer}"||""]}
+{stream.languages::exists["🌎 {stream.languages::join(' | ')}"||""]}
+{stream.filename::exists["📁"||""]} {stream.folderName::exists["{stream.folderName}/"||""]}{stream.filename::exists["{stream.filename}"||""]}
+{stream.message::exists["ℹ️ {stream.message}"||""]}
+      `,
     });
   }
 }
@@ -39,8 +57,16 @@ export class GDriveFormatter extends BaseFormatter {
 export class LightGDriveFormatter extends BaseFormatter {
   constructor() {
     super({
-      name: '{stream.title} {stream.quality}',
-      description: '{stream.size::bytes} {stream.seeders} seeders',
+      name: `
+{stream.proxied::istrue["🕵️ "||""]}{stream.type::=p2p["[P2P]"||""]}{service.shortName::exists["[{service.shortName}"||""]}{service.cached::istrue["⚡] "||""]}{service.cached::isfalse["⏳]"||""]}{addon.name}{stream.resolution::exists[" {stream.resolution}"||""]}{stream.regexMatched::exists[" ({stream.regexMatched})"||""]}      
+`,
+      description: `
+{stream.title::exists["📁 {stream.title}"||""]}{stream.year::exists[" ({stream.year})"||""]}{stream.season::>=0[" S"||""]}{stream.season::<=9["0"||""]}{stream.season::>0["{stream.season}"||""]}{stream.episode::>=0[" • E"||""]}{stream.episode::<=9["0"||""]}{stream.episode::>0["{stream.episode}"||""]}
+{stream.quality::exists["🎥 {stream.quality} "||""]}{stream.encode::exists["🎞️ {stream.encode} "||""]}{stream.releaseGroup::exists["🏷️ {stream.releaseGroup}"||""]}
+{stream.visualTags::exists["📺 {stream.visualTags::join(' • ')} "||""]}{stream.audioTags::exists["🎧 {stream.audioTags::join(' • ')}"||""]}
+{stream.size::>0["📦 {stream.size::bytes} "||""]}{stream.duration::>0["⏱️ {stream.duration::time} "||""]}{stream.age::exists["📅 {stream.age} "||""]}{stream.indexer::exists["🔍 {stream.indexer}"||""]}
+{stream.languageEmojis::exists["🌐 {stream.languageEmojis::join(' / ')}"||""]}      
+      `,
     });
   }
 }
