@@ -27,6 +27,7 @@ import {
   constants,
   maskSensitiveInfo,
   makeUrlLogSafe,
+  formatZodError,
 } from './utils';
 import { PresetManager } from './presets';
 import { StreamParser } from './parser';
@@ -73,10 +74,12 @@ export class Wrapper {
             );
             throw new Error(`Failed to fetch manifest for ${this.addon.name}`);
           }
-          const manifest = ManifestSchema.safeParse(await res.json());
+          const data = await res.json();
+          const manifest = ManifestSchema.safeParse(data);
           if (!manifest.success) {
             logger.error(`Manifest response was unexpected`);
-            logger.error(manifest.error);
+            logger.error(formatZodError(manifest.error));
+            logger.error(JSON.stringify(data, null, 2));
             throw new Error(`Failed to parse manifest for ${this.addon.name}`);
           }
           return manifest.data;
@@ -192,7 +195,7 @@ export class Wrapper {
       const parsed = schema.safeParse(data);
       if (!parsed.success) {
         logger.error(`Resource response was unexpected`);
-        logger.error(JSON.stringify(parsed.error, null, 2));
+        logger.error(formatZodError(parsed.error));
         throw new Error(
           `Failed to parse ${resource} resource for ${this.addon.name}`
         );
