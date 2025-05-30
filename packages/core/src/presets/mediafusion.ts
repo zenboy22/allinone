@@ -1,8 +1,10 @@
 import { Addon, Option, UserData, Resource, Stream } from '../db';
 import { baseOptions, Preset } from './preset';
-import { Env } from '../utils';
+import { createLogger, Env } from '../utils';
 import { constants, ServiceId } from '../utils';
 import { StreamParser } from '../parser';
+
+const logger = createLogger('core');
 
 class MediaFusionStreamParser extends StreamParser {
   protected override raiseErrorIfNecessary(stream: Stream): void {
@@ -11,14 +13,13 @@ class MediaFusionStreamParser extends StreamParser {
     }
   }
 
-  get indexerEmojis(): string[] {
+  protected override get indexerEmojis(): string[] {
     return ['🔗'];
   }
 
   protected override getFolder(stream: Stream): string | undefined {
-    const file = stream.description?.match(
-      this.getRegexForTextAfterEmojis(['📂'])
-    )?.[1];
+    const regex = this.getRegexForTextAfterEmojis(['📂']);
+    const file = stream.description?.match(regex)?.[1];
     if (file && file.includes('┈➤')) {
       return file.split('┈➤')[0].trim();
     }
@@ -26,9 +27,8 @@ class MediaFusionStreamParser extends StreamParser {
   }
 
   protected override getFilename(stream: Stream): string | undefined {
-    const file = stream.description?.match(
-      this.getRegexForTextAfterEmojis(['📂'])
-    )?.[1];
+    const regex = this.getRegexForTextAfterEmojis(['📂']);
+    const file = stream.description?.match(regex)?.[1];
     if (file && file.includes('┈➤')) {
       return file.split('┈➤')[1].trim();
     }
@@ -37,8 +37,8 @@ class MediaFusionStreamParser extends StreamParser {
 
   protected override getIndexer(stream: Stream): string | undefined {
     const indexer = super.getIndexer(stream);
-    if (indexer === 'Contribution Stream') {
-      const contributor = stream.name?.match(
+    if (indexer?.includes('Contribution')) {
+      const contributor = stream.description?.match(
         this.getRegexForTextAfterEmojis(['🧑‍💻'])
       )?.[1];
       return contributor ? `Contributor|${contributor}` : undefined;
@@ -262,116 +262,121 @@ export class MediaFusionPreset extends Preset {
     if (!serviceId) {
       throw new Error('Service is required');
     }
-    const configString = this.base64EncodeJSON({
-      streaming_provider: !serviceId
-        ? null
-        : {
-            token: this.getServiceCredential(serviceId, userData),
-            service: serviceId,
-            enable_watchlist_catalogs: options.enableWatchlistCatalogs || false,
-            download_via_browser: options.downloadViaBrowser || false,
-            only_show_cached_streams: false,
-          },
-      selected_catalogs: [],
-      selected_resolutions: [
-        '4k',
-        '2160p',
-        '1440p',
-        '1080p',
-        '720p',
-        '576p',
-        '480p',
-        '360p',
-        '240p',
-        null,
-      ],
-      enable_catalogs: true,
-      enable_imdb_metadata: false,
-      max_size: 'inf',
-      max_streams_per_resolution: '10',
-      torrent_sorting_priority: [
-        { key: 'language', direction: 'desc' },
-        { key: 'cached', direction: 'desc' },
-        { key: 'resolution', direction: 'desc' },
-        { key: 'quality', direction: 'desc' },
-        { key: 'size', direction: 'desc' },
-        { key: 'seeders', direction: 'desc' },
-        { key: 'created_at', direction: 'desc' },
-      ],
-      show_full_torrent_name: true,
-      show_language_country_flag: false,
-      nudity_filter: options.nudityFilter?.length
-        ? options.nudityFilter
-        : ['Disable'],
-      certification_filter: options.certificationLevelsFilter?.length
-        ? options.certificationLevelsFilter
-        : ['Disable'],
-      language_sorting: [
-        'English',
-        'Tamil',
-        'Hindi',
-        'Malayalam',
-        'Kannada',
-        'Telugu',
-        'Chinese',
-        'Russian',
-        'Arabic',
-        'Japanese',
-        'Korean',
-        'Taiwanese',
-        'Latino',
-        'French',
-        'Spanish',
-        'Portuguese',
-        'Italian',
-        'German',
-        'Ukrainian',
-        'Polish',
-        'Czech',
-        'Thai',
-        'Indonesian',
-        'Vietnamese',
-        'Dutch',
-        'Bengali',
-        'Turkish',
-        'Greek',
-        'Swedish',
-        'Romanian',
-        'Hungarian',
-        'Finnish',
-        'Norwegian',
-        'Danish',
-        'Hebrew',
-        'Lithuanian',
-        'Punjabi',
-        'Marathi',
-        'Gujarati',
-        'Bhojpuri',
-        'Nepali',
-        'Urdu',
-        'Tagalog',
-        'Filipino',
-        'Malay',
-        'Mongolian',
-        'Armenian',
-        'Georgian',
-        null,
-      ],
-      quality_filter: [
-        'BluRay/UHD',
-        'WEB/HD',
-        'DVD/TV/SAT',
-        'CAM/Screener',
-        'Unknown',
-      ],
-      api_password: Env.MEDIAFUSION_API_PASSWORD,
-      mediaflow_config: null,
-      rpdb_config: null,
-      live_search_streams: options.liveSearchStreams || false,
-      contribution_streams: false,
-      mdblist_config: null,
-    });
+    const encodedUserData = this.base64EncodeJSON(
+      {
+        streaming_provider: !serviceId
+          ? null
+          : {
+              token: this.getServiceCredential(serviceId, userData),
+              service: serviceId,
+              enable_watchlist_catalogs:
+                options.enableWatchlistCatalogs || false,
+              download_via_browser: options.downloadViaBrowser || false,
+              only_show_cached_streams: false,
+            },
+        selected_catalogs: [],
+        selected_resolutions: [
+          '4k',
+          '2160p',
+          '1440p',
+          '1080p',
+          '720p',
+          '576p',
+          '480p',
+          '360p',
+          '240p',
+          null,
+        ],
+        enable_catalogs: true,
+        enable_imdb_metadata: false,
+        max_size: 'inf',
+        max_streams_per_resolution: '10',
+        torrent_sorting_priority: [
+          { key: 'language', direction: 'desc' },
+          { key: 'cached', direction: 'desc' },
+          { key: 'resolution', direction: 'desc' },
+          { key: 'quality', direction: 'desc' },
+          { key: 'size', direction: 'desc' },
+          { key: 'seeders', direction: 'desc' },
+          { key: 'created_at', direction: 'desc' },
+        ],
+        show_full_torrent_name: true,
+        show_language_country_flag: false,
+        nudity_filter: options.nudityFilter?.length
+          ? options.nudityFilter
+          : ['Disable'],
+        certification_filter: options.certificationLevelsFilter?.length
+          ? options.certificationLevelsFilter
+          : ['Disable'],
+        language_sorting: [
+          'English',
+          'Tamil',
+          'Hindi',
+          'Malayalam',
+          'Kannada',
+          'Telugu',
+          'Chinese',
+          'Russian',
+          'Arabic',
+          'Japanese',
+          'Korean',
+          'Taiwanese',
+          'Latino',
+          'French',
+          'Spanish',
+          'Portuguese',
+          'Italian',
+          'German',
+          'Ukrainian',
+          'Polish',
+          'Czech',
+          'Thai',
+          'Indonesian',
+          'Vietnamese',
+          'Dutch',
+          'Bengali',
+          'Turkish',
+          'Greek',
+          'Swedish',
+          'Romanian',
+          'Hungarian',
+          'Finnish',
+          'Norwegian',
+          'Danish',
+          'Hebrew',
+          'Lithuanian',
+          'Punjabi',
+          'Marathi',
+          'Gujarati',
+          'Bhojpuri',
+          'Nepali',
+          'Urdu',
+          'Tagalog',
+          'Filipino',
+          'Malay',
+          'Mongolian',
+          'Armenian',
+          'Georgian',
+          null,
+        ],
+        quality_filter: [
+          'BluRay/UHD',
+          'WEB/HD',
+          'DVD/TV/SAT',
+          'CAM/Screener',
+          'Unknown',
+        ],
+        api_password: Env.MEDIAFUSION_API_PASSWORD,
+        mediaflow_config: null,
+        rpdb_config: null,
+        live_search_streams: options.liveSearchStreams || false,
+        contribution_streams: false,
+        mdblist_config: null,
+      },
+      false,
+      true
+    );
 
-    return `${url}${configString ? '/' + configString : ''}/manifest.json`;
+    return encodedUserData;
   }
 }
