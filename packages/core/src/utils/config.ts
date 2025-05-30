@@ -13,10 +13,11 @@ import { constants } from '.';
 import { isEncrypted, decryptString, encryptString } from './crypto';
 import { Env } from './env';
 import { createLogger } from './logger';
+import { ZodError } from 'zod';
 
 const logger = createLogger('core');
 
-const formatZodError = (error: any) => {
+export const formatZodError = (error: ZodError) => {
   let message = '';
   for (const issue of error.issues) {
     message += `${issue.path.join('.')}: ${issue.message}\n`;
