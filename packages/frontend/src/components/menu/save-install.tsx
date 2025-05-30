@@ -7,12 +7,10 @@ import { UserConfigAPI } from '@/services/api';
 import { PageWrapper } from '@/components/shared/page-wrapper';
 import { Alert } from '@/components/ui/alert';
 import { SettingsCard } from '../shared/settings-card';
-import { cn } from '@/components/ui/core/styling';
-import { CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { DownloadIcon, ImportIcon, UploadIcon } from 'lucide-react';
+import { DownloadIcon, UploadIcon } from 'lucide-react';
 import { useStatus } from '@/context/status';
-// import { UserDataSchema } from '../../../../core/src/db/schemas';
+import { BiCopy } from 'react-icons/bi';
 
 export function SaveInstallMenu() {
   return (
@@ -42,7 +40,14 @@ function Content() {
   >([]);
   const { status } = useStatus();
   const baseUrl = status?.settings?.baseUrl || window.location.origin;
+  const [apiKey, setApiKey] = React.useState('');
   const importFileRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (userData?.apiKey) {
+      setApiKey(userData.apiKey);
+    }
+  }, [userData]);
 
   React.useEffect(() => {
     const requirements: string[] = [];
@@ -190,7 +195,7 @@ function Content() {
         {!uuid ? (
           <SettingsCard
             title="Create Configuration"
-            description="Set up your personalized addon configuration"
+            description="Set up your personalised addon configuration"
           >
             <form onSubmit={handleSave} className="space-y-4">
               <div>
@@ -222,6 +227,26 @@ function Content() {
                   password once set, so please choose wisely, and remember it.
                 </p>
               </div>
+              {status?.settings.protected && (
+                <>
+                  <TextInput
+                    label="API Key"
+                    id="api-key"
+                    type="password"
+                    value={apiKey}
+                    required
+                    placeholder="Enter the API Key for this instance"
+                    onValueChange={(value) => {
+                      setApiKey(value);
+                      setUserData((prev) => ({ ...prev, apiKey: value }));
+                    }}
+                  />
+                  <p className="text-sm text-[--muted] mt-1">
+                    This instance is protected by an API key, please enter it to
+                    continue.
+                  </p>
+                </>
+              )}
               <Button intent="white" type="submit" loading={loading} rounded>
                 Create
               </Button>
@@ -229,30 +254,62 @@ function Content() {
           </SettingsCard>
         ) : (
           <>
-            <SettingsCard title="Configuration Details">
-              <Alert
-                title={`Your UUID: ${uuid}`}
-                intent="info"
-                isClosable={false}
-                description={
-                  <p className="text-sm text-[--muted]">
-                    Save your UUID and password - you'll need them to update
-                    your configuration later
-                  </p>
-                }
-              />
-              <p className="text-sm text-[--muted]">
-                Update your configuration now with the current configuration.
-              </p>
-              <Button
-                type="button"
-                intent="white"
-                loading={loading}
-                onClick={() => handleSave()}
-                rounded
-              >
-                Update
-              </Button>
+            <SettingsCard
+              title="Update Configuration"
+              description="Update your configuration now with the current configuration."
+            >
+              <div className="flex items-start gap-1">
+                <Alert
+                  intent="info"
+                  isClosable={false}
+                  description={
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-md text-[--primary]">
+                          Your UUID: <span className="font-bold">{uuid}</span>
+                        </span>
+                        <BiCopy
+                          className="min-h-5 min-w-5 cursor-pointer"
+                          onClick={() => {
+                            navigator.clipboard.writeText(uuid);
+                            toast.success('UUID copied to clipboard');
+                          }}
+                        />
+                      </div>
+                      <p className="text-sm text-[--muted]">
+                        Save your UUID and password - you'll need them to update
+                        your configuration later
+                      </p>
+                    </div>
+                  }
+                  className="flex-1"
+                />
+              </div>
+              <form onSubmit={handleSave}>
+                {status?.settings.protected && (
+                  <>
+                    <TextInput
+                      label="API Key"
+                      id="api-key"
+                      type="password"
+                      value={apiKey}
+                      required
+                      placeholder="Enter the API Key for this instance"
+                      onValueChange={(value) => {
+                        setApiKey(value);
+                        setUserData((prev) => ({ ...prev, apiKey: value }));
+                      }}
+                    />
+                    <p className="text-sm text-[--muted] mt-1 mb-2">
+                      This instance is protected by an API key, please enter it
+                      to continue.
+                    </p>
+                  </>
+                )}
+                <Button type="submit" intent="white" loading={loading} rounded>
+                  Update
+                </Button>
+              </form>
             </SettingsCard>
 
             <SettingsCard

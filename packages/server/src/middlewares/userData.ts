@@ -66,14 +66,16 @@ export const userDataMiddleware = async (
     }
 
     // Get and validate user data
-    const decryptedConfig = await UserRepository.getUser(
-      uuid,
-      decryptedPassword
+    const decryptedConfig = await validateConfig(
+      await UserRepository.getUser(uuid, decryptedPassword),
+      true,
+      true
     );
     if (!decryptedConfig) {
       next(new APIError(constants.ErrorCode.USER_INVALID_PASSWORD));
       return;
     }
+
     // Attach validated data to request
     req.userData = decryptedConfig;
     req.userData.ip = req.userIp;

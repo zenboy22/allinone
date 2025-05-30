@@ -230,7 +230,8 @@ export function getEnvironmentServiceDetails(): typeof constants.SERVICE_DETAILS
 
 export async function validateConfig(
   data: any,
-  skipErrorsFromAddonsOrProxies: boolean = false
+  skipErrorsFromAddonsOrProxies: boolean = false,
+  decryptValues: boolean = false
 ): Promise<UserData> {
   const { success, data: config, error } = UserDataSchema.safeParse(data);
   if (!success) {
@@ -253,19 +254,23 @@ export async function validateConfig(
 
   if (config.services) {
     config.services = config.services.map((service: Service) =>
-      validateService(service)
+      validateService(service, decryptValues)
     );
   }
 
   if (config.proxy) {
     config.proxy = await validateProxy(
       config.proxy,
-      skipErrorsFromAddonsOrProxies
+      skipErrorsFromAddonsOrProxies,
+      decryptValues
     );
   }
 
   try {
-    await new AIOStreams(config, skipErrorsFromAddonsOrProxies).initialise();
+    await new AIOStreams(
+      ensureDecrypted(config), // ensure all values are decrypted so that proper validation can be done.
+      skipErrorsFromAddonsOrProxies
+    ).initialise();
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -273,7 +278,44 @@ export async function validateConfig(
   return config;
 }
 
-function validateService(service: Service): Service {
+function ensureDecrypted(config: UserData) {
+  const decryptedConfig = { ...config };
+
+  // Helper function to decrypt a value if needed
+  const tryDecrypt = (value: any, context: string) => {
+    if (!isEncrypted(value)) return value;
+    const { success, data, error } = decryptString(value);
+    if (!success) {
+      throw new Error(`Failed to decrypt ${context}: ${error}`);
+    }
+    return data;
+  };
+
+  // Decrypt service credentials
+  for (const service of decryptedConfig.services ?? []) {
+    if (!service.credentials) continue;
+    for (const [credential, value] of Object.entries(service.credentials)) {
+      service.credentials[credential] = tryDecrypt(
+        value,
+        `credential ${credential}`
+      );
+    }
+  }
+
+  // Decrypt proxy config
+  if (decryptedConfig.proxy) {
+    const proxy = decryptedConfig.proxy;
+    proxy.credentials = tryDecrypt(proxy.credentials, 'proxy credentials');
+    proxy.url = tryDecrypt(proxy.url, 'proxy URL');
+  }
+
+  return decryptedConfig;
+}
+
+function validateService(
+  service: Service,
+  decryptValues: boolean = false
+): Service {
   const serviceMeta = getEnvironmentServiceDetails()[service.id];
 
   if (!serviceMeta) {
@@ -289,7 +331,8 @@ function validateService(service: Service): Service {
       try {
         service.credentials[credential.id] = validateOption(
           credential,
-          service.credentials?.[credential.id]
+          service.credentials?.[credential.id],
+          decryptValues
         );
       } catch (error) {
         throw new Error(
@@ -321,7 +364,11 @@ function validatePreset(preset: PresetObject) {
   }
 }
 
-function validateOption(option: Option, value: any): any {
+function validateOption(
+  option: Option,
+  value: any,
+  decryptValues: boolean = false
+): any {
   if (option.type === 'multi-select') {
     if (!Array.isArray(value)) {
       throw new Error(
@@ -372,7 +419,7 @@ function validateOption(option: Option, value: any): any {
     if (option.forced) {
       value = option.forced;
     }
-    if (isEncrypted(value)) {
+    if (isEncrypted(value) && decryptValues) {
       const { success, data, error } = decryptString(value);
       if (!success) {
         throw new Error(
@@ -400,7 +447,8 @@ function validateOption(option: Option, value: any): any {
 
 async function validateProxy(
   proxy: StreamProxyConfig,
-  skipProxyErrors: boolean = false
+  skipProxyErrors: boolean = false,
+  decryptCredentials: boolean = false
 ): Promise<StreamProxyConfig> {
   // apply forced values if they exist
   proxy.enabled = Env.FORCE_PROXY_ENABLED ?? proxy.enabled;
@@ -436,7 +484,7 @@ async function validateProxy(
       }
     }
 
-    if (isEncrypted(proxy.credentials)) {
+    if (isEncrypted(proxy.credentials) && decryptCredentials) {
       const { success, data, error } = decryptString(proxy.credentials);
       if (!success) {
         throw new Error(
@@ -444,6 +492,15 @@ async function validateProxy(
         );
       }
       proxy.credentials = data;
+    }
+    if (isEncrypted(proxy.url) && decryptCredentials) {
+      const { success, data, error } = decryptString(proxy.url);
+      if (!success) {
+        throw new Error(
+          `Proxy URL for ${proxy.id} is encrypted but failed to decrypt: ${error}`
+        );
+      }
+      proxy.url = data;
     }
   }
   return proxy;

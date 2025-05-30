@@ -559,6 +559,7 @@ const StatusResponseSchema = z.object({
     baseUrl: z.string().url().optional(),
     addonName: z.string(),
     customHtml: z.string().optional(),
+    protected: z.boolean(),
     disabledAddons: z.array(z.string()),
     disabledServices: z.array(z.string()),
     forced: z.object({

@@ -47,7 +47,9 @@ export class UserRepository {
 
       let validatedConfig: UserData;
       try {
-        validatedConfig = await validateConfig(config);
+        // don't skip errors, but don't decrypt credentials
+        // as we need to store the encrypted version
+        validatedConfig = await validateConfig(config, false, false);
       } catch (error: any) {
         return Promise.reject(
           new APIError(
@@ -142,7 +144,9 @@ export class UserRepository {
 
       let validatedConfig: UserData;
       try {
-        validatedConfig = await validateConfig(decryptedConfig, true);
+        // skip errors, and dont decrypt credentials either, as this would make
+        // encryption pointless
+        validatedConfig = await validateConfig(decryptedConfig, true, false);
       } catch (error: any) {
         return Promise.reject(
           new APIError(
@@ -188,7 +192,7 @@ export class UserRepository {
 
         let validatedConfig: UserData;
         try {
-          validatedConfig = await validateConfig(config);
+          validatedConfig = await validateConfig(config, false, false);
         } catch (error: any) {
           await tx.rollback();
           return Promise.reject(

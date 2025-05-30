@@ -22,6 +22,7 @@ router.get('/', async (req: Request, res: Response) => {
       baseUrl: Env.BASE_URL,
       addonName: Env.ADDON_NAME,
       customHtml: Env.CUSTOM_HTML,
+      protected: !!Env.API_KEY,
       disabledAddons: [],
       disabledServices: [],
       forced: {
