@@ -59,7 +59,7 @@ export class CustomPreset extends Preset {
       TIMEOUT: Env.DEFAULT_TIMEOUT,
       USER_AGENT: Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: [],
-      DESCRIPTION: 'Custom preset',
+      DESCRIPTION: 'Add your own addon by providing its Manifest URL.',
       OPTIONS: options,
       SUPPORTED_STREAM_TYPES: [],
       SUPPORTED_RESOURCES: [],

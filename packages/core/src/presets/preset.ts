@@ -5,9 +5,10 @@ import {
   ParsedStream,
   UserData,
   PresetMetadata,
+  Addon,
 } from '../db';
 import { StreamParser } from '../parser';
-import { Env } from '../utils';
+import { Env, ServiceId, constants } from '../utils';
 /**
  *
  * What modifications are needed for each preset:
@@ -44,20 +45,11 @@ export const baseOptions = (
     default: name,
   },
   {
-    id: 'url',
-    name: 'URL',
-    description:
-      'Optionally override either the manifest generated, or override the base url used when generating the manifests',
-    type: 'url',
-    required: false,
-    emptyIsUndefined: true,
-    default: undefined,
-  },
-  {
     id: 'timeout',
     name: 'Timeout',
     description: 'The timeout for this addon',
     type: 'number',
+    required: true,
     default: timeout,
   },
   {
@@ -71,6 +63,16 @@ export const baseOptions = (
       label: resource,
       value: resource,
     })),
+  },
+  {
+    id: 'url',
+    name: 'URL',
+    description:
+      'Optionally override either the manifest generated, or override the base url used when generating the manifests',
+    type: 'url',
+    required: false,
+    emptyIsUndefined: true,
+    default: undefined,
   },
 ];
 
@@ -91,12 +93,8 @@ export abstract class Preset {
 
   static generateAddons(
     userData: UserData,
-    options?: Record<string, any>,
-    baseUrl?: string,
-    name?: string,
-    timeout?: number,
-    resources?: Resource[]
-  ) {
+    options: Record<string, any>
+  ): Promise<Addon[]> {
     throw new Error('generateAddons must be implemented by derived classes');
   }
 
@@ -140,5 +138,87 @@ export abstract class Preset {
         .map(([key, value]) => `${key}=${value}`)
         .join('|')
     );
+  }
+
+  protected static getUsableServices(
+    userData: UserData,
+    specifiedServices?: ServiceId[]
+  ) {
+    let usableServices = userData.services?.filter(
+      (service) =>
+        this.METADATA.SUPPORTED_SERVICES.includes(service.id) && service.enabled
+    );
+
+    if (specifiedServices) {
+      // Validate specified services exist and are enabled
+      for (const service of specifiedServices) {
+        const userService = userData.services?.find((s) => s.id === service);
+        const meta = Object.values(constants.SERVICE_DETAILS).find(
+          (s) => s.id === service
+        );
+        if (!userService || !userService.enabled || !userService.credentials) {
+          throw new Error(
+            `You have specified ${meta?.name || service} in your configuration, but it is not enabled or has missing credentials`
+          );
+        }
+      }
+      // Filter to only specified services
+      usableServices = usableServices?.filter((service) =>
+        specifiedServices.includes(service.id)
+      );
+    }
+
+    return usableServices;
+  }
+
+  protected static getServiceCredential(
+    serviceId: ServiceId,
+    userData: UserData,
+    specialCases?: Partial<Record<ServiceId, (credentials: any) => any>>
+  ) {
+    const service = constants.SERVICE_DETAILS[serviceId];
+    if (!service) {
+      throw new Error(`Service ${serviceId} not found`);
+    }
+
+    const serviceCredentials = userData.services?.find(
+      (service) => service.id === serviceId
+    )?.credentials;
+
+    if (!serviceCredentials) {
+      throw new Error(`No credentials found for service ${serviceId}`);
+    }
+
+    // Handle special cases if provided
+    if (specialCases?.[serviceId]) {
+      return specialCases[serviceId](serviceCredentials);
+    }
+
+    // handle seedr
+    if (serviceId === constants.SEEDR_SERVICE) {
+      if (serviceCredentials.encodedToken) {
+        return serviceCredentials.encodedToken;
+      }
+      throw new Error(
+        `Missing encoded token for ${serviceId}. Please add an encoded token using MediaFusion`
+      );
+    }
+    // handle easynews
+    if (serviceId === constants.EASYNEWS_SERVICE) {
+      if (!serviceCredentials.username || !serviceCredentials.password) {
+        throw new Error(
+          `Missing username or password for ${serviceId}. Please add a username and password.`
+        );
+      }
+      return `${serviceCredentials.username}:${serviceCredentials.password}`;
+    }
+    // Default case - API key
+    const { apiKey } = serviceCredentials;
+    if (!apiKey) {
+      throw new Error(
+        `Missing credentials for ${serviceId}. Please add an API key.`
+      );
+    }
+    return apiKey;
   }
 }

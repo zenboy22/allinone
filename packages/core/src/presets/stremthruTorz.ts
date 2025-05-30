@@ -3,7 +3,7 @@ import { baseOptions, Preset } from './preset';
 import { Env } from '../utils';
 import { constants, ServiceId } from '../utils';
 
-export class StremthruStorePreset extends Preset {
+export class StremthruTorzPreset extends Preset {
   static override get METADATA() {
     const supportedServices: ServiceId[] = [
       constants.REALDEBRID_SERVICE,
@@ -16,15 +16,11 @@ export class StremthruStorePreset extends Preset {
       constants.PIKPAK_SERVICE,
     ];
 
-    const supportedResources = [
-      constants.STREAM_RESOURCE,
-      constants.CATALOG_RESOURCE,
-      constants.META_RESOURCE,
-    ];
+    const supportedResources = [constants.STREAM_RESOURCE];
 
     const options: Option[] = [
       ...baseOptions(
-        'StremThru Store',
+        'StremThru Torz',
         supportedResources,
         Env.DEFAULT_STREMTHRU_STORE_TIMEOUT
       ),
@@ -43,23 +39,25 @@ export class StremthruStorePreset extends Preset {
         emptyIsUndefined: true,
       },
       {
-        id: 'webDl',
-        name: 'Web DL',
-        description: 'Enable web DL',
+        id: 'useMultipleInstances',
+        name: 'Use Multiple Instances',
+        description: 'StremThru',
         type: 'boolean',
+        default: false,
       },
     ];
 
     return {
-      ID: 'stremthruStore',
-      NAME: 'StremThru Store',
+      ID: 'stremthruTorz',
+      NAME: 'StremThru Torz',
       LOGO: 'https://emojiapi.dev/api/v1/sparkles/256.png',
-      URL: Env.STREMTHRU_STORE_URL,
-      TIMEOUT: Env.DEFAULT_STREMTHRU_STORE_TIMEOUT || Env.DEFAULT_TIMEOUT,
+      URL: Env.STREMTHRU_TORZ_URL,
+      TIMEOUT: Env.DEFAULT_STREMTHRU_TORZ_TIMEOUT || Env.DEFAULT_TIMEOUT,
       USER_AGENT:
-        Env.DEFAULT_STREMTHRU_STORE_USER_AGENT || Env.DEFAULT_USER_AGENT,
+        Env.DEFAULT_STREMTHRU_TORZ_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: supportedServices,
-      DESCRIPTION: 'Access your debrid library through catalogs and streams.',
+      DESCRIPTION:
+        'Access a crowdsourced torrent library supplemented by DMM hashlists',
       OPTIONS: options,
       SUPPORTED_STREAM_TYPES: [constants.DEBRID_STREAM_TYPE],
       SUPPORTED_RESOURCES: supportedResources,
@@ -73,7 +71,7 @@ export class StremthruStorePreset extends Preset {
     // url can either be something like https://torrentio.com/ or it can be a custom manifest url.
     // if it is a custom manifest url, return a single addon with the custom manifest url.
     if (options?.url?.endsWith('/manifest.json')) {
-      return [this.generateAddon(userData, options, undefined)];
+      return [this.generateAddon(userData, options, [])];
     }
 
     const usableServices = this.getUsableServices(userData, options.services);
@@ -86,19 +84,29 @@ export class StremthruStorePreset extends Preset {
       );
     }
 
-    return usableServices.map((service) =>
-      this.generateAddon(userData, options, service.id)
-    );
+    if (options.useMultipleInstances) {
+      return usableServices.map((service) =>
+        this.generateAddon(userData, options, [service.id])
+      );
+    }
+
+    return [
+      this.generateAddon(
+        userData,
+        options,
+        usableServices.map((s) => s.id)
+      ),
+    ];
   }
 
   private static generateAddon(
     userData: UserData,
     options: Record<string, any>,
-    serviceId?: ServiceId
+    serviceIds: ServiceId[]
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      manifestUrl: this.generateManifestUrl(userData, options, serviceId),
+      manifestUrl: this.generateManifestUrl(userData, options, serviceIds),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
       timeout: options.timeout || this.METADATA.TIMEOUT,
@@ -112,27 +120,29 @@ export class StremthruStorePreset extends Preset {
   private static generateManifestUrl(
     userData: UserData,
     options: Record<string, any>,
-    serviceId: ServiceId | undefined
+    serviceIds: ServiceId[]
   ) {
     let url = options.url || this.METADATA.URL;
     if (url.endsWith('/manifest.json')) {
       return url;
     }
     url = url.replace(/\/$/, '');
-    if (!serviceId) {
+    if (!serviceIds || serviceIds.length === 0) {
       throw new Error('Service is required');
     }
     const configString = this.base64EncodeJSON({
-      store_name: serviceId,
-      store_token: this.getServiceCredential(serviceId, userData, {
-        [constants.OFFCLOUD_SERVICE]: (credentials: any) =>
-          `${credentials.email}:${credentials.password}`,
-        [constants.PIKPAK_SERVICE]: (credentials: any) =>
-          `${credentials.email}:${credentials.password}`,
-      }),
-      hide_catalog: false,
-      hide_stream: false,
-      web_dl: options.webDl ?? false,
+      stores: serviceIds.map((serviceId) => ({
+        c:
+          serviceId === constants.PIKPAK_SERVICE
+            ? 'pp'
+            : constants.SERVICE_DETAILS[serviceId].shortName.toLowerCase(),
+        t: this.getServiceCredential(serviceId, userData, {
+          [constants.OFFCLOUD_SERVICE]: (credentials: any) =>
+            `${credentials.email}:${credentials.password}`,
+          [constants.PIKPAK_SERVICE]: (credentials: any) =>
+            `${credentials.email}:${credentials.password}`,
+        }),
+      })),
     });
 
     return `${url}${configString ? '/' + configString : ''}/manifest.json`;

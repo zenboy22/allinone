@@ -63,21 +63,19 @@ function Content() {
   const filteredPresets = useMemo(() => {
     if (!status?.settings?.presets) return [];
     return status.settings.presets.filter((preset) => {
+      if (preset.ID === 'custom') return true;
       const matchesService =
         serviceFilters.length === 0 ||
-        preset.ID === 'custom' ||
         (preset.SUPPORTED_SERVICES &&
           serviceFilters.every((s) => preset.SUPPORTED_SERVICES.includes(s)));
       const matchesStreamType =
         streamTypeFilters.length === 0 ||
-        preset.ID === 'custom' ||
         (preset.SUPPORTED_STREAM_TYPES &&
           streamTypeFilters.every((t) =>
             preset.SUPPORTED_STREAM_TYPES.includes(t)
           ));
       const matchesResource =
         resourceFilters.length === 0 ||
-        preset.ID === 'custom' ||
         (preset.SUPPORTED_RESOURCES &&
           resourceFilters.every((r) =>
             preset.SUPPORTED_RESOURCES.includes(r as Resource)

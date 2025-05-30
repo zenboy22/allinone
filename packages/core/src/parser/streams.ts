@@ -3,6 +3,51 @@ import { constants } from '../utils';
 import FileParser from './file';
 
 class StreamParser {
+  get errorRegexes(): { pattern: RegExp; message: string }[] | undefined {
+    return [
+      {
+        pattern: /invalid\s+\w+\s+(account|apikey|token)/i,
+        message: 'Invalid account or apikey or token',
+      },
+    ];
+  }
+  protected get filenameRegex(): RegExp | undefined {
+    return undefined;
+  }
+  protected get folderNameRegex(): RegExp | undefined {
+    return undefined;
+  }
+
+  protected get sizeRegex(): RegExp | undefined {
+    return /(\d+(\.\d+)?)\s?(KB|MB|GB)/i;
+  }
+  protected get sizeK(): number {
+    return 1024;
+  }
+
+  protected get seedersRegex(): RegExp | undefined {
+    return /[👥👤]\s*(\d+)/u;
+  }
+
+  protected get indexerEmojis(): string[] {
+    return ['🌐', '⚙️', '🔗', '🔎', '☁️'];
+  }
+
+  protected get indexerRegex(): RegExp | undefined {
+    return this.getRegexForTextAfterEmojis(this.indexerEmojis);
+  }
+
+  protected get ageRegex(): RegExp | undefined {
+    return undefined;
+  }
+
+  protected getRegexForTextAfterEmojis(emojis: string[]): RegExp {
+    return new RegExp(
+      `(?:${emojis.join('|')})\\s?(.*?)(?=[\p{Emoji_Presentation}]|$|\n)`,
+      'u'
+    );
+  }
+
   constructor(protected readonly addon: Addon) {}
 
   parse(stream: Stream): ParsedStream {
@@ -29,13 +74,17 @@ class StreamParser {
     parsedStream.duration = this.getDuration(stream);
     parsedStream.type = this.getStreamType(stream, parsedStream.service);
     parsedStream.inLibrary = this.getInLibrary(stream);
+    parsedStream.age = this.getAge(stream);
 
     if (parsedStream.filename) {
       parsedStream.parsedFile = FileParser.parse(parsedStream.filename);
     }
 
     parsedStream.torrent = {
-      infoHash: stream.infoHash,
+      infoHash:
+        parsedStream.type === 'p2p'
+          ? stream.infoHash
+          : this.getInfoHash(stream),
       seeders: this.getSeeders(stream),
       sources: stream.sources,
       fileIdx: stream.fileIdx,
@@ -45,9 +94,13 @@ class StreamParser {
   }
 
   protected raiseErrorIfNecessary(stream: Stream) {
-    const errorRegex = /invalid\s+\w+\s+(account|apikey|token)/i;
-    if (errorRegex.test(stream.description || stream.title || '')) {
-      throw new Error('Invalid account or apikey or token');
+    if (!this.errorRegexes) {
+      return;
+    }
+    for (const errorRegex of this.errorRegexes) {
+      if (errorRegex.pattern.test(stream.description || stream.title || '')) {
+        throw new Error(errorRegex.message);
+      }
     }
   }
 
@@ -61,6 +114,13 @@ class StreamParser {
     const description = stream.description || stream.title;
     if (!description) {
       return undefined;
+    }
+
+    if (this.filenameRegex) {
+      const match = description.match(this.filenameRegex);
+      if (match) {
+        return this.normaliseFilename(match[1]);
+      }
     }
 
     // attempt to find a filename by finding the most suitable line that has more info
@@ -85,6 +145,12 @@ class StreamParser {
   }
 
   protected getFolder(stream: Stream): string | undefined {
+    if (this.folderNameRegex) {
+      const match = stream.description?.match(this.folderNameRegex);
+      if (match) {
+        return match[1];
+      }
+    }
     return undefined;
   }
 
@@ -108,7 +174,10 @@ class StreamParser {
   }
 
   protected getSeeders(stream: Stream): number | undefined {
-    const regex = /[👥👤]\s*(\d+)/u;
+    const regex = this.seedersRegex;
+    if (!regex) {
+      return undefined;
+    }
     const match = stream.title?.match(regex);
     if (match) {
       return parseInt(match[1]);
@@ -117,9 +186,24 @@ class StreamParser {
     return undefined;
   }
 
+  protected getAge(stream: Stream): string | undefined {
+    const regex = this.ageRegex;
+    if (!regex) {
+      return undefined;
+    }
+    const match = stream.title?.match(regex);
+    if (match) {
+      return match[1];
+    }
+
+    return undefined;
+  }
+
   protected getIndexer(stream: Stream): string | undefined {
-    const regex =
-      /(?:🌐|⚙️|🔗|🔎|☁️)\s?(.*?)(?=[\p{Emoji_Presentation}]|$|\n)/u;
+    const regex = this.indexerRegex;
+    if (!regex) {
+      return undefined;
+    }
     const match = stream.title?.match(regex);
     if (match) {
       return match[1];
@@ -130,6 +214,10 @@ class StreamParser {
 
   protected getService(stream: Stream): ParsedStream['service'] | undefined {
     return this.parseServiceData(stream.name || '');
+  }
+
+  protected getInfoHash(stream: Stream): string | undefined {
+    return undefined;
   }
 
   protected getDuration(stream: Stream): number | undefined {
@@ -195,11 +283,14 @@ class StreamParser {
     return filename.replace(/\s+/g, '.').replace(/^\.+|\.+$/g, '');
   }
 
-  private calculateBytesFromSizeString(size: string, k: number = 1024): number {
-    const sizePattern = /(\d+(\.\d+)?)\s?(KB|MB|GB)/i;
+  private calculateBytesFromSizeString(size: string): number | undefined {
+    const k = this.sizeK;
+    if (!this.sizeRegex) {
+      return undefined;
+    }
+    const sizePattern = this.sizeRegex;
     const match = size.match(sizePattern);
     if (!match) return 0;
-
     const value = parseFloat(match[1]);
     const unit = match[3];
 

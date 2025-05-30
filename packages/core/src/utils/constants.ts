@@ -279,7 +279,7 @@ const SERVICE_DETAILS: Record<
   [PREMIUMIZE_SERVICE]: {
     id: PREMIUMIZE_SERVICE,
     name: 'Premiumize',
-    shortName: 'PZ',
+    shortName: 'PM',
     knownNames: ['PM', 'Premiumize'],
     signUpText:
       "Don't have an account? [Sign up here](https://www.premiumize.me/register)",

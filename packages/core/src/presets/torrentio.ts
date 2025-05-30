@@ -28,6 +28,7 @@ export class TorrentioPreset extends Preset {
       constants.TORBOX_SERVICE,
       constants.EASYDEBRID_SERVICE,
       constants.PUTIO_SERVICE,
+      constants.DEBRIDLINK_SERVICE,
       constants.OFFCLOUD_SERVICE,
     ];
     const supportedResources = [
@@ -76,7 +77,8 @@ export class TorrentioPreset extends Preset {
       USER_AGENT: Env.DEFAULT_TORRENTIO_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: supportedServices,
       REQUIRES_SERVICE: false,
-      DESCRIPTION: 'Torrentio preset',
+      DESCRIPTION:
+        'Provides torrent streams from a multitude of providers and has debrid support.',
       OPTIONS: options,
       SUPPORTED_STREAM_TYPES: [
         constants.P2P_STREAM_TYPE,
@@ -100,33 +102,7 @@ export class TorrentioPreset extends Preset {
       return [this.generateAddon(userData, options, [])];
     }
 
-    // get all services that are supported by the preset and enabled
-    let usableServices = userData.services?.filter(
-      (service) =>
-        this.METADATA.SUPPORTED_SERVICES.includes(service.id) && service.enabled
-    );
-
-    // if the user specified services, then we must throw an error if those services are not enabled or have missing credentials
-    if (options?.services) {
-      for (const service of options.services) {
-        const userService = userData.services?.find((s) => s.id === service);
-        const meta = Object.values(constants.SERVICE_DETAILS).find(
-          (s) => s.id === service
-        );
-        if (!userService || !userService.enabled || !userService.credentials) {
-          throw new Error(
-            `You have specified ${meta?.name || service} in your ${this.METADATA.NAME} configuration, but it is not enabled or has missing credentials`
-          );
-        }
-      }
-    }
-
-    // if user has specified services, filter the usable services to only include the specified services
-    if (options?.services) {
-      usableServices = usableServices?.filter((service) =>
-        options.services.includes(service.id)
-      );
-    }
+    const usableServices = this.getUsableServices(userData, options.services);
 
     // if no services are usable, return a single addon with no services
     if (!usableServices || usableServices.length === 0) {
@@ -177,55 +153,19 @@ export class TorrentioPreset extends Preset {
     if (url.endsWith('/manifest.json')) {
       return url;
     }
+
     const configString = services.length
       ? this.urlEncodeKeyValuePairs(
           services.map((service) => [
             service,
-            this.getServiceCredential(service, userData),
+            this.getServiceCredential(service, userData, {
+              [constants.PUTIO_SERVICE]: (credentials: any) =>
+                `${credentials.clientId}@${credentials.token}`,
+            }),
           ])
         )
       : '';
 
     return `${url}${configString ? '/' + configString : ''}/manifest.json`;
-  }
-
-  private static getServiceCredential(
-    serviceId: ServiceId,
-    userData: UserData
-  ): string {
-    // Validate service exists
-    const service = constants.SERVICE_DETAILS[serviceId];
-    if (!service) {
-      throw new Error(`Service ${serviceId} not found`);
-    }
-
-    // Get credentials for service
-    const serviceCredentials = userData.services?.find(
-      (service) => service.id === serviceId
-    )?.credentials;
-
-    if (!serviceCredentials) {
-      throw new Error(`No credentials found for service ${serviceId}`);
-    }
-
-    // Handle put.io special case which requires both clientId and token
-    if (serviceId === constants.PUTIO_SERVICE) {
-      const { clientId, token } = serviceCredentials;
-      if (!clientId || !token) {
-        throw new Error(
-          `Missing credentials for ${serviceId}. Please add a client ID and token.`
-        );
-      }
-      return `${clientId}@${token}`;
-    }
-
-    // Handle default case which requires just an API key
-    const { apiKey } = serviceCredentials;
-    if (!apiKey) {
-      throw new Error(
-        `Missing credentials for ${serviceId}. Please add an API key.`
-      );
-    }
-    return apiKey;
   }
 }

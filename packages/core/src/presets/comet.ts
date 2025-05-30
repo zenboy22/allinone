@@ -3,7 +3,7 @@ import { baseOptions, Preset } from './preset';
 import { Env } from '../utils';
 import { constants, ServiceId } from '../utils';
 
-export class StremthruStorePreset extends Preset {
+export class CometPreset extends Preset {
   static override get METADATA() {
     const supportedServices: ServiceId[] = [
       constants.REALDEBRID_SERVICE,
@@ -16,18 +16,25 @@ export class StremthruStorePreset extends Preset {
       constants.PIKPAK_SERVICE,
     ];
 
-    const supportedResources = [
-      constants.STREAM_RESOURCE,
-      constants.CATALOG_RESOURCE,
-      constants.META_RESOURCE,
-    ];
+    const supportedResources = [constants.STREAM_RESOURCE];
 
     const options: Option[] = [
-      ...baseOptions(
-        'StremThru Store',
-        supportedResources,
-        Env.DEFAULT_STREMTHRU_STORE_TIMEOUT
-      ),
+      ...baseOptions('Comet', supportedResources, Env.DEFAULT_COMET_TIMEOUT),
+      {
+        id: 'includeP2P',
+        name: 'Include P2P',
+        description: 'Include P2P results, even if a debrid service is enabled',
+        type: 'boolean',
+        default: false,
+      },
+      {
+        id: 'removeTrash',
+        name: 'Remove Trash',
+        description:
+          'Remove all trash from results (Adult Content, CAM, Clean Audio, PDTV, R5, Screener, Size, Telecine and Telesync)',
+        type: 'boolean',
+        default: true,
+      },
       {
         id: 'services',
         name: 'Services',
@@ -42,26 +49,22 @@ export class StremthruStorePreset extends Preset {
         default: undefined,
         emptyIsUndefined: true,
       },
-      {
-        id: 'webDl',
-        name: 'Web DL',
-        description: 'Enable web DL',
-        type: 'boolean',
-      },
     ];
 
     return {
-      ID: 'stremthruStore',
-      NAME: 'StremThru Store',
-      LOGO: 'https://emojiapi.dev/api/v1/sparkles/256.png',
-      URL: Env.STREMTHRU_STORE_URL,
-      TIMEOUT: Env.DEFAULT_STREMTHRU_STORE_TIMEOUT || Env.DEFAULT_TIMEOUT,
-      USER_AGENT:
-        Env.DEFAULT_STREMTHRU_STORE_USER_AGENT || Env.DEFAULT_USER_AGENT,
+      ID: 'comet',
+      NAME: 'Comet',
+      LOGO: 'https://i.imgur.com/jmVoVMu.jpeg',
+      URL: Env.COMET_URL,
+      TIMEOUT: Env.DEFAULT_COMET_TIMEOUT || Env.DEFAULT_TIMEOUT,
+      USER_AGENT: Env.DEFAULT_COMET_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: supportedServices,
-      DESCRIPTION: 'Access your debrid library through catalogs and streams.',
+      DESCRIPTION: "Stremio's fastest Torrent/Debrid addon",
       OPTIONS: options,
-      SUPPORTED_STREAM_TYPES: [constants.DEBRID_STREAM_TYPE],
+      SUPPORTED_STREAM_TYPES: [
+        constants.P2P_STREAM_TYPE,
+        constants.DEBRID_STREAM_TYPE,
+      ],
       SUPPORTED_RESOURCES: supportedResources,
     };
   }
@@ -77,18 +80,20 @@ export class StremthruStorePreset extends Preset {
     }
 
     const usableServices = this.getUsableServices(userData, options.services);
-    // if no services are usable, throw an error
+    // if no services are usable, use p2p
     if (!usableServices || usableServices.length === 0) {
-      throw new Error(
-        `${this.METADATA.NAME} requires at least one usable service, but none were found. Please enable at least one of the following services: ${this.METADATA.SUPPORTED_SERVICES.join(
-          ', '
-        )}`
-      );
+      return [this.generateAddon(userData, options, undefined)];
     }
 
-    return usableServices.map((service) =>
+    let addons = usableServices.map((service) =>
       this.generateAddon(userData, options, service.id)
     );
+
+    if (options.includeP2P) {
+      addons.push(this.generateAddon(userData, options, undefined));
+    }
+
+    return addons;
   }
 
   private static generateAddon(
@@ -123,16 +128,26 @@ export class StremthruStorePreset extends Preset {
       throw new Error('Service is required');
     }
     const configString = this.base64EncodeJSON({
-      store_name: serviceId,
-      store_token: this.getServiceCredential(serviceId, userData, {
+      maxResultsPerResolution: 0,
+      maxSize: 0,
+      cachedOnly: false,
+      removeTrash: options.removeTrash ?? true,
+      resultFormat: ['all'],
+      debridService: serviceId || 'torrent',
+      debridApiKey: this.getServiceCredential(serviceId, userData, {
         [constants.OFFCLOUD_SERVICE]: (credentials: any) =>
           `${credentials.email}:${credentials.password}`,
         [constants.PIKPAK_SERVICE]: (credentials: any) =>
           `${credentials.email}:${credentials.password}`,
       }),
-      hide_catalog: false,
-      hide_stream: false,
-      web_dl: options.webDl ?? false,
+      debridStreamProxyPassword: '',
+      languages: { required: [], exclude: [], preferred: [] },
+      resolutions: {},
+      options: {
+        remove_ranks_under: -10000000000,
+        allow_english_in_languages: false,
+        remove_unknown_languages: false,
+      },
     });
 
     return `${url}${configString ? '/' + configString : ''}/manifest.json`;

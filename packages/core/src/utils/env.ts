@@ -536,7 +536,7 @@ export const Env = cleanEnv(process.env, {
   }),
 
   COMET_URL: url({
-    default: 'https://comet.elfhosted.com/',
+    default: 'https://comet.elfhosted.com',
     desc: 'Comet URL',
   }),
   DEFAULT_COMET_INDEXERS: json({
@@ -567,7 +567,7 @@ export const Env = cleanEnv(process.env, {
 
   // MediaFusion settings
   MEDIAFUSION_URL: url({
-    default: 'https://mediafusion.elfhosted.com/',
+    default: 'https://mediafusion.elfhosted.com',
     desc: 'MediaFusion URL',
   }),
   MEDIAFUSION_API_PASSWORD: str({
@@ -589,7 +589,7 @@ export const Env = cleanEnv(process.env, {
 
   // Jackettio settings
   JACKETTIO_URL: url({
-    default: 'https://jackettio.elfhosted.com/',
+    default: 'https://jackettio.elfhosted.com',
     desc: 'Jackettio URL',
   }),
   DEFAULT_JACKETTIO_INDEXERS: json({
@@ -624,7 +624,7 @@ export const Env = cleanEnv(process.env, {
 
   // Stremio Jackett settings
   STREMIO_JACKETT_URL: url({
-    default: 'https://stremio-jackett.elfhosted.com/',
+    default: 'https://stremio-jackett.elfhosted.com',
     desc: 'Stremio Jackett URL',
   }),
   DEFAULT_STREMIO_JACKETT_JACKETT_URL: url({
@@ -650,7 +650,7 @@ export const Env = cleanEnv(process.env, {
 
   // Torrentio settings
   TORRENTIO_URL: url({
-    default: 'https://torrentio.strem.fun/',
+    default: 'https://torrentio.strem.fun',
     desc: 'Torrentio URL',
   }),
   DEFAULT_TORRENTIO_TIMEOUT: num({
@@ -664,7 +664,7 @@ export const Env = cleanEnv(process.env, {
 
   // Orion settings
   ORION_STREMIO_ADDON_URL: url({
-    default: 'https://5a0d1888fa64-orion.baby-beamup.club/',
+    default: 'https://5a0d1888fa64-orion.baby-beamup.club',
     desc: 'Orion Stremio addon URL',
   }),
   DEFAULT_ORION_TIMEOUT: num({
@@ -678,7 +678,7 @@ export const Env = cleanEnv(process.env, {
 
   // Peerflix settings
   PEERFLIX_URL: url({
-    default: 'https://peerflix-addon.onrender.com/',
+    default: 'https://peerflix-addon.onrender.com',
     desc: 'Peerflix URL',
   }),
   DEFAULT_PEERFLIX_TIMEOUT: num({
@@ -692,7 +692,7 @@ export const Env = cleanEnv(process.env, {
 
   // Torbox settings
   TORBOX_STREMIO_URL: url({
-    default: 'https://stremio.torbox.app/',
+    default: 'https://stremio.torbox.app',
     desc: 'Torbox Stremio URL',
   }),
   DEFAULT_TORBOX_TIMEOUT: num({
@@ -706,7 +706,7 @@ export const Env = cleanEnv(process.env, {
 
   // Easynews settings
   EASYNEWS_URL: url({
-    default: 'https://ea627ddf0ee7-easynews.baby-beamup.club/',
+    default: 'https://ea627ddf0ee7-easynews.baby-beamup.club',
     desc: 'Easynews URL',
   }),
   DEFAULT_EASYNEWS_TIMEOUT: num({
@@ -720,7 +720,7 @@ export const Env = cleanEnv(process.env, {
 
   // Easynews+ settings
   EASYNEWS_PLUS_URL: url({
-    default: 'https://b89262c192b0-stremio-easynews-addon.baby-beamup.club/',
+    default: 'https://b89262c192b0-stremio-easynews-addon.baby-beamup.club',
     desc: 'Easynews+ URL',
   }),
   DEFAULT_EASYNEWS_PLUS_TIMEOUT: num({
@@ -734,7 +734,7 @@ export const Env = cleanEnv(process.env, {
 
   // Easynews++ settings
   EASYNEWS_PLUS_PLUS_URL: url({
-    default: 'https://easynews-cloudflare-worker.jqrw92fchz.workers.dev/',
+    default: 'https://easynews-cloudflare-worker.jqrw92fchz.workers.dev',
     desc: 'Easynews++ URL',
   }),
   EASYNEWS_PLUS_PLUS_PUBLIC_URL: url({
@@ -752,7 +752,7 @@ export const Env = cleanEnv(process.env, {
 
   // Debridio Settings
   DEBRIDIO_URL: url({
-    default: 'https://debridio.adobotec.com/',
+    default: 'https://debridio.adobotec.com',
     desc: 'Debridio URL',
   }),
   DEFAULT_DEBRIDIO_TIMEOUT: num({
@@ -766,7 +766,7 @@ export const Env = cleanEnv(process.env, {
 
   // StremThru Store settings
   STREMTHRU_STORE_URL: url({
-    default: 'https://stremthru.elfhosted.com/stremio/store/',
+    default: 'https://stremthru.elfhosted.com/stremio/store',
     desc: 'StremThru Store URL',
   }),
   DEFAULT_STREMTHRU_STORE_TIMEOUT: num({
@@ -776,6 +776,20 @@ export const Env = cleanEnv(process.env, {
   DEFAULT_STREMTHRU_STORE_USER_AGENT: userAgent({
     default: undefined,
     desc: 'Default StremThru Store user agent',
+  }),
+
+  // StremThru Torz settings
+  STREMTHRU_TORZ_URL: url({
+    default: 'https://stremthru.elfhosted.com/stremio/torz',
+    desc: 'StremThru Torz URL',
+  }),
+  DEFAULT_STREMTHRU_TORZ_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default StremThru Torz timeout',
+  }),
+  DEFAULT_STREMTHRU_TORZ_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default StremThru Torz user agent',
   }),
 
   // DMM Cast settings
