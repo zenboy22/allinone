@@ -3,22 +3,27 @@ import {
   AddonCatalog,
   AddonCatalogResponse,
   AddonCatalogResponseSchema,
+  AddonCatalogSchema,
   CatalogResponse,
   CatalogResponseSchema,
   Manifest,
   ManifestSchema,
   Meta,
   MetaPreview,
+  MetaPreviewSchema,
   MetaResponse,
   MetaResponseSchema,
+  MetaSchema,
   ParsedStream,
   Resource,
   Stream,
   StreamResponse,
   StreamResponseSchema,
+  StreamSchema,
   Subtitle,
   SubtitleResponse,
   SubtitleResponseSchema,
+  SubtitleSchema,
 } from './db/schemas';
 import {
   Cache,
@@ -54,6 +59,43 @@ export class Wrapper {
   constructor(addon: Addon) {
     this.addon = addon;
     this.baseUrl = this.addon.manifestUrl.split('/').slice(0, -1).join('/');
+  }
+
+  /**
+   * Validates an array of items against a schema, filtering out invalid ones
+   * @param data The data to validate
+   * @param schema The Zod schema to validate against
+   * @param resourceName Name of the resource for error messages
+   * @returns Array of validated items
+   * @throws Error if all items are invalid
+   */
+  private validateArray<T>(
+    data: unknown,
+    schema: z.ZodSchema<T>,
+    resourceName: string
+  ): T[] {
+    if (!Array.isArray(data)) {
+      throw new Error(`${resourceName} is not an array`);
+    }
+
+    const validItems = data
+      .map((item) => {
+        const parsed = schema.safeParse(item);
+        if (!parsed.success) {
+          logger.error(
+            `An item in the response for ${resourceName} was invalid, filtering it out: ${formatZodError(parsed.error)}`
+          );
+          return null;
+        }
+        return parsed.data;
+      })
+      .filter((item): item is T => item !== null);
+
+    if (validItems.length === 0) {
+      throw new Error(`No valid ${resourceName} found`);
+    }
+
+    return validItems;
   }
 
   async getManifest(): Promise<Manifest> {
@@ -98,16 +140,20 @@ export class Wrapper {
   }
 
   async getStreams(type: string, id: string): Promise<ParsedStream[]> {
-    const streams: StreamResponse = await this.makeResourceRequest(
+    const validator = (data: any): Stream[] => {
+      return this.validateArray(data.streams, StreamSchema, 'streams');
+    };
+
+    const streams = await this.makeResourceRequest(
       'stream',
       { type, id },
-      StreamResponseSchema
+      validator
     );
     const Parser = this.addon.fromPresetId
       ? PresetManager.fromId(this.addon.fromPresetId).getParser()
       : StreamParser;
     const parser = new Parser(this.addon);
-    return streams.streams.map((stream: Stream) => parser.parse(stream));
+    return streams.map((stream: Stream) => parser.parse(stream));
   }
 
   async getCatalog(
@@ -115,23 +161,34 @@ export class Wrapper {
     id: string,
     extras?: string
   ): Promise<MetaPreview[]> {
-    const catalog: CatalogResponse = await this.makeResourceRequest(
+    const validator = (data: any): MetaPreview[] => {
+      return this.validateArray(data.metas, MetaPreviewSchema, 'catalog items');
+    };
+
+    return await this.makeResourceRequest(
       'catalog',
       { type, id, extras },
-      CatalogResponseSchema,
+      validator,
       true
     );
-    return catalog.metas;
   }
 
   async getMeta(type: string, id: string): Promise<Meta> {
-    const meta: MetaResponse = await this.makeResourceRequest(
+    const validator = (data: any): Meta => {
+      const parsed = MetaSchema.safeParse(data.meta);
+      if (!parsed.success) {
+        logger.error(formatZodError(parsed.error));
+        throw new Error(`Failed to parse meta for ${this.addon.name}`);
+      }
+      return parsed.data;
+    };
+    const meta: Meta = await this.makeResourceRequest(
       'meta',
       { type, id },
-      MetaResponseSchema,
+      validator,
       true
     );
-    return meta.meta;
+    return meta;
   }
 
   async getSubtitles(
@@ -139,28 +196,38 @@ export class Wrapper {
     id: string,
     extras?: string
   ): Promise<Subtitle[]> {
-    const subtitles: SubtitleResponse = await this.makeResourceRequest(
+    const validator = (data: any): Subtitle[] => {
+      return this.validateArray(data.subtitles, SubtitleSchema, 'subtitles');
+    };
+
+    return await this.makeResourceRequest(
       'subtitles',
       { type, id, extras },
-      SubtitleResponseSchema,
+      validator,
       true
     );
-    return subtitles.subtitles;
   }
 
   async getAddonCatalog(type: string, id: string): Promise<AddonCatalog[]> {
-    const addonCatalog: AddonCatalogResponse = await this.makeResourceRequest(
+    const validator = (data: any): AddonCatalog[] => {
+      return this.validateArray(
+        data.addons,
+        AddonCatalogSchema,
+        'addon catalog items'
+      );
+    };
+
+    return await this.makeResourceRequest(
       'addon_catalog',
       { type, id },
-      AddonCatalogResponseSchema
+      validator
     );
-    return addonCatalog.addons;
   }
 
-  private async makeResourceRequest(
+  private async makeResourceRequest<T>(
     resource: Resource,
     params: ResourceParams,
-    schema: z.ZodSchema,
+    validator: (data: unknown) => T,
     cache: boolean = false
   ) {
     const { type, id, extras } = params;
@@ -191,19 +258,14 @@ export class Wrapper {
 
         throw new Error(`${res.status} - ${res.statusText}`);
       }
-      const data = await res.json();
-      const parsed = schema.safeParse(data);
-      if (!parsed.success) {
-        logger.error(`Resource response was unexpected`);
-        logger.error(formatZodError(parsed.error));
-        throw new Error(
-          `Failed to parse ${resource} resource for ${this.addon.name}`
-        );
-      }
+      const data: unknown = await res.json();
+
+      const validated = validator(data);
+
       if (cache) {
-        resourceCache.set(url, parsed.data, RESOURCE_TTL);
+        resourceCache.set(url, validated, RESOURCE_TTL);
       }
-      return parsed.data;
+      return validated;
     } catch (error: any) {
       logger.error(
         `Failed to fetch ${resource} resource for ${this.addon.name}: ${error.message}`

@@ -77,6 +77,7 @@ class StreamParser {
     parsedStream.type = this.getStreamType(stream, parsedStream.service);
     parsedStream.inLibrary = this.getInLibrary(stream);
     parsedStream.age = this.getAge(stream);
+    parsedStream.message = this.getMessage(stream);
 
     if (parsedStream.filename) {
       parsedStream.parsedFile = FileParser.parse(parsedStream.filename);
@@ -211,6 +212,10 @@ class StreamParser {
       return match[1];
     }
 
+    return undefined;
+  }
+
+  protected getMessage(stream: Stream): string | undefined {
     return undefined;
   }
 

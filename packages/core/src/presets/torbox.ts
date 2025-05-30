@@ -32,8 +32,22 @@ class TorboxStreamParser extends StreamParser {
   ): ParsedStream['service'] | undefined {
     return {
       id: constants.TORBOX_SERVICE,
-      cached: (stream as any).is_cached ?? false,
+      cached: (stream as any).is_cached ?? true,
     };
+  }
+
+  protected override getFilename(stream: Stream): string | undefined {
+    if (stream.description?.includes('Click play to start')) {
+      return undefined;
+    }
+    return super.getFilename(stream);
+  }
+
+  protected override getMessage(stream: Stream): string | undefined {
+    if (stream.description?.includes('Click play to start')) {
+      return 'Click play to start streaming your media';
+    }
+    return undefined;
   }
 
   protected override getStreamType(

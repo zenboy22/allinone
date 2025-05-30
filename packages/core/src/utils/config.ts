@@ -20,7 +20,7 @@ const logger = createLogger('core');
 export const formatZodError = (error: ZodError) => {
   let message = '';
   for (const issue of error.issues) {
-    message += `${issue.path.join('.')}: ${issue.message}\n`;
+    message += `${issue.path.join('.')}: ${issue.message} |`;
   }
   return message;
 };

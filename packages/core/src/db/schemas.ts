@@ -333,7 +333,7 @@ export const ManifestSchema = z.object({
 
 export type Manifest = z.infer<typeof ManifestSchema>;
 
-const SubtitleSchema = z.object({
+export const SubtitleSchema = z.object({
   id: z.string().min(1),
   url: z.string().url(),
   lang: z.string().min(1),
@@ -345,7 +345,7 @@ export const SubtitleResponseSchema = z.object({
 export type SubtitleResponse = z.infer<typeof SubtitleResponseSchema>;
 export type Subtitle = z.infer<typeof SubtitleSchema>;
 
-const StreamSchema = z.object({
+export const StreamSchema = z.object({
   url: z.string().url().optional(),
   ytId: z.string().min(1).optional(),
   infoHash: z.string().min(1).optional(),
@@ -397,7 +397,7 @@ const MetaLinkSchema = z.object({
 const MetaVideoSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
-  released: z.string().datetime(),
+  released: z.string().datetime().optional(),
   thumbnail: z.string().url().optional(),
   streams: z.array(StreamSchema).optional(),
   available: z.boolean().optional(),
@@ -407,7 +407,7 @@ const MetaVideoSchema = z.object({
   overview: z.string().min(1).optional(),
 });
 
-const MetaPreviewSchema = z.object({
+export const MetaPreviewSchema = z.object({
   id: z.string().min(1),
   type: z.string().min(1),
   name: z.string().min(1),
@@ -416,8 +416,8 @@ const MetaPreviewSchema = z.object({
   // discover sidebar
   //@deprecated use links instead
   genres: z.array(z.string()).optional(),
-  imdbRating: z.string().or(z.null()).optional(),
-  releaseInfo: z.string().or(z.null()).optional(),
+  imdbRating: z.string().or(z.null()).or(z.number()).optional(),
+  releaseInfo: z.string().or(z.number()).or(z.null()).optional(),
   //@deprecated
   director: z.array(z.string()).or(z.null()).optional(),
   //@deprecated
@@ -430,12 +430,12 @@ const MetaPreviewSchema = z.object({
   // released: z.string().datetime().optional(),
 });
 
-const MetaSchema = MetaPreviewSchema.extend({
+export const MetaSchema = MetaPreviewSchema.extend({
   poster: z.string().min(1).optional(),
   background: z.string().min(1).optional(),
   logo: z.string().min(1).optional(),
   videos: z.array(MetaVideoSchema).optional(),
-  runtime: z.string().min(1).optional(),
+  runtime: z.string().optional(),
   language: z.string().min(1).optional(),
   country: z.string().length(3).optional(),
   awards: z.string().min(1).optional(),
@@ -458,7 +458,7 @@ export type CatalogResponse = z.infer<typeof CatalogResponseSchema>;
 export type Meta = z.infer<typeof MetaSchema>;
 export type MetaPreview = z.infer<typeof MetaPreviewSchema>;
 
-const AddonCatalogSchema = z.object({
+export const AddonCatalogSchema = z.object({
   transportName: z.literal('http'),
   transportUrl: z.string().url(),
   manifest: ManifestSchema,
