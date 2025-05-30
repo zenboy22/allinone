@@ -40,7 +40,7 @@ export class GDriveFormatter extends BaseFormatter {
   constructor() {
     super({
       name: `
-{stream.proxied::istrue["🕵️ "||""]}{stream.type::=p2p["[P2P]"||""]}{service.shortName::exists["[{service.shortName}"||""]}{service.cached::istrue["⚡] "||""]}{service.cached::isfalse["⏳]"||""]}{addon.name}{stream.personal::istrue[" (Your Media)"||""]} {stream.resolution::exists["{stream.resolution}"||""]}
+{stream.proxied::istrue["🕵️ "||""]}{stream.type::=p2p["[P2P]"||""]}{service.shortName::exists["[{service.shortName}"||""]}{service.cached::istrue["⚡] "||""]}{service.cached::isfalse["⏳]"||""]}{addon.name}{stream.inLibrary::istrue[" (Your Media)"||""]} {stream.resolution::exists["{stream.resolution}"||""]}
       `,
       description: `
 {stream.quality::exists["🎥 {stream.quality} "||""]}{stream.encode::exists["🎞️ {stream.encode} "||""]}{stream.releaseGroup::exists["🏷️ {stream.releaseGroup}"||""]}
