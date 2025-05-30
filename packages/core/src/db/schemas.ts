@@ -470,15 +470,15 @@ export type AddonCatalogResponse = z.infer<typeof AddonCatalogResponseSchema>;
 export type AddonCatalog = z.infer<typeof AddonCatalogSchema>;
 
 const ParsedFileSchema = z.object({
-  releaseGroup: z.string().min(1).optional(),
-  resolution: z.string().min(1).optional(),
-  quality: z.string().min(1).optional(),
-  encode: z.string().min(1).optional(),
+  releaseGroup: z.string().optional(),
+  resolution: z.string().optional(),
+  quality: z.string().optional(),
+  encode: z.string().optional(),
   visualTags: z.array(z.string()).optional(),
   audioTags: z.array(z.string()).optional(),
   languages: z.array(z.string()).optional(),
-  title: z.string().min(1).optional(),
-  year: z.string().min(1).optional(),
+  title: z.string().optional(),
+  year: z.string().optional(),
   season: z.number().optional(),
   seasons: z.array(z.number()).optional(),
   episode: z.number().optional(),
@@ -490,7 +490,7 @@ export const ParsedStreamSchema = z.object({
   proxied: z.boolean().optional(),
   addon: AddonSchema,
   parsedFile: ParsedFileSchema,
-  message: z.string().min(1).max(1000).optional(),
+  message: z.string().max(1000).optional(),
   regexMatched: z
     .object({
       name: z.string().min(1).optional(),
@@ -500,7 +500,7 @@ export const ParsedStreamSchema = z.object({
     .optional(),
   size: z.number().optional(),
   type: StreamTypes,
-  indexer: z.string().min(1).optional(),
+  indexer: z.string().optional(),
   age: z.string().optional(),
   torrent: z
     .object({
@@ -517,8 +517,8 @@ export const ParsedStreamSchema = z.object({
   responseHeaders: z.record(z.string().min(1), z.string().min(1)).optional(),
   videoHash: z.string().min(1).optional(),
   subtitles: z.array(SubtitleSchema).optional(),
-  filename: z.string().min(1).optional(),
-  folderName: z.string().min(1).optional(),
+  filename: z.string().optional(),
+  folderName: z.string().optional(),
   service: z
     .object({
       id: z.enum(constants.SERVICES),
