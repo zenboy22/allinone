@@ -43,7 +43,7 @@ class StreamParser {
 
   protected getRegexForTextAfterEmojis(emojis: string[]): RegExp {
     return new RegExp(
-      `(?:${emojis.join('|')})\\s?(.*?)(?=[\p{Emoji_Presentation}]|$|\n)`,
+      `(?:${emojis.join('|')})\\s*([^\\p{Emoji_Presentation}\\n]*?)(?=\\p{Emoji_Presentation}|$|\\n)`,
       'u'
     );
   }
@@ -63,6 +63,8 @@ class StreamParser {
       notWebReady: stream.behaviorHints?.notWebReady,
       videoHash: stream.behaviorHints?.videoHash,
     };
+
+    stream.description = stream.description || stream.title;
 
     this.raiseErrorIfNecessary(stream);
 
@@ -178,7 +180,7 @@ class StreamParser {
     if (!regex) {
       return undefined;
     }
-    const match = stream.title?.match(regex);
+    const match = stream.description?.match(regex);
     if (match) {
       return parseInt(match[1]);
     }
@@ -191,7 +193,7 @@ class StreamParser {
     if (!regex) {
       return undefined;
     }
-    const match = stream.title?.match(regex);
+    const match = stream.description?.match(regex);
     if (match) {
       return match[1];
     }
@@ -204,7 +206,7 @@ class StreamParser {
     if (!regex) {
       return undefined;
     }
-    const match = stream.title?.match(regex);
+    const match = stream.description?.match(regex);
     if (match) {
       return match[1];
     }
