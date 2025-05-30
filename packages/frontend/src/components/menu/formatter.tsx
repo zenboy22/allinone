@@ -91,7 +91,7 @@ function Content() {
   );
   const [indexer, setIndexer] = useState('RARBG');
   const [seeders, setSeeders] = useState(125);
-  const [age, setAge] = useState('10d');
+  const [age, setAge] = useState<string>('10d');
   const [addonName, setAddonName] = useState('Torrentio');
   const [providerId, setProviderId] = useState<constants.ServiceId | 'none'>(
     'none'
@@ -100,8 +100,8 @@ function Content() {
   const [type, setType] =
     useState<(typeof constants.STREAM_TYPES)[number]>('debrid');
   const [inLibrary, setInLibrary] = useState(false);
-  const [duration, setDuration] = useState(9120); // 2h 32m in seconds
-  const [fileSize, setFileSize] = useState(62500000000); // 58.2 GB in bytes
+  const [duration, setDuration] = useState<number | undefined>(9120); // 2h 32m in seconds
+  const [fileSize, setFileSize] = useState<number | undefined>(62500000000); // 58.2 GB in bytes
   const [proxied, setProxied] = useState(false);
   const [regexMatched, setRegexMatched] = useState('Regex Name');
 
@@ -261,6 +261,7 @@ function Content() {
     proxied,
     selectedFormatter,
     customName,
+    regexMatched,
     customDescription,
   ]);
 
@@ -356,13 +357,13 @@ function Content() {
             <TextInput
               label={<span className="truncate block">Filename</span>}
               value={filename}
-              onChange={(e) => setFilename(e.target.value)}
+              onValueChange={(value) => setFilename(value || '')}
               className="w-full"
             />
             <TextInput
               label={<span className="truncate block">Folder Name</span>}
               value={folder}
-              onChange={(e) => setFolder(e.target.value)}
+              onValueChange={(value) => setFolder(value || '')}
               className="w-full"
             />
           </div>
@@ -371,7 +372,7 @@ function Content() {
             <TextInput
               label={<span className="truncate block">Indexer</span>}
               value={indexer}
-              onChange={(e) => setIndexer(e.target.value)}
+              onValueChange={(value) => setIndexer(value || '')}
               className="w-full"
             />
             <NumberInput
@@ -385,13 +386,13 @@ function Content() {
             <TextInput
               label={<span className="truncate block">Age</span>}
               value={age}
-              onChange={(e) => setAge(e.target.value)}
+              onValueChange={(value) => setAge(value || '')}
               className="w-full"
             />
             <NumberInput
               label={<span className="truncate block">Duration (s)</span>}
               value={duration}
-              onValueChange={(value) => setDuration(value)}
+              onValueChange={(value) => setDuration(value || undefined)}
               className="w-full"
               min={0}
               step={1000}
@@ -400,7 +401,7 @@ function Content() {
             <NumberInput
               label={<span className="truncate block">File Size (bytes)</span>}
               value={fileSize}
-              onValueChange={(value) => setFileSize(value)}
+              onValueChange={(value) => setFileSize(value || undefined)}
               className="w-full"
               step={1000000000}
               defaultValue={0}
@@ -409,7 +410,7 @@ function Content() {
             <TextInput
               label={<span className="truncate block">Regex Matched</span>}
               value={regexMatched}
-              onChange={(e) => setRegexMatched(e.target.value)}
+              onValueChange={(value) => setRegexMatched(value || '')}
               className="w-full"
             />
           </div>
