@@ -70,7 +70,7 @@ export class CustomPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Promise<Addon[]> {
-    if (!options.url || !options.url.endsWith('/manifest.json')) {
+    if (!options.manifestUrl.endsWith('/manifest.json')) {
       throw new Error('Invalid manifest URL');
     }
     return [this.generateAddon(userData, options)];
@@ -82,7 +82,7 @@ export class CustomPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      manifestUrl: options.url,
+      manifestUrl: options.manifestUrl,
       enabled: true,
       library: options.libraryAddon ?? false,
       resources: options.resources || [],
