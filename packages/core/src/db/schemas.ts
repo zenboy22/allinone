@@ -316,12 +316,14 @@ export const ManifestSchema = z.object({
   background: z.string().min(1).optional(),
   logo: z.string().min(1).optional(),
   contactEmail: z.string().min(1).optional(),
-  behaviorHints: z.object({
-    adult: z.boolean().optional(),
-    p2p: z.boolean().optional(),
-    configurable: z.boolean().optional(),
-    configurationRequired: z.boolean().optional(),
-  }),
+  behaviorHints: z
+    .object({
+      adult: z.boolean().optional(),
+      p2p: z.boolean().optional(),
+      configurable: z.boolean().optional(),
+      configurationRequired: z.boolean().optional(),
+    })
+    .optional(),
   // not part of the manifest scheme, but needed for stremio-addons.net
   stremioAddonsConfig: z
     .object({
