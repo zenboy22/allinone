@@ -78,6 +78,11 @@ export class Wrapper {
       throw new Error(`${resourceName} is not an array`);
     }
 
+    if (data.length === 0) {
+      // empty array is valid
+      return [];
+    }
+
     const validItems = data
       .map((item) => {
         const parsed = schema.safeParse(item);
