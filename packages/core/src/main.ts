@@ -407,7 +407,11 @@ export class AIOStreams {
 
       // Filter and merge resources
       for (const resource of addonResources) {
-        if (addon.resources && !addon.resources.includes(resource.name))
+        if (
+          addon.resources &&
+          addon.resources.length > 0 &&
+          !addon.resources.includes(resource.name)
+        )
           continue;
 
         const existing = this.finalResources.find(
