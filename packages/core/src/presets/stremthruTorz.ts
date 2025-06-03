@@ -130,7 +130,11 @@ export class StremthruTorzPreset extends Preset {
     }
     url = url.replace(/\/$/, '');
     if (!serviceIds || serviceIds.length === 0) {
-      throw new Error('Service is required');
+      throw new Error(
+        `${this.METADATA.NAME} requires at least one service, but none were found. Please enable at least one of the following services: ${this.METADATA.SUPPORTED_SERVICES.join(
+          ', '
+        )}`
+      );
     }
     const configString = this.base64EncodeJSON({
       stores: serviceIds.map((serviceId) => ({
