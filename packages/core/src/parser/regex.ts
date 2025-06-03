@@ -16,7 +16,12 @@ export const PARSE_REGEX = {
       '(bd|hd|m)?(1080(p|i)?)|f(ull)?[ .\\-_]?hd|1920\s?x\s?(\d{3,4})'
     ),
     '720p': createRegex('(bd|hd|m)?(720(p|i)?)|hd|1280\s?x\s?(\d{3,4})'),
+    '576p': createRegex('(bd|hd|m)?(576(p|i)?)'),
     '480p': createRegex('(bd|hd|m)?(480(p|i)?)|sd'),
+    '360p': createRegex('(bd|hd|m)?(360(p|i)?)'),
+    '240p': createRegex('(bd|hd|m)?(240(p|i)?)'),
+    '180p': createRegex('(bd|hd|m)?(180(p|i)?)'),
+    '144p': createRegex('(bd|hd|m)?(144(p|i)?)'),
   },
   qualities: {
     'BluRay REMUX':
