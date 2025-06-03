@@ -903,6 +903,9 @@ const LANGUAGES = [
   'Norwegian',
   'Malay',
   'Latino',
+  'Dual Audio',
+  'Dubbed',
+  'Multi',
 ] as const;
 
 export const SNIPPETS = [
