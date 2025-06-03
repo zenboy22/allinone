@@ -8,6 +8,7 @@ export class MediaFlowProxy extends BaseProxy {
   protected generateProxyUrl(endpoint: string): URL {
     const proxyUrl = new URL(this.config.url.replace(/\/$/, ''));
     proxyUrl.pathname = `${proxyUrl.pathname === '/' ? '' : proxyUrl.pathname}${endpoint}`;
+    proxyUrl.searchParams.set('api_password', this.config.credentials);
     return proxyUrl;
   }
 
