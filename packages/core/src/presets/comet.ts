@@ -127,9 +127,6 @@ export class CometPreset extends Preset {
       return url;
     }
     url = url.replace(/\/$/, '');
-    if (!serviceId) {
-      throw new Error('Service is required');
-    }
     const configString = this.base64EncodeJSON({
       maxResultsPerResolution: 0,
       maxSize: 0,
@@ -137,12 +134,14 @@ export class CometPreset extends Preset {
       removeTrash: options.removeTrash ?? true,
       resultFormat: ['all'],
       debridService: serviceId || 'torrent',
-      debridApiKey: this.getServiceCredential(serviceId, userData, {
-        [constants.OFFCLOUD_SERVICE]: (credentials: any) =>
-          `${credentials.email}:${credentials.password}`,
-        [constants.PIKPAK_SERVICE]: (credentials: any) =>
-          `${credentials.email}:${credentials.password}`,
-      }),
+      debridApiKey: serviceId
+        ? this.getServiceCredential(serviceId, userData, {
+            [constants.OFFCLOUD_SERVICE]: (credentials: any) =>
+              `${credentials.email}:${credentials.password}`,
+            [constants.PIKPAK_SERVICE]: (credentials: any) =>
+              `${credentials.email}:${credentials.password}`,
+          })
+        : '',
       debridStreamProxyPassword: '',
       languages: { required: [], exclude: [], preferred: [] },
       resolutions: {},
