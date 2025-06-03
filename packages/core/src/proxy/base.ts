@@ -93,6 +93,7 @@ export abstract class BaseProxy {
       logger.error(
         `Proxy did not respond with a public IP. Response: ${JSON.stringify(data)}`
       );
+      throw new Error('Proxy did not respond with a public IP');
     }
 
     return publicIp;

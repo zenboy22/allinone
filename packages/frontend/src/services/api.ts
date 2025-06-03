@@ -143,7 +143,8 @@ export class UserConfigAPI {
   static async formatStream(
     stream: ParsedStream,
     formatter: FormatterType,
-    definition?: { name: string; description: string }
+    definition?: { name: string; description: string },
+    addonName?: string
   ): Promise<ApiResponse<{ name: string; description: string }>> {
     const response = await fetch(`${this.BASE_URL}/format`, {
       method: 'POST',
@@ -154,6 +155,7 @@ export class UserConfigAPI {
         stream,
         formatter,
         definition,
+        addonName,
       }),
     });
 
@@ -170,5 +172,46 @@ export class UserConfigAPI {
       success: true,
       data: data.data,
     };
+  }
+
+  static async getCatalogs(userData: UserData): Promise<
+    ApiResponse<
+      {
+        id: string;
+        type: string;
+        name: string;
+      }[]
+    >
+  > {
+    try {
+      const response = await fetch(`${this.BASE_URL}/catalogs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userData,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error?.message || 'Failed to get catalogs',
+        };
+      }
+
+      return {
+        success: true,
+        data: data.data,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Failed to get catalogs',
+      };
+    }
   }
 }

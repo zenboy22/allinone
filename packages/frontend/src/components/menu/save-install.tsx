@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { DownloadIcon, UploadIcon } from 'lucide-react';
 import { useStatus } from '@/context/status';
 import { BiCopy } from 'react-icons/bi';
+import { PageControls } from '../shared/page-controls';
 
 export function SaveInstallMenu() {
   return (
@@ -40,12 +41,12 @@ function Content() {
   >([]);
   const { status } = useStatus();
   const baseUrl = status?.settings?.baseUrl || window.location.origin;
-  const [apiKey, setApiKey] = React.useState('');
+  const [addonPassword, setAddonPassword] = React.useState('');
   const importFileRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    if (userData?.apiKey) {
-      setApiKey(userData.apiKey);
+    if (userData?.addonPassword) {
+      setAddonPassword(userData.addonPassword);
     }
   }, [userData]);
 
@@ -188,7 +189,9 @@ function Content() {
             Configure and install your personalized Stremio addon
           </p>
         </div>
-        <div className="flex flex-1"></div>
+        <div className="hidden lg:block lg:ml-auto">
+          <PageControls />
+        </div>
       </div>
 
       <div className="space-y-4 mt-6">
@@ -233,16 +236,19 @@ function Content() {
                     label="API Key"
                     id="api-key"
                     type="password"
-                    value={apiKey}
+                    value={addonPassword}
                     required
                     placeholder="Enter the API Key for this instance"
                     onValueChange={(value) => {
-                      setApiKey(value);
-                      setUserData((prev) => ({ ...prev, apiKey: value }));
+                      setAddonPassword(value);
+                      setUserData((prev) => ({
+                        ...prev,
+                        addonPassword: value,
+                      }));
                     }}
                   />
                   <p className="text-sm text-[--muted] mt-1">
-                    This instance is protected by an API key, please enter it to
+                    This instance is protected by a password, please enter it to
                     continue.
                   </p>
                 </>
@@ -289,19 +295,22 @@ function Content() {
                 {status?.settings.protected && (
                   <>
                     <TextInput
-                      label="API Key"
-                      id="api-key"
+                      label="Password"
+                      id="password"
                       type="password"
-                      value={apiKey}
+                      value={addonPassword}
                       required
-                      placeholder="Enter the API Key for this instance"
+                      placeholder="Enter the password for this instance"
                       onValueChange={(value) => {
-                        setApiKey(value);
-                        setUserData((prev) => ({ ...prev, apiKey: value }));
+                        setAddonPassword(value);
+                        setUserData((prev) => ({
+                          ...prev,
+                          addonPassword: value,
+                        }));
                       }}
                     />
                     <p className="text-sm text-[--muted] mt-1 mb-2">
-                      This instance is protected by an API key, please enter it
+                      This instance is protected by a password, please enter it
                       to continue.
                     </p>
                   </>

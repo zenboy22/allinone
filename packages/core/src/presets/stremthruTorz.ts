@@ -107,6 +107,7 @@ export class StremthruTorzPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
+      identifyingName: `${options.name || this.METADATA.NAME} ${serviceIds.map((id) => constants.SERVICE_DETAILS[id].shortName).join(' | ')}`,
       manifestUrl: this.generateManifestUrl(userData, options, serviceIds),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

@@ -13,9 +13,17 @@ const AudioTags = z.enum(constants.AUDIO_TAGS);
 
 const Encodes = z.enum(constants.ENCODES);
 
-const SortCriteria = z.enum(constants.SORT_CRITERIA);
+// const SortCriteria = z.enum(constants.SORT_CRITERIA);
 
-const SortDirections = z.enum(constants.SORT_DIRECTIONS);
+// const SortDirections = z.enum(constants.SORT_DIRECTIONS);
+
+const SortCriterion = z.object({
+  key: z.enum(constants.SORT_CRITERIA),
+  direction: z.enum(constants.SORT_DIRECTIONS),
+});
+
+export type SortCriterion = z.infer<typeof SortCriterion>;
+
 const StreamTypes = z.enum(constants.STREAM_TYPES);
 const Languages = z.enum(constants.LANGUAGES);
 
@@ -47,14 +55,15 @@ const ResultLimitOptions = z.object({
   addon: z.number().min(1).optional(),
   resolution: z.number().min(1).optional(),
   quality: z.number().min(1).optional(),
-  language: z.number().min(1).optional(),
-  visualTag: z.number().min(1).optional(),
-  audioTag: z.number().min(1).optional(),
   streamType: z.number().min(1).optional(),
-  encode: z.number().min(1).optional(),
-  regexPattern: z.number().min(1).optional(),
+  indexer: z.number().min(1).optional(),
+  releaseGroup: z.number().min(1).optional(),
 });
 
+// const SizeFilter = z.object({
+//   min: z.number().min(1).optional(),
+//   max: z.number().min(1).optional(),
+// });
 const SizeFilter = z.object({
   movies: z
     .object({
@@ -71,10 +80,8 @@ const SizeFilter = z.object({
 });
 
 const SizeFilterOptions = z.object({
-  global: SizeFilter.optional(),
-  service: SizeFilter.optional(),
-  addon: SizeFilter.optional(),
-  resolution: SizeFilter.optional(),
+  global: SizeFilter,
+  resolution: z.tuple([Resolutions, SizeFilter]).optional(),
 });
 
 const ServiceSchema = z.object({
@@ -94,10 +101,12 @@ export type Resource = z.infer<typeof ResourceSchema>;
 const ResourceList = z.array(ResourceSchema);
 
 const AddonSchema = z.object({
+  id: z.string().min(1).optional(),
   manifestUrl: z.string().url(),
   enabled: z.boolean(),
   resources: ResourceList.optional(),
   name: z.string().min(1),
+  identifyingName: z.string().min(1),
   timeout: z.number().min(1),
   library: z.boolean().optional(),
   fromPresetId: z.string().min(1).optional(),
@@ -129,20 +138,23 @@ const DeduplicatorKey = z.enum(constants.DEDUPLICATOR_KEYS);
 // - keep only 1 result from the highest priority service from the highest priority addon (single_result)
 // - keep 1 result for each enabled service from the higest priority addon (per_service)
 // - keep 1 result from the highest priority service from each enabled addon (per_addon)
-const DeduplicatorMode = z.enum(['single_result', 'per_service', 'per_addon']);
-
-const DeduplicatorTypeOptions = z.object({
-  enabled: z.boolean().optional(),
-  mode: DeduplicatorMode.optional(),
-});
+const DeduplicatorMode = z.enum([
+  'single_result',
+  'per_service',
+  'per_addon',
+  'disabled',
+]);
 
 const DeduplicatorOptions = z.object({
   enabled: z.boolean().optional(),
   keys: z.array(DeduplicatorKey).optional(),
-  cached: DeduplicatorTypeOptions.optional(),
-  uncached: DeduplicatorTypeOptions.optional(),
-  p2p: DeduplicatorTypeOptions.optional(),
-  http: DeduplicatorTypeOptions.optional(),
+  cached: DeduplicatorMode.optional(),
+  uncached: DeduplicatorMode.optional(),
+  p2p: DeduplicatorMode.optional(),
+  http: DeduplicatorMode.optional(),
+  live: DeduplicatorMode.optional(),
+  youtube: DeduplicatorMode.optional(),
+  external: DeduplicatorMode.optional(),
 });
 
 const OptionDefinition = z.object({
@@ -186,73 +198,115 @@ const NameableRegex = z.object({
   pattern: z.string().regex(/^.*$/),
 });
 
+const Group = z.object({
+  addons: z.array(z.string().min(1)).min(1),
+  condition: z.string().min(1).max(200),
+});
+
+export type Group = z.infer<typeof Group>;
+
+// Resolution, Quality, Encode, Visual Tag, Audio Tag, Stream Type, Keyword, Regex, Cached, Uncached, Size
+
+const CatalogModification = z.object({
+  id: z.string().min(1), // an id that maps to an actual catalog ID
+  type: z.string().min(1), // the type of catalog modification
+  name: z.string().min(1).optional(), // override the name of the catalog
+  shuffle: z.boolean().optional(), // shuffle the catalog
+  enabled: z.boolean().optional(), // enable or disable the catalog
+  rpdb: z.boolean().optional(), // use rpdb for posters if supported
+});
+
 export const UserDataSchema = z.object({
   uuid: z.string().uuid().optional(),
   admin: z.boolean().optional(),
-  apiKey: z.string().min(1).optional(),
+  addonPassword: z.string().min(1).optional(),
   ip: z.string().ip().optional(),
   addonName: z.string().min(1).optional(),
   addonLogo: z.string().url().optional(),
   addonBackground: z.string().url().optional(),
   addonDescription: z.string().min(1).optional(),
   excludedResolutions: z.array(Resolutions).optional(),
+  includedResolutions: z.array(Resolutions).optional(),
   requiredResolutions: z.array(Resolutions).optional(),
   preferredResolutions: z.array(Resolutions).optional(),
   excludedQualities: z.array(Qualities).optional(),
+  includedQualities: z.array(Qualities).optional(),
   requiredQualities: z.array(Qualities).optional(),
   preferredQualities: z.array(Qualities).optional(),
   excludedLanguages: z.array(Languages).optional(),
+  includedLanguages: z.array(Languages).optional(),
   requiredLanguages: z.array(Languages).optional(),
   preferredLanguages: z.array(Languages).optional(),
   excludedVisualTags: z.array(VisualTags).optional(),
+  includedVisualTags: z.array(VisualTags).optional(),
   requiredVisualTags: z.array(VisualTags).optional(),
   preferredVisualTags: z.array(VisualTags).optional(),
   excludedAudioTags: z.array(AudioTags).optional(),
+  includedAudioTags: z.array(AudioTags).optional(),
   requiredAudioTags: z.array(AudioTags).optional(),
   preferredAudioTags: z.array(AudioTags).optional(),
   excludedStreamTypes: z.array(StreamTypes).optional(),
+  includedStreamTypes: z.array(StreamTypes).optional(),
   requiredStreamTypes: z.array(StreamTypes).optional(),
   preferredStreamTypes: z.array(StreamTypes).optional(),
   excludedEncodes: z.array(Encodes).optional(),
+  includedEncodes: z.array(Encodes).optional(),
   requiredEncodes: z.array(Encodes).optional(),
   preferredEncodes: z.array(Encodes).optional(),
-  requiredRegexPatterns: z.array(z.string().min(1)).optional(),
   excludedRegexPatterns: z.array(z.string().min(1)).optional(),
+  includedRegexPatterns: z.array(z.string().min(1)).optional(),
+  requiredRegexPatterns: z.array(z.string().min(1)).optional(),
   preferredRegexPatterns: z.array(NameableRegex).optional(),
-
-  sortCriteria: z
-    .object({
-      // global must be defined.
-      global: z.array(z.tuple([SortCriteria, SortDirections.optional()])),
-      // results must be from either a movie or series search, so we can safely apply different sort criteria.
-      movies: z
-        .array(z.tuple([SortCriteria, SortDirections.optional()]))
-        .optional(),
-      series: z
-        .array(z.tuple([SortCriteria, SortDirections.optional()]))
-        .optional(),
-      // cached and uncached results are a sort criteria themselves, so this can only be applied when cache is high enough in the global
-      // sort criteria, and we would have to split the results into two (cached and uncached) lists, and then apply both sort criteria below
-      // and then merge the results.
-      cached: z
-        .array(z.tuple([SortCriteria, SortDirections.optional()]))
-        .optional(),
-      uncached: z
-        .array(z.tuple([SortCriteria, SortDirections.optional()]))
-        .optional(),
-    })
+  requiredKeywords: z.array(z.string().min(1)).optional(),
+  includedKeywords: z.array(z.string().min(1)).optional(),
+  excludedKeywords: z.array(z.string().min(1)).optional(),
+  preferredKeywords: z.array(z.string().min(1)).optional(),
+  excludeCached: z.boolean().optional(),
+  excludeCachedFromAddons: z.array(z.string().min(1)).optional(),
+  excludeCachedFromServices: z.array(z.string().min(1)).optional(),
+  excludeCachedMode: z.enum(['or', 'and']).optional(),
+  excludeUncached: z.boolean().optional(),
+  excludeUncachedFromAddons: z.array(z.string().min(1)).optional(),
+  excludeUncachedFromServices: z.array(z.string().min(1)).optional(),
+  excludeUncachedMode: z.enum(['or', 'and']).optional(),
+  groups: z
+    .array(
+      z.object({
+        addons: z.array(z.string().min(1)),
+        condition: z.string().min(1).max(200),
+      })
+    )
     .optional(),
+  sortCriteria: z.object({
+    // global must be defined.
+    global: z.array(SortCriterion),
+    // results must be from either a movie or series search, so we can safely apply different sort criteria.
+    movies: z.array(SortCriterion).optional(),
+    series: z.array(SortCriterion).optional(),
+    // cached and uncached results are a sort criteria themselves, so this can only be applied when cache is high enough in the global
+    // sort criteria, and we would have to split the results into two (cached and uncached) lists, and then apply both sort criteria below
+    // and then merge the results.
+    cached: z.array(SortCriterion).optional(),
+    uncached: z.array(SortCriterion).optional(),
+    cachedMovies: z.array(SortCriterion).optional(),
+    uncachedMovies: z.array(SortCriterion).optional(),
+    cachedSeries: z.array(SortCriterion).optional(),
+    uncachedSeries: z.array(SortCriterion).optional(),
+  }),
+  rpdbApiKey: z.string().optional(),
   formatter: Formatter,
   proxy: StreamProxyConfig.optional(),
-  resultLimiterOptions: ResultLimitOptions.optional(),
+  resultLimits: ResultLimitOptions.optional(),
   sizeFilters: SizeFilterOptions.optional(),
   hideErrors: z.boolean().optional(),
+  hideErrorsForResources: z.array(ResourceSchema).optional(),
   strictTitleMatching: z.boolean().optional(),
   deduplicator: DeduplicatorOptions.optional(),
   precacheNextEpisode: z.boolean().optional(),
   hideZeroSeederResults: z.boolean().optional(),
   services: ServiceList.optional(),
   presets: PresetList,
+  catalogModifications: z.array(CatalogModification).optional(),
 });
 
 export type UserData = z.infer<typeof UserDataSchema>;
@@ -476,14 +530,15 @@ const ParsedFileSchema = z.object({
   resolution: z.string().optional(),
   quality: z.string().optional(),
   encode: z.string().optional(),
-  visualTags: z.array(z.string()).optional(),
-  audioTags: z.array(z.string()).optional(),
-  languages: z.array(z.string()).optional(),
+  visualTags: z.array(z.string()),
+  audioTags: z.array(z.string()),
+  languages: z.array(z.string()),
   title: z.string().optional(),
   year: z.string().optional(),
   season: z.number().optional(),
   seasons: z.array(z.number()).optional(),
   episode: z.number().optional(),
+  seasonEpisode: z.array(z.string()).optional(),
 });
 
 export type ParsedFile = z.infer<typeof ParsedFileSchema>;
@@ -500,6 +555,7 @@ export const ParsedStreamSchema = z.object({
       index: z.number().optional(),
     })
     .optional(),
+  keywordMatched: z.boolean().optional(),
   size: z.number().optional(),
   type: StreamTypes,
   indexer: z.string().optional(),
@@ -528,7 +584,7 @@ export const ParsedStreamSchema = z.object({
     })
     .optional(),
   duration: z.number().optional(),
-  inLibrary: z.boolean().optional(),
+  library: z.boolean().optional(),
   url: z.string().url().optional(),
   ytId: z.string().min(1).optional(),
   externalUrl: z.string().min(1).optional(),
@@ -564,6 +620,7 @@ const StatusResponseSchema = z.object({
     protected: z.boolean(),
     disabledAddons: z.array(z.string()),
     disabledServices: z.array(z.string()),
+    disableRegexFilters: z.boolean(),
     forced: z.object({
       proxy: z.object({
         enabled: z.boolean().or(z.null()),

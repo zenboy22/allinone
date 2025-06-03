@@ -5,6 +5,7 @@ import {
   Service,
   Option,
   StreamProxyConfig,
+  Group,
 } from '../db/schemas';
 import { AIOStreams } from '../main';
 import { Preset, PresetManager } from '../presets';
@@ -14,15 +15,17 @@ import { isEncrypted, decryptString, encryptString } from './crypto';
 import { Env } from './env';
 import { createLogger } from './logger';
 import { ZodError } from 'zod';
+import { ConditionParser } from '../parser/conditions';
+import { RPDB } from './rpdb';
 
 const logger = createLogger('core');
 
 export const formatZodError = (error: ZodError) => {
-  let message = '';
+  let errs = [];
   for (const issue of error.issues) {
-    message += `${issue.path.join('.')}: ${issue.message} |`;
+    errs.push(`Invalid value for ${issue.path.join('.')}: ${issue.message}`);
   }
-  return message;
+  return errs.join(' | ');
 };
 
 function getServiceCredentialDefault(
@@ -239,9 +242,9 @@ export async function validateConfig(
     throw new Error(formatZodError(error));
   }
 
-  if (Env.API_KEY && config.apiKey !== Env.API_KEY) {
+  if (Env.ADDON_PASSWORD && config.addonPassword !== Env.ADDON_PASSWORD) {
     throw new Error(
-      'The API Key in the config does not match the API Key in the environment variables'
+      'The password in the config does not match the password in the environment variables'
     );
   }
 
@@ -250,6 +253,12 @@ export async function validateConfig(
   if (config.presets) {
     for (const preset of config.presets) {
       validatePreset(preset);
+    }
+  }
+
+  if (config.groups) {
+    for (const group of config.groups) {
+      validateGroup(group);
     }
   }
 
@@ -265,6 +274,15 @@ export async function validateConfig(
       skipErrorsFromAddonsOrProxies,
       decryptValues
     );
+  }
+
+  if (config.rpdbApiKey) {
+    try {
+      const rpdb = new RPDB(config.rpdbApiKey);
+      await rpdb.validateApiKey();
+    } catch (error) {
+      throw new Error(`Invalid RPDB API key: ${error}`);
+    }
   }
 
   try {
@@ -362,6 +380,27 @@ function validatePreset(preset: PresetObject) {
         `The value for option '${optionMeta.name}' in preset '${presetMeta.NAME}' is invalid: ${error}`
       );
     }
+  }
+}
+
+function validateGroup(group: Group) {
+  if (!group) {
+    return;
+  }
+
+  // each group must have at least one addon, and we must be able to parse the condition
+  if (group.addons.length === 0) {
+    throw new Error('Every group must have at least one addon');
+  }
+
+  // we must be able to parse the condition
+  try {
+    const result = ConditionParser.testParse(group.condition);
+    if (typeof result !== 'boolean') {
+      throw new Error('Group condition must evaluate to a boolean');
+    }
+  } catch (error) {
+    throw new Error(`Group condition is invalid: ${error}`);
   }
 }
 

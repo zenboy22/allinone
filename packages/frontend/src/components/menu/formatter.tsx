@@ -19,7 +19,7 @@ import { Button } from '../ui/button';
 import { CopyIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { NumberInput } from '../ui/number-input';
-
+import { PageControls } from '../shared/page-controls';
 const formatterChoices = Object.values(constants.FORMATTER_DETAILS);
 
 // Simple throttle utility
@@ -56,11 +56,14 @@ function FormatterPreviewBox({
 }) {
   return (
     <div className="bg-gray-900 rounded-md p-4 border border-gray-800">
-      <div className="text-xl font-bold mb-1" style={{ whiteSpace: 'pre' }}>
+      <div
+        className="text-xl font-bold mb-1 overflow-x-auto"
+        style={{ whiteSpace: 'pre' }}
+      >
         {name}
       </div>
       <div
-        className="text-base text-muted-foreground"
+        className="text-base text-muted-foreground overflow-x-auto"
         style={{ whiteSpace: 'pre' }}
       >
         {description}
@@ -99,7 +102,7 @@ function Content() {
   const [isCached, setIsCached] = useState(true);
   const [type, setType] =
     useState<(typeof constants.STREAM_TYPES)[number]>('debrid');
-  const [inLibrary, setInLibrary] = useState(false);
+  const [library, setLibrary] = useState(false);
   const [duration, setDuration] = useState<number | undefined>(9120); // 2h 32m in seconds
   const [fileSize, setFileSize] = useState<number | undefined>(62500000000); // 58.2 GB in bytes
   const [proxied, setProxied] = useState(false);
@@ -158,11 +161,12 @@ function Content() {
         type,
         addon: {
           name: addonName,
+          identifyingName: addonName,
           enabled: true,
           manifestUrl: 'http://localhost:2000/manifest.json',
           timeout: 10000,
         },
-        inLibrary,
+        library,
         parsedFile,
         filename,
         folderName: folder,
@@ -194,7 +198,8 @@ function Content() {
           {
             name: customName,
             description: customDescription,
-          }
+          },
+          userData.addonName
         );
         if (!res.success) {
           toast.error(res.error || 'Failed to format stream');
@@ -202,7 +207,12 @@ function Content() {
         }
         data = res.data;
       } else {
-        const res = await UserConfigAPI.formatStream(stream, selectedFormatter);
+        const res = await UserConfigAPI.formatStream(
+          stream,
+          selectedFormatter,
+          undefined,
+          userData.addonName
+        );
         if (!res.success) {
           toast.error(res.error || 'Failed to format stream');
           return;
@@ -226,7 +236,7 @@ function Content() {
     providerId,
     isCached,
     type,
-    inLibrary,
+    library,
     duration,
     fileSize,
     proxied,
@@ -255,7 +265,7 @@ function Content() {
     providerId,
     isCached,
     type,
-    inLibrary,
+    library,
     duration,
     fileSize,
     proxied,
@@ -272,7 +282,9 @@ function Content() {
           <h2>Formatter</h2>
           <p className="text-[--muted]">Format your streams to your liking.</p>
         </div>
-        <div className="flex flex-1"></div>
+        <div className="hidden lg:block lg:ml-auto">
+          <PageControls />
+        </div>
       </div>
 
       {/* Formatter Selection in its own SettingsCard */}
@@ -460,9 +472,9 @@ function Content() {
               onValueChange={setIsCached}
             />
             <Switch
-              label={<span className="truncate block">In Library</span>}
-              value={inLibrary}
-              onValueChange={setInLibrary}
+              label={<span className="truncate block">Library</span>}
+              value={library}
+              onValueChange={setLibrary}
             />
             <Switch
               label={<span className="truncate block">Proxied</span>}

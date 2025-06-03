@@ -232,7 +232,9 @@ export class MediaFusionPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      // manifestUrl: this.generateManifestUrl(userData, options, serviceId),
+      identifyingName: serviceId
+        ? `${options.name || this.METADATA.NAME} ${constants.SERVICE_DETAILS[serviceId].shortName}`
+        : options.name || this.METADATA.NAME,
       manifestUrl: `${Env.MEDIAFUSION_URL}/manifest.json`,
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
@@ -259,9 +261,6 @@ export class MediaFusionPreset extends Preset {
       return url;
     }
     url = url.replace(/\/$/, '');
-    if (!serviceId) {
-      throw new Error('Service is required');
-    }
     const encodedUserData = this.base64EncodeJSON(
       {
         streaming_provider: !serviceId

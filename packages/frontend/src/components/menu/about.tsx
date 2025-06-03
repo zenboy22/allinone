@@ -27,6 +27,7 @@ import { Modal } from '../ui/modal';
 import { SiGithubsponsors, SiKofi } from 'react-icons/si';
 import { useUserData } from '@/context/userData';
 import { toast } from 'sonner';
+import { useMenu } from '@/context/menu';
 
 export function AboutMenu() {
   return (
@@ -40,6 +41,7 @@ export function AboutMenu() {
 
 function Content() {
   const { status, loading, error } = useStatus();
+  const { nextMenu } = useMenu();
   const { userData, setUserData } = useUserData();
   const addonName =
     userData.addonName || status?.settings?.addonName || 'AIOStreams';
@@ -134,45 +136,29 @@ function Content() {
                   your preferences. When you're ready, visit the Install menu to
                   create your personal configuration, protected by a password.
                   You can then install the addon in Stremio or compatible apps.
-                  <br />
-                  <br />
-                  If you ever want to update your settings, simply log in with
-                  your UUID and password. For more details and tips, check out
-                  the guides below.
                 </span>
+                <br />
+                <br />
+                <span>
+                  To update your configuration, click configure within your app,
+                  and you'll be prompted for the password you entered when
+                  creating your configuration. You can then update your settings
+                  at any time, and in most cases - you won't need to reinstall
+                  AIOStreams!
+                </span>
+                <div className="flex items-center justify-center my-4">
+                  <Button
+                    intent="white"
+                    size="md"
+                    rounded
+                    onClick={() => {
+                      nextMenu();
+                    }}
+                  >
+                    Get Started
+                  </Button>
+                </div>
               </div>
-              <ul className="list-disc list-inside text-sm mt-2 space-y-1">
-                <li>
-                  <a
-                    href={stremioGuideUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[--brand] hover:underline"
-                  >
-                    Stremio Guide
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={configGuideUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[--brand] hover:underline"
-                  >
-                    Configuration Guide
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[--brand] hover:underline"
-                  >
-                    GitHub Repository
-                  </a>
-                </li>
-              </ul>
             </div>
           </SettingsCard>
           <ChangelogBox version={version} />
@@ -284,7 +270,9 @@ function ChangelogBox({ version }: { version: string }) {
         <div className="text-xs text-muted-foreground">{error}</div>
       ) : markdown ? (
         <div className="prose prose-invert max-w-none text-xs">
-          <ReactMarkdown>{markdown}</ReactMarkdown>
+          <div className="text-sm">
+            <ReactMarkdown>{markdown}</ReactMarkdown>
+          </div>
           <a
             href={`https://github.com/Viren070/AIOStreams/releases/tag/${version}`}
             target="_blank"

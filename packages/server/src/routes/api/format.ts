@@ -22,13 +22,17 @@ router.post('/', (req: Request, res: Response) => {
     logger.error('Invalid stream', { error });
     throw new APIError(constants.ErrorCode.FORMAT_INVALID_STREAM);
   }
-  const { formatter, definition } = req.body;
+  const { formatter, definition, addonName } = req.body;
   if (!formatter) {
     throw new APIError(constants.ErrorCode.FORMAT_INVALID_FORMATTER);
   } else if (!constants.FORMATTERS.includes(formatter)) {
     throw new APIError(constants.ErrorCode.FORMAT_INVALID_FORMATTER);
   }
-  const formattedStream = createFormatter(formatter, definition).format(data);
+  const formattedStream = createFormatter(
+    formatter,
+    definition,
+    addonName
+  ).format(data);
   res
     .status(200)
     .json(createResponse({ success: true, data: formattedStream }));

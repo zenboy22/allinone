@@ -1,10 +1,68 @@
 import React from 'react';
 import { UserData } from '@aiostreams/core';
+import { QUALITIES, RESOLUTIONS } from '../../../core/src/utils/constants';
 
 const DefaultUserData: UserData = {
   presets: [],
   formatter: {
     id: 'gdrive',
+  },
+  preferredQualities: Object.values(QUALITIES),
+  preferredResolutions: Object.values(RESOLUTIONS),
+  sortCriteria: {
+    global: [
+      {
+        key: 'cached',
+        direction: 'desc',
+      },
+      {
+        key: 'library',
+        direction: 'desc',
+      },
+      {
+        key: 'resolution',
+        direction: 'desc',
+      },
+      {
+        key: 'size',
+        direction: 'desc',
+      },
+    ],
+    uncached: [
+      {
+        key: 'resolution',
+        direction: 'desc',
+      },
+      {
+        key: 'seeders',
+        direction: 'desc',
+      },
+      {
+        key: 'size',
+        direction: 'desc',
+      },
+    ],
+    cached: [
+      {
+        key: 'library',
+        direction: 'desc',
+      },
+      {
+        key: 'resolution',
+        direction: 'desc',
+      },
+      {
+        key: 'size',
+        direction: 'desc',
+      },
+    ],
+  },
+  deduplicator: {
+    enabled: false,
+    keys: ['filename', 'infoHash'],
+    cached: 'single_result',
+    uncached: 'per_service',
+    p2p: 'single_result',
   },
 };
 

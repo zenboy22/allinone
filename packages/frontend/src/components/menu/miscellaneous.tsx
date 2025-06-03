@@ -1,5 +1,11 @@
 'use client';
 import { PageWrapper } from '../shared/page-wrapper';
+import { PageControls } from '../shared/page-controls';
+import { Switch } from '../ui/switch';
+import { useUserData } from '@/context/userData';
+import { SettingsCard } from '../shared/settings-card';
+import { Combobox } from '../ui/combobox';
+import { RESOURCES } from '../../../../core/src/utils/constants';
 
 export function MiscellaneousMenu() {
   return (
@@ -12,6 +18,7 @@ export function MiscellaneousMenu() {
 }
 
 function Content() {
+  const { userData, setUserData } = useUserData();
   return (
     <>
       <div className="flex items-center w-full">
@@ -21,7 +28,42 @@ function Content() {
             Additional settings and configurations.
           </p>
         </div>
-        <div className="flex flex-1"></div>
+        <div className="hidden lg:block lg:ml-auto">
+          <PageControls />
+        </div>
+      </div>
+      <div className="space-y-4">
+        <SettingsCard title="Hide Errors">
+          <Switch
+            label="Hide Errors"
+            help="AIOStreams will attempt to return the errors in responses to streams, catalogs etc. Turning this on will hide the errors."
+            side="right"
+            value={userData.hideErrors}
+            onValueChange={(value) => {
+              setUserData({
+                ...userData,
+                hideErrors: value,
+              });
+            }}
+          />
+          <Combobox
+            label="Hide Errors for specific resources"
+            options={RESOURCES.map((resource) => ({
+              label: resource,
+              value: resource,
+            }))}
+            multiple
+            help="This lets you hide errors for specific resources. For example, you may want to hide errors for the catalog resource, but not for the stream resource."
+            emptyMessage="No resources found"
+            value={userData.hideErrorsForResources}
+            onValueChange={(value) => {
+              setUserData({
+                ...userData,
+                hideErrorsForResources: value as (typeof RESOURCES)[number][],
+              });
+            }}
+          />
+        </SettingsCard>
       </div>
     </>
   );

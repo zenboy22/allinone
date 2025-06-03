@@ -1,15 +1,25 @@
 import { BaseFormatter, FormatterConfig } from './base';
 
 export class CustomFormatter extends BaseFormatter {
-  constructor(nameTemplate: string, descriptionTemplate: string) {
-    super({
-      name: nameTemplate,
-      description: descriptionTemplate,
-    });
+  constructor(
+    nameTemplate: string,
+    descriptionTemplate: string,
+    addonName?: string
+  ) {
+    super(
+      {
+        name: nameTemplate,
+        description: descriptionTemplate,
+      },
+      addonName
+    );
   }
 
-  public static fromConfig(config: FormatterConfig): CustomFormatter {
-    return new CustomFormatter(config.name, config.description);
+  public static fromConfig(
+    config: FormatterConfig,
+    addonName: string | undefined
+  ): CustomFormatter {
+    return new CustomFormatter(config.name, config.description, addonName);
   }
 
   public updateTemplate(

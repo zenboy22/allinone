@@ -98,6 +98,9 @@ export class StremthruStorePreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
+      identifyingName: serviceId
+        ? `${options.name || this.METADATA.NAME} ${constants.SERVICE_DETAILS[serviceId].shortName}`
+        : options.name || this.METADATA.NAME,
       manifestUrl: this.generateManifestUrl(userData, options, serviceId),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

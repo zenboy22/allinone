@@ -16,24 +16,25 @@ import { FormatterType } from '../utils/constants';
 
 export function createFormatter(
   type: FormatterType,
-  config?: FormatterConfig
+  config?: FormatterConfig,
+  addonName?: string
 ): BaseFormatter {
   switch (type) {
     case 'torrentio':
-      return new TorrentioFormatter();
+      return new TorrentioFormatter(addonName);
     case 'torbox':
-      return new TorboxFormatter();
+      return new TorboxFormatter(addonName);
     case 'gdrive':
-      return new GDriveFormatter();
+      return new GDriveFormatter(addonName);
     case 'lightgdrive':
-      return new LightGDriveFormatter();
+      return new LightGDriveFormatter(addonName);
     case 'minimalisticgdrive':
-      return new MinimalisticGdriveFormatter();
+      return new MinimalisticGdriveFormatter(addonName);
     case 'custom':
       if (!config) {
         throw new Error('Config is required for custom formatter');
       }
-      return CustomFormatter.fromConfig(config);
+      return CustomFormatter.fromConfig(config, addonName);
     default:
       throw new Error(`Unknown formatter type: ${type}`);
   }

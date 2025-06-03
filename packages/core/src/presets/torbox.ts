@@ -119,6 +119,7 @@ export class TorboxAddonPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
+      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: this.generateManifestUrl(userData, options),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

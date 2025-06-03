@@ -12,7 +12,7 @@ import { TextInput } from '../ui/text-input';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import MarkdownLite from '../shared/markdown-lite';
-
+import { PageControls } from '../shared/page-controls';
 type ProxyServiceId = keyof typeof constants.PROXY_SERVICE_DETAILS;
 
 type ProxyConfig = {
@@ -203,7 +203,9 @@ function Content() {
             improve compatibility
           </p>
         </div>
-        <div className="flex flex-1"></div>
+        <div className="hidden lg:block lg:ml-auto">
+          <PageControls />
+        </div>
       </div>
 
       <div className="space-y-2">

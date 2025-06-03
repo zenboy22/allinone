@@ -1,6 +1,12 @@
 import express, { Request, Response } from 'express';
 
-import { userApi, healthApi, statusApi, formatApi } from './routes/api';
+import {
+  userApi,
+  healthApi,
+  statusApi,
+  formatApi,
+  catalogApi,
+} from './routes/api';
 import {
   configure,
   manifest,
@@ -40,6 +46,7 @@ apiRouter.use('/user', userApi);
 apiRouter.use('/health', healthApi);
 apiRouter.use('/status', statusApi);
 apiRouter.use('/format', formatApi);
+apiRouter.use('/catalogs', catalogApi);
 app.use(`/api/v${constants.API_VERSION}`, apiRouter);
 
 // Stremio Routes

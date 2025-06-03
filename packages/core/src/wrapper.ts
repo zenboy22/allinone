@@ -107,7 +107,7 @@ export class Wrapper {
     return await manifestCache.wrap(
       async () => {
         logger.debug(
-          `Fetching manifest for ${this.addon.name} (${makeUrlLogSafe(this.addon.manifestUrl)})`
+          `Fetching manifest for ${this.addon.identifyingName} (${makeUrlLogSafe(this.addon.manifestUrl)})`
         );
         try {
           const res = await makeRequest(
@@ -117,9 +117,11 @@ export class Wrapper {
           );
           if (!res.ok) {
             logger.error(
-              `Failed to fetch manifest for ${this.addon.name}: ${res.status} - ${res.statusText}`
+              `Failed to fetch manifest for ${this.addon.identifyingName}: ${res.status} - ${res.statusText}`
             );
-            throw new Error(`Failed to fetch manifest for ${this.addon.name}`);
+            throw new Error(
+              `Failed to fetch manifest for ${this.addon.identifyingName}`
+            );
           }
           const data = await res.json();
           const manifest = ManifestSchema.safeParse(data);
@@ -127,15 +129,17 @@ export class Wrapper {
             logger.error(`Manifest response was unexpected`);
             logger.error(formatZodError(manifest.error));
             logger.error(JSON.stringify(data, null, 2));
-            throw new Error(`Failed to parse manifest for ${this.addon.name}`);
+            throw new Error(
+              `Failed to parse manifest for ${this.addon.identifyingName}`
+            );
           }
           return manifest.data;
         } catch (error: any) {
           logger.error(
-            `Failed to fetch manifest for ${this.addon.name}: ${error.message}`
+            `Failed to fetch manifest for ${this.addon.identifyingName}: ${error.message}`
           );
           throw new Error(
-            `Failed to fetch manifest for ${this.addon.name}: ${error.message}`
+            `Failed to fetch manifest for ${this.addon.identifyingName}: ${error.message}`
           );
         }
       },
@@ -183,7 +187,9 @@ export class Wrapper {
       const parsed = MetaSchema.safeParse(data.meta);
       if (!parsed.success) {
         logger.error(formatZodError(parsed.error));
-        throw new Error(`Failed to parse meta for ${this.addon.name}`);
+        throw new Error(
+          `Failed to parse meta for ${this.addon.identifyingName}`
+        );
       }
       return parsed.data;
     };

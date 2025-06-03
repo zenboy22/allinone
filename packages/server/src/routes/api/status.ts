@@ -22,9 +22,10 @@ router.get('/', async (req: Request, res: Response) => {
       baseUrl: Env.BASE_URL,
       addonName: Env.ADDON_NAME,
       customHtml: Env.CUSTOM_HTML,
-      protected: !!Env.API_KEY,
+      protected: !!Env.ADDON_PASSWORD,
       disabledAddons: [],
       disabledServices: [],
+      disableRegexFilters: Env.DISABLE_REGEX_FILTERS,
       forced: {
         proxy: {
           enabled: Env.FORCE_PROXY_ENABLED ?? null,

@@ -15,10 +15,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { IconButton } from '../ui/button';
-import { FiSettings } from 'react-icons/fi';
+import { FiArrowLeft, FiArrowRight, FiSettings } from 'react-icons/fi';
 import { Switch } from '../ui/switch';
 import { Modal } from '../ui/modal';
-import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import {
   DndContext,
@@ -31,6 +30,10 @@ import TemplateOption from '../shared/template-option';
 import { Button } from '../ui/button';
 import MarkdownLite from '../shared/markdown-lite';
 import { Alert } from '../ui/alert';
+import { useMenu } from '@/context/menu';
+import { PageControls } from '../shared/page-controls';
+import { SettingsCard } from '../shared/settings-card';
+import { TextInput } from '../ui/text-input';
 
 export function ServicesMenu() {
   return (
@@ -52,7 +55,7 @@ function Content() {
   const { status } = useStatus();
   if (!status) return null;
   const { setUserData, userData } = useUserData();
-
+  const { setSelectedMenu, nextMenu, previousMenu } = useMenu();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalService, setModalService] = useState<ServiceId | null>(null);
   const [modalValues, setModalValues] = useState<Record<string, any>>({});
@@ -108,6 +111,13 @@ function Content() {
       return newUserData;
     });
     handleModalClose();
+  };
+
+  const handleModalValuesChange = (newValues: Record<string, any>) => {
+    setModalValues((prevValues) => ({
+      ...prevValues,
+      ...newValues,
+    }));
   };
 
   useEffect(() => {
@@ -248,7 +258,9 @@ function Content() {
             Provide credentials for any services you want to use.
           </p>
         </div>
-        <div className="flex flex-1"></div>
+        <div className="hidden lg:block lg:ml-auto">
+          <PageControls />
+        </div>
       </div>
       {invalidServices && invalidServices.length > 0 && (
         <div className="mb-6">
@@ -322,12 +334,42 @@ function Content() {
           </SortableContext>
         </DndContext>
       </div>
+
+      <SettingsCard
+        title="RPDB"
+        description="Provide your RPDB API key if you want catalogs of supported types to use posters from RPDB"
+      >
+        <TextInput
+          label="RPDB API Key"
+          // help="Get your API Key from "
+          help={
+            <span>
+              Get your API Key from{' '}
+              <a
+                href="https://ratingposterdb.com/api-key/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[--brand] hover:underline"
+              >
+                here
+              </a>
+            </span>
+          }
+          value={userData.rpdbApiKey}
+          onValueChange={(v) => {
+            setUserData((prev) => ({
+              ...prev,
+              rpdbApiKey: v,
+            }));
+          }}
+        />
+      </SettingsCard>
       <ServiceModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         serviceId={modalService}
         values={modalValues}
-        onChange={setModalValues}
+        onChange={handleModalValuesChange}
         onSubmit={handleModalSubmit}
         onClose={handleModalClose}
       />
@@ -418,6 +460,16 @@ function ServiceModal({
   if (!serviceId) return null;
   const meta = status.settings.services[serviceId]!;
   const credentials = meta.credentials || [];
+
+  const handleCredentialChange = (optId: string, newValue: any) => {
+    // Create a new object with all existing values plus the updated one
+    const updatedValues = {
+      ...values,
+      [optId]: newValue,
+    };
+    onChange(updatedValues);
+  };
+
   return (
     <Modal
       open={open}
@@ -436,7 +488,7 @@ function ServiceModal({
             key={opt.id}
             option={opt}
             value={opt.forced || opt.default || values[opt.id]}
-            onChange={(v) => onChange({ ...values, [opt.id]: v })}
+            onChange={(v) => handleCredentialChange(opt.id, v)}
           />
         ))}
         <div className="flex gap-2">

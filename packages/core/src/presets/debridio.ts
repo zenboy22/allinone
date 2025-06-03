@@ -50,10 +50,7 @@ export class DebridioPreset extends Preset {
       SUPPORTED_SERVICES: supportedServices,
       DESCRIPTION: 'Torrent streaming using Debrid providers.',
       OPTIONS: options,
-      SUPPORTED_STREAM_TYPES: [
-        constants.P2P_STREAM_TYPE,
-        constants.DEBRID_STREAM_TYPE,
-      ],
+      SUPPORTED_STREAM_TYPES: [constants.DEBRID_STREAM_TYPE],
       SUPPORTED_RESOURCES: [
         constants.STREAM_RESOURCE,
         constants.META_RESOURCE,
@@ -93,6 +90,9 @@ export class DebridioPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
+      identifyingName: service
+        ? `${options.name || this.METADATA.NAME} ${constants.SERVICE_DETAILS[service].shortName}`
+        : options.name || this.METADATA.NAME,
       manifestUrl: this.generateManifestUrl(userData, service, options.url),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

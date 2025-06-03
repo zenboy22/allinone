@@ -316,7 +316,7 @@ const SERVICE_DETAILS: Record<
     id: TORBOX_SERVICE,
     name: 'TorBox',
     shortName: 'TB',
-    knownNames: ['TB', 'TorBox', 'Torbox'],
+    knownNames: ['TB', 'TorBox', 'Torbox', 'TRB'],
     signUpText:
       "Don't have an account? [Sign up here](https://torbox.app/subscription?referral=9ca21adb-dbcb-4fb0-9195-412a5f3519bc) or use my referral code `9ca21adb-dbcb-4fb0-9195-412a5f3519bc`.",
     credentials: [
@@ -565,14 +565,146 @@ const SORT_CRITERIA = [
   'visualTag',
   'audioTag',
   'streamType',
+  'encode',
   'size',
   'service',
   'seeders',
   'addon',
   'regexPatterns',
   'cached',
-  'personal',
+  'library',
+  'keyword',
 ] as const;
+
+export const SORT_CRITERIA_DETAILS = {
+  quality: {
+    name: 'Quality',
+    description: 'Sort by the quality of the stream',
+    defaultDirection: 'desc',
+    ascendingDescription:
+      'Streams that are not in your preferred quality list are preferred',
+    descendingDescription:
+      'Streams that are in your preferred quality list are preferred',
+  },
+  resolution: {
+    name: 'Resolution',
+    description: 'Sort by the resolution of the stream',
+    defaultDirection: 'desc',
+    ascendingDescription:
+      'Streams that are not in your preferred resolution list are preferred',
+    descendingDescription:
+      'Streams that are in your preferred resolution list are preferred',
+  },
+  language: {
+    name: 'Language',
+    description: 'Sort by the language of the stream',
+    defaultDirection: 'desc',
+    ascendingDescription:
+      'Streams that are not in your preferred language list are preferred',
+    descendingDescription:
+      'Streams that are in your preferred language list are preferred',
+  },
+  visualTag: {
+    name: 'Visual Tag',
+    description: 'Sort by the visual tags of the stream',
+    defaultDirection: 'desc',
+    ascendingDescription:
+      'Streams that are not in your preferred visual tag list are preferred',
+    descendingDescription:
+      'Streams that are in your preferred visual tag list are preferred',
+  },
+  audioTag: {
+    name: 'Audio Tag',
+    description: 'Sort by the audio tags of the stream',
+    defaultDirection: 'desc',
+    ascendingDescription:
+      'Streams that are not in your preferred audio tag list are preferred',
+    descendingDescription:
+      'Streams that are in your preferred audio tag list are preferred',
+  },
+  streamType: {
+    name: 'Stream Type',
+    description: 'Whether the stream is of a preferred stream type',
+    defaultDirection: 'desc',
+    ascendingDescription:
+      'Streams that are not in your preferred stream type list are preferred',
+    descendingDescription:
+      'Streams that are in your preferred stream type list are preferred',
+  },
+  encode: {
+    name: 'Encode',
+    description: 'Whether the stream is of a preferred encode',
+    defaultDirection: 'desc',
+    ascendingDescription:
+      'Streams that are not in your preferred encode list are preferred',
+    descendingDescription:
+      'Streams that are in your preferred encode list are preferred',
+  },
+  size: {
+    name: 'Size',
+    description: 'Sort by the size of the stream',
+    defaultDirection: 'desc',
+    ascendingDescription: 'Streams that are smaller are sorted first',
+    descendingDescription: 'Streams that are larger are sorted first',
+  },
+  service: {
+    name: 'Service',
+    description: 'Sort by the service order',
+    defaultDirection: 'desc',
+    ascendingDescription: 'Streams without a service are preferred',
+    descendingDescription:
+      'Streams are ordered by the order of your service list, with non-service streams at the bottom',
+  },
+  seeders: {
+    name: 'Seeders',
+    description: 'Sort by the number of seeders',
+    defaultDirection: 'desc',
+    ascendingDescription: 'Streams with fewer seeders are preferred',
+    descendingDescription: 'Streams with more seeders are preferred',
+  },
+  addon: {
+    name: 'Addon',
+    description: 'Sort by the addon order',
+    defaultDirection: 'desc',
+    ascendingDescription: 'Streams are sorted by the order of your addon list',
+    descendingDescription: 'Streams are sorted by the order of your addon list',
+  },
+  regexPatterns: {
+    name: 'Regex Patterns',
+    description:
+      'Whether the stream matches any of your preferred regex patterns',
+    defaultDirection: 'desc',
+    ascendingDescription:
+      'Streams that do not match your preferred regex patterns are preferred',
+    descendingDescription:
+      'Streams that match your preferred regex patterns are preferred',
+  },
+  cached: {
+    name: 'Cached',
+    defaultDirection: 'desc',
+    description: 'Whether the stream is cached or not',
+    ascendingDescription: 'Streams that are not cached are preferred',
+    descendingDescription: 'Streams that are cached are preferred',
+  },
+  library: {
+    name: 'Library',
+    defaultDirection: 'desc',
+    description:
+      'Whether the stream is in your library (e.g. debrid account) or not',
+    ascendingDescription: 'Streams that are not in your library are preferred',
+    descendingDescription: 'Streams that are in your library are preferred',
+  },
+  keyword: {
+    name: 'Keyword',
+    defaultDirection: 'desc',
+    description: 'Sort by the keyword of the stream',
+    ascendingDescription:
+      'Streams that do not match any of your keywords are preferred',
+    descendingDescription:
+      'Streams that match any of your keywords are preferred',
+  },
+} as const;
+
 const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 
 export const P2P_STREAM_TYPE = 'p2p' as const;
@@ -724,53 +856,53 @@ const RESOURCES = [
 // // );
 
 const LANGUAGES = [
-  'english',
-  'japanese',
-  'chinese',
-  'russian',
-  'arabic',
-  'portuguese',
-  'spanish',
-  'french',
-  'german',
-  'italian',
-  'korean',
-  'hindi',
-  'bengali',
-  'punjabi',
-  'marathi',
-  'gujarati',
-  'tamil',
-  'telugu',
-  'kannada',
-  'malayalam',
-  'thai',
-  'vietnamese',
-  'indonesian',
-  'turkish',
-  'hebrew',
-  'persian',
-  'ukrainian',
-  'greek',
-  'lithuanian',
-  'latvian',
-  'estonian',
-  'polish',
-  'czech',
-  'slovak',
-  'hungarian',
-  'romanian',
-  'bulgarian',
-  'serbian',
-  'croatian',
-  'slovenian',
-  'dutch',
-  'danish',
-  'finnish',
-  'swedish',
-  'norwegian',
-  'malay',
-  'latino',
+  'English',
+  'Japanese',
+  'Chinese',
+  'Russian',
+  'Arabic',
+  'Portuguese',
+  'Spanish',
+  'French',
+  'German',
+  'Italian',
+  'Korean',
+  'Hindi',
+  'Bengali',
+  'Punjabi',
+  'Marathi',
+  'Gujarati',
+  'Tamil',
+  'Telugu',
+  'Kannada',
+  'Malayalam',
+  'Thai',
+  'Vietnamese',
+  'Indonesian',
+  'Turkish',
+  'Hebrew',
+  'Persian',
+  'Ukrainian',
+  'Greek',
+  'Lithuanian',
+  'Latvian',
+  'Estonian',
+  'Polish',
+  'Czech',
+  'Slovak',
+  'Hungarian',
+  'Romanian',
+  'Bulgarian',
+  'Serbian',
+  'Croatian',
+  'Slovenian',
+  'Dutch',
+  'Danish',
+  'Finnish',
+  'Swedish',
+  'Norwegian',
+  'Malay',
+  'Latino',
 ] as const;
 
 export const SNIPPETS = [

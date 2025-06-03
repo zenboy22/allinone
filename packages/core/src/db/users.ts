@@ -75,21 +75,30 @@ export class UserRepository {
       }
 
       const encryptedPassword = data;
-      const tx = await db.begin();
+      let tx;
+      let commited = false;
       try {
+        tx = await db.begin();
         await tx.execute(
           'INSERT INTO users (uuid, password_hash, config, config_salt) VALUES (?, ?, ?, ?)',
           [uuid, hashedPassword, encryptedConfig, configSalt]
         );
         await tx.commit();
+        commited = true;
         logger.info(`Created a new user with UUID: ${uuid}`);
         return { uuid, encryptedPassword };
       } catch (error) {
-        await tx.rollback();
         logger.error(
           `Failed to create user: ${error instanceof Error ? error.message : String(error)}`
         );
-        return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+        if (error instanceof APIError) {
+          throw error;
+        }
+        throw new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR);
+      } finally {
+        if (tx && !commited) {
+          await tx.rollback();
+        }
       }
     });
   }
@@ -116,7 +125,7 @@ export class UserRepository {
   ): Promise<UserData | null> {
     try {
       const result = await db.query(
-        'SELECT config, config_salt FROM users WHERE uuid = ?',
+        'SELECT config, config_salt, password_hash FROM users WHERE uuid = ?',
         [uuid]
       );
 
@@ -129,7 +138,10 @@ export class UserRepository {
         [uuid]
       );
 
-      const isValid = await this.verifyUserPassword(uuid, password);
+      const isValid = await this.verifyUserPassword(
+        password,
+        result[0].password_hash
+      );
       if (!isValid) {
         return Promise.reject(
           new APIError(constants.ErrorCode.USER_INVALID_PASSWORD)
@@ -176,61 +188,57 @@ export class UserRepository {
     config: UserData
   ): Promise<void> {
     return txQueue.enqueue(async () => {
-      const tx = await db.begin();
+      let tx;
+      let commited = false;
       try {
+        tx = await db.begin();
         const currentUser = await tx.execute(
-          'SELECT config_salt FROM users WHERE uuid = ?',
+          'SELECT config_salt, password_hash FROM users WHERE uuid = ?',
           [uuid]
         );
 
         if (!currentUser.rows.length) {
-          await tx.rollback();
-          return Promise.reject(
-            new APIError(constants.ErrorCode.USER_NOT_FOUND)
-          );
+          throw new APIError(constants.ErrorCode.USER_NOT_FOUND);
         }
-
         let validatedConfig: UserData;
         try {
           validatedConfig = await validateConfig(config, false, false);
         } catch (error: any) {
-          await tx.rollback();
-          return Promise.reject(
-            new APIError(
-              constants.ErrorCode.USER_INVALID_CONFIG,
-              undefined,
-              error.message
-            )
+          throw new APIError(
+            constants.ErrorCode.USER_INVALID_CONFIG,
+            undefined,
+            error.message
           );
         }
-
-        const isValid = await this.verifyUserPassword(uuid, password);
+        const storedHash = currentUser.rows[0].password_hash;
+        const isValid = await this.verifyUserPassword(password, storedHash);
         if (!isValid) {
-          await tx.rollback();
-          return Promise.reject(
-            new APIError(constants.ErrorCode.USER_INVALID_PASSWORD)
-          );
+          throw new APIError(constants.ErrorCode.USER_INVALID_PASSWORD);
         }
-
         const { encryptedConfig } = await this.encryptConfig(
           validatedConfig,
           password,
           currentUser.rows[0].config_salt
         );
-
         await tx.execute(
           'UPDATE users SET config = ?, updated_at = CURRENT_TIMESTAMP WHERE uuid = ?',
           [encryptedConfig, uuid]
         );
-
         await tx.commit();
+        commited = true;
         logger.info(`Updated user ${uuid} with an updated configuration`);
       } catch (error) {
-        await tx.rollback();
         logger.error(
           `Failed to update user ${uuid}: ${error instanceof Error ? error.message : String(error)}`
         );
-        return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+        if (error instanceof APIError) {
+          throw error;
+        }
+        throw new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR);
+      } finally {
+        if (tx && !commited) {
+          await tx.rollback();
+        }
       }
     });
   }
@@ -247,25 +255,31 @@ export class UserRepository {
 
   static async deleteUser(uuid: string): Promise<void> {
     return txQueue.enqueue(async () => {
-      const tx = await db.begin();
+      let tx;
       try {
+        tx = await db.begin();
         const result = await tx.execute('DELETE FROM users WHERE uuid = ?', [
           uuid,
         ]);
 
         if (result.rowCount === 0) {
-          await tx.rollback();
           throw new APIError(constants.ErrorCode.USER_NOT_FOUND);
         }
 
         await tx.commit();
         logger.info(`Deleted user ${uuid}`);
       } catch (error) {
-        await tx.rollback();
         logger.error(
           `Failed to delete user ${uuid}: ${error instanceof Error ? error.message : String(error)}`
         );
-        throw new APIError(constants.ErrorCode.USER_ERROR);
+        if (error instanceof APIError) {
+          throw error;
+        }
+        throw new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR);
+      } finally {
+        if (tx) {
+          await tx.rollback();
+        }
       }
     });
   }
@@ -285,19 +299,9 @@ export class UserRepository {
   }
 
   private static async verifyUserPassword(
-    uuid: string,
-    password: string
+    password: string,
+    storedHash: string
   ): Promise<boolean> {
-    const result = await db.query(
-      'SELECT password_hash FROM users WHERE uuid = ?',
-      [uuid]
-    );
-
-    if (!result.length) {
-      return false;
-    }
-
-    const { password_hash: storedHash } = result[0];
     return verifyHash(password, storedHash);
   }
 
@@ -309,7 +313,10 @@ export class UserRepository {
     encryptedConfig: string;
     salt: string;
   }> {
-    const { key, salt: saltUsed } = await deriveKey(password, salt);
+    const { key, salt: saltUsed } = await deriveKey(
+      `${password}:${Env.SECRET_KEY}`,
+      salt
+    );
     const configString = JSON.stringify(config);
     const { success, data, error } = encryptString(configString, key);
 
@@ -325,7 +332,7 @@ export class UserRepository {
     password: string,
     salt: string
   ): Promise<UserData> {
-    const { key } = await deriveKey(password, salt);
+    const { key } = await deriveKey(`${password}:${Env.SECRET_KEY}`, salt);
     const {
       success,
       data: decryptedString,

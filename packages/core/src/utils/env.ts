@@ -212,9 +212,9 @@ export const Env = cleanEnv(process.env, {
     desc: 'Secret key for the addon, used for encryption and must be 64 characters of hex',
     default: '',
   }),
-  API_KEY: str({
+  ADDON_PASSWORD: str({
     default: '',
-    desc: 'API key for the addon, can be set to anything',
+    desc: 'Password required to create and modify addon configurations',
   }),
   DATABASE_URI: str({
     default: 'sqlite://./data/db.sqlite',
@@ -256,6 +256,10 @@ export const Env = cleanEnv(process.env, {
     desc: 'Log format for the addon',
     choices: ['text', 'json'],
   }),
+  TZ: str({
+    default: 'UTC',
+    desc: 'Timezone for log timestamps (e.g., America/New_York, Europe/London)',
+  }),
   LOG_TIMEZONE: str({
     default: 'UTC',
     desc: 'Timezone for log timestamps (e.g., America/New_York, Europe/London)',
@@ -286,6 +290,12 @@ export const Env = cleanEnv(process.env, {
   MAX_CACHE_SIZE: num({
     default: 100000,
     desc: 'Max cache size for the addon',
+  }),
+
+  // feature controls
+  DISABLE_REGEX_FILTERS: bool({
+    default: false,
+    desc: 'Disable regex filters',
   }),
 
   // configuration settings
@@ -825,48 +835,48 @@ export const Env = cleanEnv(process.env, {
   //   desc: 'Maximum number of requests allowed per IP within the time window',
   // })
   STATIC_RATE_LIMIT_WINDOW: num({
-    default: 60, // 1 minute
+    default: 5, // 1 minute
     desc: 'Time window for static file serving rate limiting in seconds',
   }),
   STATIC_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 100, // allow 100 requests per IP per minute
+    default: 10, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
   USER_API_RATE_LIMIT_WINDOW: num({
-    default: 60, // 1 minute
+    default: 5, // 1 minute
     desc: 'Time window for user API rate limiting in seconds',
   }),
   USER_API_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 20, // allow 100 requests per IP per minute
+    default: 10, // allow 100 requests per IP per minute
   }),
   STREAM_API_RATE_LIMIT_WINDOW: num({
-    default: 60, // 1 minute
+    default: 5, // 1 minute
     desc: 'Time window for stream API rate limiting in seconds',
   }),
   STREAM_API_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 20, // allow 100 requests per IP per minute
+    default: 10, // allow 100 requests per IP per minute
   }),
   FORMAT_API_RATE_LIMIT_WINDOW: num({
-    default: 10, // 10 seconds
+    default: 5, // 10 seconds
     desc: 'Time window for format API rate limiting in seconds',
   }),
   FORMAT_API_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 50, // allow 50 requests per IP per 10 seconds
+    default: 10, // allow 50 requests per IP per 10 seconds
   }),
   STREMIO_STREAM_RATE_LIMIT_WINDOW: num({
-    default: 60, // 1 minute
+    default: 5, // 1 minute
     desc: 'Time window for Stremio stream rate limiting in seconds',
   }),
   STREMIO_STREAM_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 100, // allow 100 requests per IP per minute
+    default: 10, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
   STREMIO_CATALOG_RATE_LIMIT_WINDOW: num({
-    default: 60, // 1 minute
+    default: 5, // 1 minute
     desc: 'Time window for Stremio catalog rate limiting in seconds',
   }),
   STREMIO_CATALOG_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 100, // allow 100 requests per IP per minute
+    default: 10, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
 });

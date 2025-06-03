@@ -56,11 +56,11 @@ export function MainSidebar() {
       signInModal.open();
     }
     // check for menu query param
-    const params = new URLSearchParams(window.location.search);
-    const menu = params.get('menu');
-    if (menu && VALID_MENUS.includes(menu)) {
-      setSelectedMenu(menu);
-    }
+    // const params = new URLSearchParams(window.location.search);
+    // const menu = params.get('menu');
+    // if (menu && VALID_MENUS.includes(menu)) {
+    //   setSelectedMenu(menu);
+    // }
   }, [pathname]);
 
   const { status, error, loading } = useStatus();

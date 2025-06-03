@@ -49,7 +49,7 @@ export interface ParseValue {
     filename: string | null;
     folderName: string | null;
     size: number | null;
-    inLibrary: boolean | null;
+    library: boolean | null;
     quality: string | null;
     resolution: string | null;
     languages: string[] | null;
@@ -65,6 +65,7 @@ export interface ParseValue {
     season: number | null;
     seasons: number[] | null;
     episode: number | null;
+    seasonEpisode: string[] | null;
     seeders: number | null;
     age: string | null;
     duration: number | null;
@@ -91,9 +92,11 @@ export interface ParseValue {
 
 export abstract class BaseFormatter {
   protected config: FormatterConfig;
+  protected addonName: string;
 
-  constructor(config: FormatterConfig) {
+  constructor(config: FormatterConfig, addonName?: string) {
     this.config = config;
+    this.addonName = addonName || Env.ADDON_NAME;
   }
 
   public format(stream: ParsedStream): { name: string; description: string } {
@@ -107,34 +110,35 @@ export abstract class BaseFormatter {
   protected convertStreamToParseValue(stream: ParsedStream): ParseValue {
     return {
       config: {
-        addonName: Env.ADDON_NAME,
+        addonName: this.addonName,
       },
       stream: {
         filename: stream.filename || null,
         folderName: stream.folderName || null,
         size: stream.size || null,
-        inLibrary: stream.inLibrary !== undefined ? stream.inLibrary : null,
-        quality: stream.parsedFile.quality || null,
-        resolution: stream.parsedFile.resolution || null,
-        languages: stream.parsedFile.languages || null,
-        languageEmojis: stream.parsedFile.languages
+        library: stream.library !== undefined ? stream.library : null,
+        quality: stream.parsedFile?.quality || null,
+        resolution: stream.parsedFile?.resolution || null,
+        languages: stream.parsedFile?.languages || null,
+        languageEmojis: stream.parsedFile?.languages
           ? stream.parsedFile.languages
               .map((lang) => languageToEmoji(lang) || lang)
               .filter((value, index, self) => self.indexOf(value) === index)
           : null,
-        visualTags: stream.parsedFile.visualTags || null,
-        audioTags: stream.parsedFile.audioTags || null,
-        releaseGroup: stream.parsedFile.releaseGroup || null,
+        visualTags: stream.parsedFile?.visualTags || null,
+        audioTags: stream.parsedFile?.audioTags || null,
+        releaseGroup: stream.parsedFile?.releaseGroup || null,
         regexMatched: stream.regexMatched?.name || null,
-        encode: stream.parsedFile.encode || null,
+        encode: stream.parsedFile?.encode || null,
         indexer: stream.indexer || null,
         seeders: stream.torrent?.seeders ?? null,
-        year: stream.parsedFile.year || null,
+        year: stream.parsedFile?.year || null,
         type: stream.type || null,
-        title: stream.parsedFile.title || null,
-        season: stream.parsedFile.season || null,
-        seasons: stream.parsedFile.seasons || null,
-        episode: stream.parsedFile.episode || null,
+        title: stream.parsedFile?.title || null,
+        season: stream.parsedFile?.season || null,
+        seasons: stream.parsedFile?.seasons || null,
+        episode: stream.parsedFile?.episode || null,
+        seasonEpisode: stream.parsedFile?.seasonEpisode || null,
         duration: stream.duration || null,
         infoHash: stream.torrent?.infoHash || null,
         age: stream.age || null,

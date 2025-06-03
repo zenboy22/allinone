@@ -32,6 +32,27 @@ import { BiEdit, BiTrash } from 'react-icons/bi';
 import { Option, Resource } from '@aiostreams/core';
 import { toast } from 'sonner';
 import { Tooltip } from '../ui/tooltip';
+import { StaticTabs } from '../ui/tabs';
+import { LuDownload, LuGlobe } from 'react-icons/lu';
+import { AnimatePresence } from 'framer-motion';
+import { PageControls } from '../shared/page-controls';
+import Image from 'next/image';
+import { Combobox } from '../ui/combobox';
+import { FaPlus, FaRegTrashAlt } from 'react-icons/fa';
+import { UserConfigAPI } from '../../services/api';
+import {
+  ConfirmationDialog,
+  useConfirmationDialog,
+} from '../shared/confirmation-dialog';
+
+interface CatalogModification {
+  id: string;
+  type: string;
+  name?: string;
+  enabled?: boolean;
+  shuffle?: boolean;
+  rpdb?: boolean;
+}
 
 export function AddonsMenu() {
   return (
@@ -44,6 +65,7 @@ export function AddonsMenu() {
 function Content() {
   const { status } = useStatus();
   const { userData, setUserData } = useUserData();
+  const [page, setPage] = useState<'installed' | 'marketplace'>('installed');
   const [search, setSearch] = useState('');
   // Filter states
   const [serviceFilters, setServiceFilters] = useState<string[]>([]);
@@ -128,6 +150,7 @@ function Content() {
         ...prev,
         presets: [...prev.presets, newPreset],
       }));
+      toast.info('Addon installed successfully!');
       setModalOpen(false);
     } else if (modalMode === 'edit' && editingAddonId) {
       // Edit existing preset (should not be triggered from marketplace)
@@ -139,6 +162,7 @@ function Content() {
             : a
         ),
       }));
+      toast.info('Addon updated successfully!');
       setModalOpen(false);
     }
   }
@@ -220,152 +244,228 @@ function Content() {
   }, [isDragging]);
   return (
     <>
-      <div className="flex items-center w-full">
+      {/* <div className="flex items-center w-full">
         <div>
           <h2>Addons</h2>
-          <p className="text-[--muted]">
-            Add your addons here. Choose from the marketplace below.
-          </p>
+          <p className="text-[--muted]">Manage your installed addons or</p>
         </div>
         <div className="flex flex-1"></div>
-      </div>
+      </div> */}
 
-      {/* Marketplace Section */}
-      <div className="bg-[--card] border border-[--border] rounded-xl p-4 mb-6 shadow-sm">
-        <div className="flex justify-center mb-4">
-          <div className="w-full sm:w-[500px] flex gap-2">
-            <TextInput
-              value={search}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setSearch(e.target.value)
-              }
-              placeholder="Search addons..."
-              className="flex-1"
-              leftIcon={<SearchIcon className="w-4 h-4" />}
-            />
-            <AddonFilterPopover
-              serviceOptions={serviceOptions}
-              streamTypeOptions={streamTypeOptions}
-              resourceOptions={resourceOptions}
-              serviceFilters={serviceFilters}
-              setServiceFilters={setServiceFilters}
-              streamTypeFilters={streamTypeFilters}
-              setStreamTypeFilters={setStreamTypeFilters}
-              resourceFilters={resourceFilters}
-              setResourceFilters={setResourceFilters}
-            >
-              <IconButton
-                icon={<FilterIcon className="w-5 h-5" />}
-                intent={activeFilterCount > 0 ? 'primary' : 'primary-outline'}
-                aria-label="Filters"
-              />
-            </AddonFilterPopover>
-          </div>
-        </div>
-        {/* Scrollable Addon Cards Grid */}
-        <div className="max-h-[520px] overflow-y-auto pr-1">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredPresets.map((preset: any) => {
-              // Always allow adding, never show edit
-              return (
-                <AddonCard
-                  key={preset.ID}
-                  preset={preset}
-                  isAdded={false}
-                  onAdd={() => handleAddPreset(preset)}
-                />
-              );
-            })}
-          </div>
+      <div className="flex items-center justify-between">
+        <StaticTabs
+          className="h-10 w-fit border rounded-full"
+          triggerClass="px-4 py-1 text-md"
+          items={[
+            {
+              name: 'Installed',
+              isCurrent: page === 'installed',
+              onClick: () => setPage('installed'),
+              iconType: LuDownload,
+            },
+            {
+              name: 'Marketplace',
+              isCurrent: page === 'marketplace',
+              onClick: () => setPage('marketplace'),
+              iconType: LuGlobe,
+            },
+          ]}
+        />
+
+        <div className="hidden lg:block lg:ml-auto">
+          <PageControls />
         </div>
       </div>
 
-      {/* Add/Edit Addon Modal */}
-      <AddonModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        mode={modalMode}
-        presetMetadata={modalPreset}
-        initialValues={modalInitialValues as any}
-        onSubmit={handleModalSubmit}
-      />
-
-      {/* My Addons Section */}
-      <SettingsCard
-        title="My Addons"
-        description="Manage your enabled addons. Drag to reorder."
-      >
-        <DndContext
-          modifiers={[restrictToVerticalAxis]}
-          onDragEnd={handleDragEnd}
-          onDragStart={handleDragStart}
-          sensors={sensors}
-        >
-          <SortableContext
-            items={userData.presets.map((a) => getPresetUniqueKey(a))}
-            strategy={verticalListSortingStrategy}
+      <AnimatePresence mode="wait">
+        {page === 'installed' && (
+          <PageWrapper
+            {...{
+              initial: { opacity: 0, y: 60 },
+              animate: { opacity: 1, y: 0 },
+              exit: { opacity: 0, scale: 0.99 },
+              transition: {
+                duration: 0.35,
+              },
+            }}
+            key="installed"
+            className="pt-0 space-y-8 relative z-[4]"
           >
-            <div className="space-y-2">
-              <ul className="space-y-2">
-                {userData.presets.length === 0 ? (
-                  <li>
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <span className="text-lg text-muted-foreground font-semibold text-center">
-                        Looks like you don't have any addons.
-                        <br />
-                        Add some from the marketplace above.
-                      </span>
-                    </div>
-                  </li>
-                ) : (
-                  userData.presets.map((addon) => {
-                    const preset = status?.settings?.presets.find(
-                      (p: any) => p.ID === addon.id
-                    );
+            <div>
+              <h2>Installed Addons</h2>
+              <p className="text-[--muted] text-sm">
+                Manage your installed addons.
+              </p>
+            </div>
+            <SettingsCard>
+              <DndContext
+                modifiers={[restrictToVerticalAxis]}
+                onDragEnd={handleDragEnd}
+                onDragStart={handleDragStart}
+                sensors={sensors}
+              >
+                <SortableContext
+                  items={userData.presets.map((a) => getPresetUniqueKey(a))}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    <ul className="space-y-2">
+                      {userData.presets.length === 0 ? (
+                        <li>
+                          <div className="flex flex-col items-center justify-center py-12">
+                            <span className="text-lg text-muted-foreground font-semibold text-center">
+                              Looks like you don't have any addons...
+                              <br />
+                              Add some from the marketplace!
+                            </span>
+                          </div>
+                        </li>
+                      ) : (
+                        userData.presets.map((addon) => {
+                          const preset = status?.settings?.presets.find(
+                            (p: any) => p.ID === addon.id
+                          );
+                          return (
+                            <SortableAddonItem
+                              key={getPresetUniqueKey(addon)}
+                              addon={addon}
+                              preset={preset}
+                              onEdit={() => {
+                                setModalPreset(preset);
+                                setModalInitialValues({
+                                  options: { ...addon.options },
+                                });
+                                setModalMode('edit');
+                                setEditingAddonId(getPresetUniqueKey(addon));
+                                setModalOpen(true);
+                              }}
+                              onRemove={() => {
+                                setUserData((prev) => ({
+                                  ...prev,
+                                  presets: prev.presets.filter(
+                                    (a) =>
+                                      getPresetUniqueKey(a) !==
+                                      getPresetUniqueKey(addon)
+                                  ),
+                                }));
+                              }}
+                              onToggleEnabled={(v: boolean) => {
+                                setUserData((prev) => ({
+                                  ...prev,
+                                  presets: prev.presets.map((a) =>
+                                    getPresetUniqueKey(a) ===
+                                    getPresetUniqueKey(addon)
+                                      ? { ...a, enabled: v }
+                                      : a
+                                  ),
+                                }));
+                              }}
+                            />
+                          );
+                        })
+                      )}
+                    </ul>
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </SettingsCard>
+
+            {/* Catalogs - use api to fetch catalogs - will get a list of objects with id and name
+            show these in a sortable list, with the ability to enable/disable, and an edit icon.
+            pressing the edit icon opens a modal with the following fields:
+            - name (TextInput)
+            - enabled (Switch)
+            - shuffle (Switch)
+            - rpdb (Switch)
+            append object of {id, name, enabled, shuffle, rpdb} to userData.catalogModifications
+            */}
+            {userData.presets.length > 0 && <CatalogSettingsCard />}
+
+            {userData.presets.length > 0 && <AddonGroupCard />}
+          </PageWrapper>
+        )}
+
+        {page === 'marketplace' && (
+          <PageWrapper
+            {...{
+              initial: { opacity: 0, y: 60 },
+              animate: { opacity: 1, y: 0 },
+              exit: { opacity: 0, scale: 0.99 },
+              transition: {
+                duration: 0.35,
+              },
+            }}
+            key="marketplace"
+            className="pt-0 space-y-8 relative z-[4]"
+          >
+            <div>
+              <h2>Marketplace</h2>
+              <p className="text-[--muted] text-sm">
+                Browse and install addons from the marketplace.
+              </p>
+            </div>
+            <div className="bg-[--card] border border-[--border] rounded-xl p-4 mb-6 shadow-sm">
+              <div className="flex justify-center mb-4">
+                <div className="w-full sm:w-[500px] flex gap-2">
+                  <TextInput
+                    value={search}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setSearch(e.target.value)
+                    }
+                    placeholder="Search addons..."
+                    className="flex-1"
+                    leftIcon={<SearchIcon className="w-4 h-4" />}
+                  />
+                  <AddonFilterPopover
+                    serviceOptions={serviceOptions}
+                    streamTypeOptions={streamTypeOptions}
+                    resourceOptions={resourceOptions}
+                    serviceFilters={serviceFilters}
+                    setServiceFilters={setServiceFilters}
+                    streamTypeFilters={streamTypeFilters}
+                    setStreamTypeFilters={setStreamTypeFilters}
+                    resourceFilters={resourceFilters}
+                    setResourceFilters={setResourceFilters}
+                  >
+                    <IconButton
+                      icon={<FilterIcon className="w-5 h-5" />}
+                      intent={
+                        activeFilterCount > 0 ? 'primary' : 'primary-outline'
+                      }
+                      aria-label="Filters"
+                    />
+                  </AddonFilterPopover>
+                </div>
+              </div>
+              {/* Scrollable Addon Cards Grid */}
+              <div className="h-[calc(100vh-300px)] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredPresets.map((preset: any) => {
+                    // Always allow adding, never show edit
                     return (
-                      <SortableAddonItem
-                        key={getPresetUniqueKey(addon)}
-                        addon={addon}
+                      <AddonCard
+                        key={preset.ID}
                         preset={preset}
-                        onEdit={() => {
-                          setModalPreset(preset);
-                          setModalInitialValues({
-                            options: { ...addon.options },
-                          });
-                          setModalMode('edit');
-                          setEditingAddonId(getPresetUniqueKey(addon));
-                          setModalOpen(true);
-                        }}
-                        onRemove={() => {
-                          setUserData((prev) => ({
-                            ...prev,
-                            presets: prev.presets.filter(
-                              (a) =>
-                                getPresetUniqueKey(a) !==
-                                getPresetUniqueKey(addon)
-                            ),
-                          }));
-                        }}
-                        onToggleEnabled={(v: boolean) => {
-                          setUserData((prev) => ({
-                            ...prev,
-                            presets: prev.presets.map((a) =>
-                              getPresetUniqueKey(a) ===
-                              getPresetUniqueKey(addon)
-                                ? { ...a, enabled: v }
-                                : a
-                            ),
-                          }));
-                        }}
+                        isAdded={false}
+                        onAdd={() => handleAddPreset(preset)}
                       />
                     );
-                  })
-                )}
-              </ul>
+                  })}
+                </div>
+              </div>
             </div>
-          </SortableContext>
-        </DndContext>
-      </SettingsCard>
+          </PageWrapper>
+        )}
+        {/* Add/Edit Addon Modal (ensure both tabs can use it)*/}
+        <AddonModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          mode={modalMode}
+          presetMetadata={modalPreset}
+          initialValues={modalInitialValues as any}
+          onSubmit={handleModalSubmit}
+        />
+      </AnimatePresence>
     </>
   );
 }
@@ -420,8 +520,20 @@ function SortableAddonItem({
           {...attributes}
           {...listeners}
         />
+        <div className="flex items-center gap-3 flex-1">
+          <div className="relative flex-shrink-0 h-8 w-8">
+            {preset.ID === 'custom' ? (
+              <PlusIcon className="w-full h-full object-contain" />
+            ) : (
+              <Image
+                src={preset.LOGO}
+                alt={preset.NAME}
+                fill
+                className="w-full h-full object-contain rounded-md"
+              />
+            )}
+          </div>
 
-        <div className="flex-1 flex items-center">
           <p className="text-base line-clamp-1">{addon.options.name}</p>
         </div>
 
@@ -541,7 +653,7 @@ function AddonCard({
       {/* Button at bottom */}
       <div className="mt-auto pt-3 flex items-end">
         <Button size="md" className="w-full" onClick={onAdd}>
-          Add Addon
+          Configure
         </Button>
       </div>
     </div>
@@ -565,7 +677,15 @@ function AddonModal({
 }) {
   const [values, setValues] = useState<Record<string, any>>(initialValues);
   useEffect(() => {
-    setValues(initialValues);
+    if (open) {
+      setValues(initialValues);
+    } else {
+      // when closing, delay the reset to allow the animation to finish
+      // so that the user doesn't see the values being reset
+      setTimeout(() => {
+        setValues(initialValues);
+      }, 350);
+    }
   }, [open, initialValues]);
   const dynamicOptions: Option[] = presetMetadata?.OPTIONS || [];
 
@@ -622,7 +742,7 @@ function AddonModal({
       onOpenChange={onOpenChange}
       title={
         mode === 'add'
-          ? `Add ${presetMetadata?.NAME}`
+          ? `Install ${presetMetadata?.NAME}`
           : `Edit ${presetMetadata?.NAME}`
       }
     >
@@ -647,7 +767,7 @@ function AddonModal({
           type="submit"
           disabled={!allRequiredFilled}
         >
-          {mode === 'add' ? 'Add' : 'Update'}
+          {mode === 'add' ? 'Install' : 'Update'}
         </Button>
       </form>
     </Modal>
@@ -755,5 +875,485 @@ function AddonFilterPopover({
         </Button>
       </div>
     </Popover>
+  );
+}
+
+function AddonGroupCard() {
+  const { userData, setUserData } = useUserData();
+
+  // Helper function to get presets that are not in any group except the current one
+  const getAvailablePresets = (currentGroupIndex: number) => {
+    const presetsInOtherGroups = new Set(
+      userData.groups?.flatMap((group, idx) =>
+        idx !== currentGroupIndex ? group.addons : []
+      ) || []
+    );
+
+    return userData.presets
+      .filter((preset) => {
+        const presetStr = JSON.stringify(preset);
+        return !presetsInOtherGroups.has(presetStr);
+      })
+      .map((preset) => ({
+        label: preset.options.name,
+        value: JSON.stringify(preset),
+        textValue: preset.options.name,
+      }));
+  };
+
+  const updateGroup = (
+    index: number,
+    updates: Partial<{ addons: string[]; condition: string }>
+  ) => {
+    setUserData((prev) => {
+      // Initialize groups array if it doesn't exist
+      const currentGroups = prev.groups || [];
+
+      // Create a new array with all existing groups
+      const newGroups = [...currentGroups];
+
+      // Update the specific group with new values, preserving other fields
+      newGroups[index] = {
+        ...newGroups[index],
+        ...updates,
+      };
+
+      if (index === 0) {
+        // set condition for first group to true
+        newGroups[index].condition = 'true';
+      }
+
+      return {
+        ...prev,
+        groups: newGroups,
+      };
+    });
+  };
+
+  return (
+    <SettingsCard
+      title="Groups"
+      description="Optionally assign your addons to groups. Streams are only fetched from your first group initially,
+and only if a certain condition is met, will streams be fetched from the next group, and so on. Leaving this blank will mean streams are 
+fetched from all addons."
+    >
+      {(userData.groups || []).map((group, index) => (
+        <div key={index} className="flex gap-2">
+          <div className="flex-1 flex gap-2">
+            <div className="flex-1">
+              <Combobox
+                multiple
+                value={group.addons}
+                options={getAvailablePresets(index)}
+                emptyMessage="You haven't installed any addons yet or they are already in a group"
+                label="Addons"
+                placeholder="Select addons"
+                onValueChange={(value) => {
+                  updateGroup(index, { addons: value });
+                }}
+              />
+            </div>
+            <div className="flex-1">
+              <TextInput
+                value={index === 0 ? 'true' : group.condition}
+                disabled={index === 0}
+                label="Condition"
+                placeholder="Enter condition"
+                onValueChange={(value) => {
+                  updateGroup(index, { condition: value });
+                }}
+              />
+            </div>
+          </div>
+          <IconButton
+            size="sm"
+            rounded
+            icon={<FaRegTrashAlt />}
+            intent="alert-subtle"
+            onClick={() => {
+              setUserData((prev) => {
+                const newGroups = [...(prev.groups || [])];
+                newGroups.splice(index, 1);
+                return {
+                  ...prev,
+                  groups: newGroups,
+                };
+              });
+            }}
+          />
+        </div>
+      ))}
+      <div className="mt-2 flex gap-2 items-center">
+        <IconButton
+          rounded
+          size="sm"
+          intent="primary-subtle"
+          icon={<FaPlus />}
+          onClick={() => {
+            setUserData((prev) => {
+              const currentGroups = prev.groups || [];
+              return {
+                ...prev,
+                groups: [...currentGroups, { addons: [], condition: '' }],
+              };
+            });
+          }}
+        />
+      </div>
+    </SettingsCard>
+  );
+}
+
+function CatalogSettingsCard() {
+  const { userData, setUserData } = useUserData();
+  const [loading, setLoading] = useState(false);
+
+  const fetchCatalogs = async () => {
+    setLoading(true);
+    try {
+      const response = await UserConfigAPI.getCatalogs(userData);
+      if (response.success && response.data) {
+        // Map catalogs to catalog modifications with default values
+        const modifications = response.data.map((catalog) => ({
+          id: catalog.id,
+          name: catalog.name,
+          type: catalog.type,
+          enabled: true,
+          shuffle: false,
+          rpdb: false,
+        }));
+        setUserData((prev) => ({
+          ...prev,
+          catalogModifications: modifications,
+        }));
+        toast.success('Catalogs fetched successfully');
+      } else {
+        toast.error(response.error || 'Failed to fetch catalogs');
+      }
+    } catch (error) {
+      toast.error('Failed to fetch catalogs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [editingCatalog, setEditingCatalog] = useState<{
+    id: string;
+    type: string;
+    name?: string;
+    shuffle: boolean;
+    rpdb: boolean;
+  } | null>(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const capitalise = (str: string | undefined) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  // DND handlers
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 8,
+      },
+    })
+  );
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    function preventTouchMove(e: TouchEvent) {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    }
+
+    function handleDragEnd() {
+      setIsDragging(false);
+    }
+
+    if (isDragging) {
+      document.body.addEventListener('touchmove', preventTouchMove, {
+        passive: false,
+      });
+      document.addEventListener('pointerup', handleDragEnd);
+      document.addEventListener('touchend', handleDragEnd);
+    } else {
+      document.body.removeEventListener('touchmove', preventTouchMove);
+    }
+    return () => {
+      document.body.removeEventListener('touchmove', preventTouchMove);
+      document.removeEventListener('pointerup', handleDragEnd);
+      document.removeEventListener('touchend', handleDragEnd);
+    };
+  }, [isDragging]);
+
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+    if (!over) return;
+    if (active.id !== over.id) {
+      setUserData((prev) => {
+        const oldIndex = prev.catalogModifications?.findIndex(
+          (c) => `${c.id}-${c.type}` === active.id
+        );
+        const newIndex = prev.catalogModifications?.findIndex(
+          (c) => `${c.id}-${c.type}` === over.id
+        );
+        if (
+          oldIndex === undefined ||
+          newIndex === undefined ||
+          !prev.catalogModifications
+        )
+          return prev;
+        return {
+          ...prev,
+          catalogModifications: arrayMove(
+            prev.catalogModifications,
+            oldIndex,
+            newIndex
+          ),
+        };
+      });
+    }
+    setIsDragging(false);
+  };
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  // const confirmClearConfig = useConfirmationDialog({
+  //   title: 'Sign Out',
+  //   description: 'Are you sure you want to sign out?',
+  //   onConfirm: () => {
+  //     user.setUserData(null);
+  //     user.setUuid(null);
+  //     user.setPassword(null);
+  //   },
+  // });
+
+  const confirmRefreshCatalogs = useConfirmationDialog({
+    title: 'Refresh Catalogs',
+    description:
+      'Are you sure you want to refresh the catalogs? This will replace all your current catalogs and their settings and fetch new ones from the addons.',
+    onConfirm: () => {
+      fetchCatalogs();
+    },
+  });
+
+  return (
+    <div className="rounded-[--radius] border bg-[--paper] shadow-sm p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold">Catalogs</h3>
+          <p className="text-[--muted] text-sm">Manage your catalogs</p>
+        </div>
+        <Button
+          size="sm"
+          intent="primary-outline"
+          onClick={() => {
+            if (userData.catalogModifications?.length) {
+              confirmRefreshCatalogs.open();
+            } else {
+              fetchCatalogs();
+            }
+          }}
+          loading={loading}
+        >
+          {userData.catalogModifications?.length
+            ? 'Refresh Catalogs'
+            : 'Fetch Catalogs'}
+        </Button>
+      </div>
+
+      {!userData.catalogModifications?.length && (
+        <p className="text-[--muted] text-base text-center my-8">
+          Your addons don't have any catalogs... or you haven't fetched them yet
+          :/
+        </p>
+      )}
+
+      {userData.catalogModifications &&
+        userData.catalogModifications.length > 0 && (
+          <DndContext
+            modifiers={[restrictToVerticalAxis]}
+            onDragEnd={handleDragEnd}
+            onDragStart={handleDragStart}
+            sensors={sensors}
+          >
+            <SortableContext
+              items={(userData.catalogModifications || []).map(
+                (c) => `${c.id}-${c.type}`
+              )}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {(userData.catalogModifications || []).map(
+                  (catalog: CatalogModification) => (
+                    <SortableCatalogItem
+                      key={`${catalog.id}-${catalog.type}`}
+                      catalog={catalog}
+                      onEdit={() => {
+                        setEditingCatalog({
+                          id: catalog.id,
+                          type: catalog.type,
+                          name: catalog.name,
+                          shuffle: catalog.shuffle ?? false,
+                          rpdb: catalog.rpdb ?? false,
+                        });
+                        setModalOpen(true);
+                      }}
+                      onToggleEnabled={(enabled) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          catalogModifications: prev.catalogModifications?.map(
+                            (c) =>
+                              c.id === catalog.id && c.type === catalog.type
+                                ? { ...c, enabled }
+                                : c
+                          ),
+                        }));
+                      }}
+                      capitalise={capitalise}
+                    />
+                  )
+                )}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+
+      <Modal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title={`Edit Catalog: ${editingCatalog?.name || editingCatalog?.id} - ${capitalise(
+          editingCatalog?.type
+        )}`}
+      >
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!editingCatalog) return;
+
+            setUserData((prev) => ({
+              ...prev,
+              catalogModifications: prev.catalogModifications?.map((c) =>
+                c.id === editingCatalog.id && c.type === editingCatalog.type
+                  ? {
+                      ...c,
+                      name: editingCatalog.name,
+                      shuffle: editingCatalog.shuffle,
+                      rpdb: editingCatalog.rpdb,
+                    }
+                  : c
+              ),
+            }));
+            setModalOpen(false);
+          }}
+        >
+          <div className="flex flex-col gap-4">
+            <TextInput
+              label="Name"
+              placeholder="Enter catalog name"
+              value={editingCatalog?.name || ''}
+              onValueChange={(name) => {
+                setEditingCatalog((prev) => (prev ? { ...prev, name } : null));
+              }}
+            />
+
+            <Switch
+              label="Shuffle Results"
+              side="right"
+              className="ml-2"
+              value={editingCatalog?.shuffle ?? false}
+              onValueChange={(shuffle) => {
+                setEditingCatalog((prev) =>
+                  prev ? { ...prev, shuffle } : null
+                );
+              }}
+            />
+
+            <Switch
+              label="Use RPDB for Posters"
+              side="right"
+              className="ml-2"
+              value={editingCatalog?.rpdb ?? false}
+              onValueChange={(rpdb) => {
+                setEditingCatalog((prev) => (prev ? { ...prev, rpdb } : null));
+              }}
+            />
+          </div>
+          <Button className="w-full mt-4" type="submit">
+            Save Changes
+          </Button>
+        </form>
+      </Modal>
+      <ConfirmationDialog {...confirmRefreshCatalogs} />
+    </div>
+  );
+}
+
+// Add the SortableCatalogItem component
+function SortableCatalogItem({
+  catalog,
+  onEdit,
+  onToggleEnabled,
+  capitalise,
+}: {
+  catalog: CatalogModification;
+  onEdit: () => void;
+  onToggleEnabled: (enabled: boolean) => void;
+  capitalise: (str: string | undefined) => string;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `${catalog.id}-${catalog.type}`,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div className="px-2.5 py-2 bg-[var(--background)] rounded-[--radius-md] border flex gap-3 relative">
+        <div
+          className="rounded-full w-6 h-auto bg-[--muted] md:bg-[--subtle] md:hover:bg-[--subtle-highlight] cursor-move"
+          {...attributes}
+          {...listeners}
+        />
+        <div className="flex items-center gap-3 flex-1">
+          <p className="text-base line-clamp-1">
+            {catalog.name || catalog.id} - {capitalise(catalog.type)}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Switch
+            value={catalog.enabled ?? true}
+            onValueChange={onToggleEnabled}
+          />
+          <IconButton
+            className="rounded-full"
+            icon={<BiEdit />}
+            intent="primary-subtle"
+            onClick={onEdit}
+          />
+        </div>
+      </div>
+    </div>
   );
 }

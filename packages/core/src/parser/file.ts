@@ -22,12 +22,16 @@ function matchMultiplePatterns(
 
 class FileParser {
   static parse(filename: string): ParsedFile {
+    filename = filename.replace(/\s+/g, '.').replace(/^\.+|\.+$/g, '');
     const resolution = matchPattern(filename, PARSE_REGEX.resolutions);
     const quality = matchPattern(filename, PARSE_REGEX.qualities);
     const encode = matchPattern(filename, PARSE_REGEX.encodes);
     const visualTags = matchMultiplePatterns(filename, PARSE_REGEX.visualTags);
     const audioTags = matchMultiplePatterns(filename, PARSE_REGEX.audioTags);
     const languages = matchMultiplePatterns(filename, PARSE_REGEX.languages);
+
+    const getPaddedNumber = (number: number, length: number) =>
+      number.toString().padStart(length, '0');
 
     const parsed = PTT.parse(filename);
     const releaseGroup = parsed.group;
@@ -36,6 +40,24 @@ class FileParser {
     const season = parsed.season;
     const seasons = parsed.seasons;
     const episode = parsed.episode;
+    const formattedSeasonString = seasons?.length
+      ? seasons.length === 1
+        ? `S${getPaddedNumber(seasons[0], 2)}`
+        : `S${getPaddedNumber(seasons[0], 2)}-${getPaddedNumber(
+            seasons[seasons.length - 1],
+            2
+          )}`
+      : season
+        ? `S${getPaddedNumber(season, 2)}`
+        : undefined;
+    const formattedEpisodeString = episode
+      ? `E${getPaddedNumber(episode, 2)}`
+      : undefined;
+
+    const seasonEpisode = [
+      formattedSeasonString,
+      formattedEpisodeString,
+    ].filter((v) => v !== undefined);
 
     return {
       resolution,
@@ -50,6 +72,7 @@ class FileParser {
       season,
       seasons,
       episode,
+      seasonEpisode,
     };
   }
 }

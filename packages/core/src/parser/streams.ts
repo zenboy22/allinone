@@ -51,10 +51,9 @@ class StreamParser {
   constructor(protected readonly addon: Addon) {}
 
   parse(stream: Stream): ParsedStream {
-    let parsedStream: ParsedStream = {
+    let parsedStream: any = {
       addon: this.addon,
       type: this.getStreamType(stream, undefined),
-      parsedFile: {},
       url: stream.url,
       externalUrl: stream.externalUrl,
       ytId: stream.ytId,
@@ -75,7 +74,7 @@ class StreamParser {
     parsedStream.service = this.getService(stream);
     parsedStream.duration = this.getDuration(stream);
     parsedStream.type = this.getStreamType(stream, parsedStream.service);
-    parsedStream.inLibrary = this.getInLibrary(stream);
+    parsedStream.library = this.getInLibrary(stream);
     parsedStream.age = this.getAge(stream);
     parsedStream.message = this.getMessage(stream);
 
@@ -93,7 +92,7 @@ class StreamParser {
       fileIdx: stream.fileIdx,
     };
 
-    return parsedStream;
+    return parsedStream as ParsedStream;
   }
 
   protected raiseErrorIfNecessary(stream: Stream) {
@@ -111,7 +110,7 @@ class StreamParser {
     let filename = stream.behaviorHints?.filename;
 
     if (filename) {
-      return this.normaliseFilename(filename);
+      return filename;
     }
 
     const description = stream.description || stream.title;
@@ -122,7 +121,7 @@ class StreamParser {
     if (this.filenameRegex) {
       const match = description.match(this.filenameRegex);
       if (match) {
-        return this.normaliseFilename(match[1]);
+        return match[1];
       }
     }
 
@@ -144,7 +143,7 @@ class StreamParser {
       filename = description.split('\n')[0];
     }
 
-    return this.normaliseFilename(filename);
+    return filename;
   }
 
   protected getFolder(stream: Stream): string | undefined {
@@ -283,11 +282,6 @@ class StreamParser {
 
   protected getInLibrary(stream: Stream): boolean {
     return this.addon.library ?? false;
-  }
-
-  private normaliseFilename(filename: string): string {
-    // remove all non-alphanumeric characters, replace spaces with . and remove trailing and leading . or spaces
-    return filename.replace(/\s+/g, '.').replace(/^\.+|\.+$/g, '');
   }
 
   private calculateBytesFromSizeString(size: string): number | undefined {

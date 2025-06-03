@@ -12,6 +12,7 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^16.4.7",
     "envalid": "^8.0.0",
+    "expr-eval": "^2.0.2",
     "moment-timezone": "^0.5.48",
     "parse-torrent-title": "github:TheBeastLT/parse-torrent-title",
     "pg": "^8.16.0",

@@ -5,12 +5,15 @@ import { AppSidebarTrigger } from '@/components/ui/app-layout';
 import { cn } from '@/components/ui/core/styling';
 
 import React from 'react';
+import { PageControls } from '@/components/shared/page-controls';
+import { useMenu } from '@/context/menu';
 type TopNavbarProps = {
   children?: React.ReactNode;
 };
 
 export function TopNavbar(props: TopNavbarProps) {
   const { children, ...rest } = props;
+  const { selectedMenu } = useMenu();
 
   const serverStatus = useStatus();
   const isOffline = !serverStatus.status;
@@ -37,6 +40,11 @@ export function TopNavbar(props: TopNavbarProps) {
               data-top-navbar-content-separator
               className="flex flex-1"
             ></div>
+            {selectedMenu !== 'about' && (
+              <div className="block lg:hidden">
+                <PageControls />
+              </div>
+            )}
           </div>
         </div>
         <LayoutHeaderBackground />

@@ -89,7 +89,12 @@ export class DB {
 
   async open(): Promise<void> {
     if (this.uri.dialect === 'postgres') {
-      const pool = new Pool({ connectionString: this.uri.url.toString() });
+      const pool = new Pool({
+        connectionString: this.uri.url.toString(),
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+      });
       this.db = pool;
       this.uri.dialect = 'postgres';
     } else if (this.uri.dialect === 'sqlite') {
@@ -155,12 +160,34 @@ export class DB {
     if (this.uri.dialect === 'postgres') {
       const client = await (this.db as Pool).connect();
       await client.query('BEGIN');
+
+      let finalised = false;
+
+      const finalise = () => {
+        if (!finalised) {
+          finalised = true;
+          client.release();
+        }
+      };
+
       return {
         commit: async () => {
-          await client.query('COMMIT');
+          try {
+            await client.query('COMMIT');
+          } catch (error) {
+            throw error;
+          } finally {
+            finalise();
+          }
         },
         rollback: async () => {
-          await client.query('ROLLBACK');
+          try {
+            await client.query('ROLLBACK');
+          } catch (error) {
+            throw error;
+          } finally {
+            finalise();
+          }
         },
         execute: async (
           query: string,

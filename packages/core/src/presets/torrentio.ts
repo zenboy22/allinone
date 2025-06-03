@@ -133,6 +133,7 @@ export class TorrentioPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
+      identifyingName: `${options.name || this.METADATA.NAME} ${services.map((id) => constants.SERVICE_DETAILS[id].shortName).join(' | ')}`,
       manifestUrl: this.generateManifestUrl(userData, services, options.url),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
