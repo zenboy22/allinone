@@ -83,7 +83,7 @@ export class CustomPreset extends Preset {
     return {
       name: options.name || this.METADATA.NAME,
       identifyingName: options.name || this.METADATA.NAME,
-      manifestUrl: options.manifestUrl,
+      manifestUrl: options.manifestUrl.replace('stremio://', 'https://'),
       enabled: true,
       library: options.libraryAddon ?? false,
       resources: options.resources || undefined,
