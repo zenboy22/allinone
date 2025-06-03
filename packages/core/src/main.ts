@@ -945,6 +945,16 @@ export class AIOStreams {
       serviceIds: string[] | undefined,
       cached: boolean
     ) => {
+      if (this.userData.excludeCached && cached && stream.service?.cached) {
+        return false;
+      }
+      if (
+        this.userData.excludeUncached &&
+        cached === false &&
+        stream.service?.cached === false
+      ) {
+        return false;
+      }
       if (mode === 'and') {
         return (
           (!addonIds ||
