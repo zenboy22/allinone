@@ -21,11 +21,7 @@ class TorboxStreamParser extends StreamParser {
     return (stream as any).hash;
   }
   override getInLibrary(stream: Stream): boolean {
-    return (
-      ((stream as any).is_your_media ||
-        stream.description?.includes('Your Media')) ??
-      false
-    );
+    return (stream as any).is_your_media || stream.name?.includes('Your Media');
   }
   protected override getService(
     stream: Stream

@@ -258,7 +258,7 @@ export async function validateConfig(
 
   if (config.groups) {
     for (const group of config.groups) {
-      validateGroup(group);
+      await validateGroup(group);
     }
   }
 
@@ -383,7 +383,7 @@ function validatePreset(preset: PresetObject) {
   }
 }
 
-function validateGroup(group: Group) {
+async function validateGroup(group: Group) {
   if (!group) {
     return;
   }
@@ -394,13 +394,18 @@ function validateGroup(group: Group) {
   }
 
   // we must be able to parse the condition
+  let result;
   try {
-    const result = ConditionParser.testParse(group.condition);
-    if (typeof result !== 'boolean') {
-      throw new Error('Group condition must evaluate to a boolean');
-    }
-  } catch (error) {
-    throw new Error(`Group condition is invalid: ${error}`);
+    result = await ConditionParser.testParse(group.condition);
+  } catch (error: any) {
+    throw new Error(
+      `Your group condition - '${group.condition}' - is invalid: ${error.message}`
+    );
+  }
+  if (typeof result !== 'boolean') {
+    throw new Error(
+      `Your group condition - '${group.condition}' - is invalid. Expected evaluation to a boolean, instead got '${typeof result}'`
+    );
   }
 }
 

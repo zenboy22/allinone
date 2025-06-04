@@ -808,7 +808,7 @@ export class AIOStreams {
           );
           const shouldFetch = await parser.parse(group.condition);
           if (shouldFetch) {
-            logger.info(`Condition met for group ${i}, fetching streams`);
+            logger.info(`Condition met for group ${i + 1}, fetching streams`);
 
             const groupAddons = supportedAddons.filter(
               (addon) => addon.id && group.addons.includes(addon.id)
@@ -868,12 +868,15 @@ export class AIOStreams {
       requiredUncachedFromServices: { total: 0, details: {} },
       excludedUncachedMode: { total: 0, details: {} },
       requiredUncachedMode: { total: 0, details: {} },
+      excludedEncode: { total: 0, details: {} },
+      requiredEncode: { total: 0, details: {} },
       excludedCachedFromAddons: { total: 0, details: {} },
       requiredCachedFromAddons: { total: 0, details: {} },
       excludedCachedFromServices: { total: 0, details: {} },
       requiredCachedFromServices: { total: 0, details: {} },
       excludedCachedMode: { total: 0, details: {} },
       requiredCachedMode: { total: 0, details: {} },
+      requiredLanguage: { total: 0, details: {} },
     };
 
     const start = Date.now();
@@ -945,40 +948,25 @@ export class AIOStreams {
       serviceIds: string[] | undefined,
       cached: boolean
     ) => {
-      if (this.userData.excludeCached && cached && stream.service?.cached) {
-        return false;
-      }
-      if (
-        this.userData.excludeUncached &&
-        cached === false &&
-        stream.service?.cached === false
-      ) {
-        return false;
-      }
+      const addonCriteriaMet =
+        !addonIds ||
+        addonIds.length === 0 ||
+        (addonIds.some((addonId) => stream.addon.id === addonId) &&
+          stream.service?.cached === cached);
+      const serviceCriteriaMet =
+        !serviceIds ||
+        serviceIds.length === 0 ||
+        (serviceIds.some((serviceId) => stream.service?.id === serviceId) &&
+          stream.service?.cached === cached);
+
       if (mode === 'and') {
-        return (
-          (!addonIds ||
-            addonIds.length === 0 ||
-            addonIds.some((addonId) => stream.addon.id === addonId)) &&
-          (!serviceIds ||
-            serviceIds.length === 0 ||
-            serviceIds.some((serviceId) => stream.service?.id === serviceId)) &&
-          stream.service?.cached === cached
-        );
+        return addonCriteriaMet && serviceCriteriaMet;
       } else {
-        return (
-          (!addonIds ||
-            addonIds.length === 0 ||
-            addonIds.some((addonId) => stream.addon.id === addonId)) &&
-          (!serviceIds ||
-            serviceIds.length === 0 ||
-            serviceIds.some((serviceId) => stream.service?.id === serviceId)) &&
-          stream.service?.cached === cached
-        );
+        return addonCriteriaMet || serviceCriteriaMet;
       }
     };
 
-    const filteredStreams = streams.filter(async (stream) => {
+    const shouldKeepStream = async (stream: ParsedStream): Promise<boolean> => {
       const file = stream.parsedFile;
 
       // carry out include checks first
@@ -1278,7 +1266,7 @@ export class AIOStreams {
           this.userData.excludeCachedFromAddons,
           this.userData.excludeCachedFromServices,
           true
-        )
+        ) === false
       ) {
         skipReasons.excludedCached.total++;
         return false;
@@ -1291,7 +1279,7 @@ export class AIOStreams {
           this.userData.excludeUncachedFromAddons,
           this.userData.excludeUncachedFromServices,
           false
-        )
+        ) === false
       ) {
         skipReasons.excludedUncached.total++;
         return false;
@@ -1327,22 +1315,45 @@ export class AIOStreams {
       // TODO: size filters
 
       return true;
-    });
+    };
+
+    const filterResults = await Promise.all(streams.map(shouldKeepStream));
+    const filteredStreams = streams.filter((_, index) => filterResults[index]);
 
     // Log filter summary
     const totalFiltered = streams.length - filteredStreams.length;
     if (totalFiltered > 0) {
-      const summary = [`Filtered out ${totalFiltered} streams:`];
+      const summary = [
+        '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        `  🔍 Filter Summary`,
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        `  📊 Total Streams : ${streams.length}`,
+        `  ✔️ Kept         : ${filteredStreams.length}`,
+        `  ❌ Filtered     : ${totalFiltered}`,
+      ];
 
+      // Add filter details if any streams were filtered
+      const filterDetails: string[] = [];
       for (const [reason, stats] of Object.entries(skipReasons)) {
         if (stats.total > 0) {
-          summary.push(`  - ${stats.total} due to ${reason}:`);
+          // Convert camelCase to Title Case with spaces
+          const formattedReason = reason
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, (str) => str.toUpperCase());
+
+          filterDetails.push(`\n  📌 ${formattedReason} (${stats.total})`);
           for (const [detail, count] of Object.entries(stats.details)) {
-            summary.push(`    • ${count} ${detail}`);
+            filterDetails.push(`    • ${count}× ${detail}`);
           }
         }
       }
 
+      if (filterDetails.length > 0) {
+        summary.push('\n  🔎 Filter Details:');
+        summary.push(...filterDetails);
+      }
+
+      summary.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       logger.info(summary.join('\n'));
     }
 
@@ -1684,7 +1695,7 @@ export class AIOStreams {
         (stream) => stream.service?.cached || stream.service === undefined // streams without a service can be considered as 'cached'
       );
       const uncachedStreams = streams.filter(
-        (stream) => !stream.service?.cached
+        (stream) => stream.service?.cached === false
       );
 
       // sort the 2 lists separately, and put them after the other, depending on the direction of cached
@@ -1714,6 +1725,7 @@ export class AIOStreams {
         sortedStreams = [...uncachedSorted, ...cachedSorted];
       }
     } else {
+      logger.debug(`using sort criteria: ${JSON.stringify(sortCriteria)}`);
       sortedStreams = streams.slice().sort((a, b) => {
         const aKey = this.dynamicSortKey(a, sortCriteria, type);
         const bKey = this.dynamicSortKey(b, sortCriteria, type);

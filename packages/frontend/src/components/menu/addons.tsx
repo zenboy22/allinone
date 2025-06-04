@@ -33,7 +33,12 @@ import { Option, Resource } from '@aiostreams/core';
 import { toast } from 'sonner';
 import { Tooltip } from '../ui/tooltip';
 import { StaticTabs } from '../ui/tabs';
-import { LuDownload, LuGlobe } from 'react-icons/lu';
+import {
+  LuDownload,
+  LuGlobe,
+  LuChevronsUp,
+  LuChevronsDown,
+} from 'react-icons/lu';
 import { AnimatePresence } from 'framer-motion';
 import { PageControls } from '../shared/page-controls';
 import Image from 'next/image';
@@ -44,6 +49,7 @@ import {
   ConfirmationDialog,
   useConfirmationDialog,
 } from '../shared/confirmation-dialog';
+import { MdRefresh } from 'react-icons/md';
 
 interface CatalogModification {
   id: string;
@@ -514,14 +520,14 @@ function SortableAddonItem({
   };
   return (
     <li ref={setNodeRef} style={style}>
-      <div className="px-2.5 py-2 bg-[var(--background)] rounded-[--radius-md] border flex gap-3 relative">
+      <div className="px-2.5 py-2 bg-[var(--background)] rounded-[--radius-md] border flex gap-2 sm:gap-3 relative">
         <div
-          className="rounded-full w-6 h-auto bg-[--muted] md:bg-[--subtle] md:hover:bg-[--subtle-highlight] cursor-move"
+          className="rounded-full w-6 h-auto bg-[--muted] md:bg-[--subtle] md:hover:bg-[--subtle-highlight] cursor-move flex-shrink-0"
           {...attributes}
           {...listeners}
         />
-        <div className="flex items-center gap-3 flex-1">
-          <div className="relative flex-shrink-0 h-8 w-8">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          <div className="relative flex-shrink-0 h-8 w-8 hidden sm:block">
             {preset.ID === 'custom' ? (
               <PlusIcon className="w-full h-full object-contain" />
             ) : (
@@ -534,19 +540,26 @@ function SortableAddonItem({
             )}
           </div>
 
-          <p className="text-base line-clamp-1">{addon.options.name}</p>
+          <p className="text-base line-clamp-1 truncate block">
+            {addon.options.name}
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Switch value={addon.enabled} onValueChange={onToggleEnabled} />
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Switch
+            value={addon.enabled}
+            onValueChange={onToggleEnabled}
+            size="sm"
+            className="sm:scale-100 scale-90"
+          />
           <IconButton
-            className="rounded-full"
+            className="rounded-full sm:scale-100 scale-85"
             icon={<BiEdit />}
             intent="primary-subtle"
             onClick={onEdit}
           />
           <IconButton
-            className="rounded-full"
+            className="rounded-full sm:scale-100 scale-85"
             icon={<BiTrash />}
             intent="alert-subtle"
             onClick={onRemove}
@@ -1020,7 +1033,7 @@ function CatalogSettingsCard() {
           type: catalog.type,
           enabled: true,
           shuffle: false,
-          rpdb: false,
+          rpdb: userData.rpdbApiKey ? true : false,
         }));
         setUserData((prev) => ({
           ...prev,
@@ -1152,9 +1165,11 @@ function CatalogSettingsCard() {
           <h3 className="text-lg font-semibold">Catalogs</h3>
           <p className="text-[--muted] text-sm">Manage your catalogs</p>
         </div>
-        <Button
+        <IconButton
           size="sm"
-          intent="primary-outline"
+          intent="white-subtle"
+          icon={<MdRefresh />}
+          rounded
           onClick={() => {
             if (userData.catalogModifications?.length) {
               confirmRefreshCatalogs.open();
@@ -1163,11 +1178,7 @@ function CatalogSettingsCard() {
             }
           }}
           loading={loading}
-        >
-          {userData.catalogModifications?.length
-            ? 'Refresh Catalogs'
-            : 'Fetch Catalogs'}
-        </Button>
+        />
       </div>
 
       {!userData.catalogModifications?.length && (
@@ -1230,9 +1241,12 @@ function CatalogSettingsCard() {
       <Modal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={`Edit Catalog: ${editingCatalog?.name || editingCatalog?.id} - ${capitalise(
-          editingCatalog?.type
-        )}`}
+        title={
+          <div className="max-w-[calc(100vw-4rem)] sm:max-w-[400px] truncate">
+            Edit Catalog: {editingCatalog?.name || editingCatalog?.id} -{' '}
+            {capitalise(editingCatalog?.type)}
+          </div>
+        }
       >
         <form
           className="space-y-4"
@@ -1321,36 +1335,80 @@ function SortableCatalogItem({
     id: `${catalog.id}-${catalog.type}`,
   });
 
+  const { setUserData } = useUserData();
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const moveToTop = () => {
+    setUserData((prev) => {
+      if (!prev.catalogModifications) return prev;
+      const index = prev.catalogModifications.findIndex(
+        (c) => c.id === catalog.id && c.type === catalog.type
+      );
+      if (index <= 0) return prev;
+      const newMods = [...prev.catalogModifications];
+      const [item] = newMods.splice(index, 1);
+      newMods.unshift(item);
+      return { ...prev, catalogModifications: newMods };
+    });
+  };
+
+  const moveToBottom = () => {
+    setUserData((prev) => {
+      if (!prev.catalogModifications) return prev;
+      const index = prev.catalogModifications.findIndex(
+        (c) => c.id === catalog.id && c.type === catalog.type
+      );
+      if (index === prev.catalogModifications.length - 1) return prev;
+      const newMods = [...prev.catalogModifications];
+      const [item] = newMods.splice(index, 1);
+      newMods.push(item);
+      return { ...prev, catalogModifications: newMods };
+    });
+  };
+
   return (
     <div ref={setNodeRef} style={style}>
-      <div className="px-2.5 py-2 bg-[var(--background)] rounded-[--radius-md] border flex gap-3 relative">
+      <div className="px-2.5 py-2 bg-[var(--background)] rounded-[--radius-md] border flex gap-2 sm:gap-3 relative">
         <div
-          className="rounded-full w-6 h-auto bg-[--muted] md:bg-[--subtle] md:hover:bg-[--subtle-highlight] cursor-move"
+          className="rounded-full w-6 h-auto bg-[--muted] md:bg-[--subtle] md:hover:bg-[--subtle-highlight] cursor-move flex-shrink-0"
           {...attributes}
           {...listeners}
         />
-        <div className="flex items-center gap-3 flex-1">
-          <p className="text-base line-clamp-1">
-            {catalog.name || catalog.id} - {capitalise(catalog.type)}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <p className="text-base line-clamp-1 truncate block">
+            {catalog.name ?? catalog.id} - {capitalise(catalog.type)}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Switch
             value={catalog.enabled ?? true}
             onValueChange={onToggleEnabled}
+            size="sm"
+            className="sm:scale-100 scale-90"
           />
           <IconButton
-            className="rounded-full"
+            className="rounded-full sm:scale-100 scale-85"
             icon={<BiEdit />}
             intent="primary-subtle"
             onClick={onEdit}
+          />
+          <IconButton
+            className="rounded-full sm:scale-100 scale-85"
+            icon={<LuChevronsUp />}
+            intent="primary-subtle"
+            onClick={moveToTop}
+          />
+          <IconButton
+            className="rounded-full sm:scale-100 scale-85"
+            icon={<LuChevronsDown />}
+            intent="primary-subtle"
+            onClick={moveToBottom}
           />
         </div>
       </div>

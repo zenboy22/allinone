@@ -1,7 +1,8 @@
-import { Addon, Option, UserData, Resource } from '../db';
+import { Addon, Option, UserData, Resource, Stream } from '../db';
 import { baseOptions, Preset } from './preset';
 import { Env } from '../utils';
 import { constants, ServiceId } from '../utils';
+import { StreamParser } from '../parser';
 
 export class StremthruStorePreset extends Preset {
   static override get METADATA() {
@@ -103,6 +104,7 @@ export class StremthruStorePreset extends Preset {
         : options.name || this.METADATA.NAME,
       manifestUrl: this.generateManifestUrl(userData, options, serviceId),
       enabled: true,
+      library: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
       timeout: options.timeout || this.METADATA.TIMEOUT,
       fromPresetId: this.METADATA.ID,

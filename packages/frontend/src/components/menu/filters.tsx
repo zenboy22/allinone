@@ -740,6 +740,16 @@ function Content() {
                       requiredKeywords: values,
                     }));
                   }}
+                  onValueChange={(value, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      requiredKeywords: [
+                        ...(prev.requiredKeywords || []).slice(0, index),
+                        value,
+                        ...(prev.requiredKeywords || []).slice(index + 1),
+                      ],
+                    }));
+                  }}
                 />
                 <TextInputs
                   label="Excluded Keywords"
@@ -750,6 +760,16 @@ function Content() {
                     setUserData((prev) => ({
                       ...prev,
                       excludedKeywords: values,
+                    }));
+                  }}
+                  onValueChange={(value, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      excludedKeywords: [
+                        ...(prev.excludedKeywords || []).slice(0, index),
+                        value,
+                        ...(prev.excludedKeywords || []).slice(index + 1),
+                      ],
                     }));
                   }}
                 />
@@ -764,6 +784,16 @@ function Content() {
                       includedKeywords: values,
                     }));
                   }}
+                  onValueChange={(value, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      includedKeywords: [
+                        ...(prev.includedKeywords || []).slice(0, index),
+                        value,
+                        ...(prev.includedKeywords || []).slice(index + 1),
+                      ],
+                    }));
+                  }}
                 />
                 <TextInputs
                   label="Preferred Keywords"
@@ -774,6 +804,16 @@ function Content() {
                     setUserData((prev) => ({
                       ...prev,
                       preferredKeywords: values,
+                    }));
+                  }}
+                  onValueChange={(value, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      preferredKeywords: [
+                        ...(prev.preferredKeywords || []).slice(0, index),
+                        value,
+                        ...(prev.preferredKeywords || []).slice(index + 1),
+                      ],
                     }));
                   }}
                 />
@@ -818,6 +858,16 @@ function Content() {
                       requiredRegexPatterns: values,
                     }));
                   }}
+                  onValueChange={(value, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      requiredRegexPatterns: [
+                        ...(prev.requiredRegexPatterns || []).slice(0, index),
+                        value,
+                        ...(prev.requiredRegexPatterns || []).slice(index + 1),
+                      ],
+                    }));
+                  }}
                 />
                 <TextInputs
                   label="Excluded Regex"
@@ -828,6 +878,16 @@ function Content() {
                     setUserData((prev) => ({
                       ...prev,
                       excludedRegexPatterns: values,
+                    }));
+                  }}
+                  onValueChange={(value, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      excludedRegexPatterns: [
+                        ...(prev.excludedRegexPatterns || []).slice(0, index),
+                        value,
+                        ...(prev.excludedRegexPatterns || []).slice(index + 1),
+                      ],
                     }));
                   }}
                 />
@@ -842,16 +902,26 @@ function Content() {
                       includedRegexPatterns: values,
                     }));
                   }}
+                  onValueChange={(value, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      includedRegexPatterns: [
+                        ...(prev.includedRegexPatterns || []).slice(0, index),
+                        value,
+                        ...(prev.includedRegexPatterns || []).slice(index + 1),
+                      ],
+                    }));
+                  }}
                 />
                 <TwoTextInputs
-                  title="Preferred Regex"
-                  description="Streams that contain any of these regular expressions will be preferred. Give each regex a name which will appear in your stream if the format you use supports it."
+                  title="Preferred Regex Patterns"
+                  description="Define regex patterns with names for easy reference"
                   keyName="Name"
                   keyId="name"
-                  keyPlaceholder="Enter the name of this regex here"
-                  valueName="Regex"
+                  keyPlaceholder="Enter pattern name"
                   valueId="pattern"
-                  valuePlaceholder="Enter the actual regex pattern here"
+                  valueName="Pattern"
+                  valuePlaceholder="Enter regex pattern"
                   values={(userData.preferredRegexPatterns || []).map(
                     (pattern) => ({
                       name: pattern.name,
@@ -861,10 +931,36 @@ function Content() {
                   onValuesChange={(values) => {
                     setUserData((prev) => ({
                       ...prev,
-                      preferredRegexPatterns: values.map((value) => ({
-                        name: value.name,
-                        pattern: value.value,
+                      preferredRegexPatterns: values.map((v) => ({
+                        name: v.name,
+                        pattern: v.value,
                       })),
+                    }));
+                  }}
+                  onValueChange={(value, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      preferredRegexPatterns: [
+                        ...(prev.preferredRegexPatterns || []).slice(0, index),
+                        {
+                          ...(prev.preferredRegexPatterns || [])[index],
+                          pattern: value,
+                        },
+                        ...(prev.preferredRegexPatterns || []).slice(index + 1),
+                      ],
+                    }));
+                  }}
+                  onKeyChange={(key, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      preferredRegexPatterns: [
+                        ...(prev.preferredRegexPatterns || []).slice(0, index),
+                        {
+                          ...(prev.preferredRegexPatterns || [])[index],
+                          name: key,
+                        },
+                        ...(prev.preferredRegexPatterns || []).slice(index + 1),
+                      ],
                     }));
                   }}
                 />
@@ -885,12 +981,15 @@ function Content() {
                     help="Global limit for all results"
                     label="Global Limit"
                     value={userData.resultLimits?.global || undefined}
-                    min={1}
+                    min={0}
                     defaultValue={undefined}
                     onValueChange={(value) => {
                       setUserData((prev) => ({
                         ...prev,
-                        resultLimits: { ...prev.resultLimits, global: value },
+                        resultLimits: {
+                          ...prev.resultLimits,
+                          global: value || undefined,
+                        },
                       }));
                     }}
                   />
@@ -898,12 +997,15 @@ function Content() {
                     help="Limit for results by service"
                     label="Service Limit"
                     value={userData.resultLimits?.service || undefined}
-                    min={1}
+                    min={0}
                     defaultValue={undefined}
                     onValueChange={(value) => {
                       setUserData((prev) => ({
                         ...prev,
-                        resultLimits: { ...prev.resultLimits, service: value },
+                        resultLimits: {
+                          ...prev.resultLimits,
+                          service: value || undefined,
+                        },
                       }));
                     }}
                   />
@@ -911,12 +1013,15 @@ function Content() {
                     help="Limit for results by addon"
                     label="Addon Limit"
                     value={userData.resultLimits?.addon || undefined}
-                    min={1}
+                    min={0}
                     defaultValue={undefined}
                     onValueChange={(value) => {
                       setUserData((prev) => ({
                         ...prev,
-                        resultLimits: { ...prev.resultLimits, addon: value },
+                        resultLimits: {
+                          ...prev.resultLimits,
+                          addon: value || undefined,
+                        },
                       }));
                     }}
                   />
@@ -924,14 +1029,14 @@ function Content() {
                     help="Limit for results by resolution"
                     label="Resolution Limit"
                     value={userData.resultLimits?.resolution || undefined}
-                    min={1}
+                    min={0}
                     defaultValue={undefined}
                     onValueChange={(value) => {
                       setUserData((prev) => ({
                         ...prev,
                         resultLimits: {
                           ...prev.resultLimits,
-                          resolution: value,
+                          resolution: value || undefined,
                         },
                       }));
                     }}
@@ -940,12 +1045,15 @@ function Content() {
                     help="Limit for results by quality"
                     label="Quality Limit"
                     value={userData.resultLimits?.quality || undefined}
-                    min={1}
+                    min={0}
                     defaultValue={undefined}
                     onValueChange={(value) => {
                       setUserData((prev) => ({
                         ...prev,
-                        resultLimits: { ...prev.resultLimits, quality: value },
+                        resultLimits: {
+                          ...prev.resultLimits,
+                          quality: value || undefined,
+                        },
                       }));
                     }}
                   />
@@ -953,12 +1061,15 @@ function Content() {
                     help="Limit for results by indexer"
                     label="Indexer Limit"
                     value={userData.resultLimits?.indexer || undefined}
-                    min={1}
+                    min={0}
                     defaultValue={undefined}
                     onValueChange={(value) => {
                       setUserData((prev) => ({
                         ...prev,
-                        resultLimits: { ...prev.resultLimits, indexer: value },
+                        resultLimits: {
+                          ...prev.resultLimits,
+                          indexer: value || undefined,
+                        },
                       }));
                     }}
                   />
@@ -966,14 +1077,14 @@ function Content() {
                     help="Limit for results by release group"
                     label="Release Group Limit"
                     value={userData.resultLimits?.releaseGroup || undefined}
-                    min={1}
+                    min={0}
                     defaultValue={undefined}
                     onValueChange={(value) => {
                       setUserData((prev) => ({
                         ...prev,
                         resultLimits: {
                           ...prev.resultLimits,
-                          releaseGroup: value,
+                          releaseGroup: value || undefined,
                         },
                       }));
                     }}
@@ -1410,6 +1521,7 @@ type TextInputProps = {
   help: string; // help text that shows below the label
   values: string[];
   onValuesChange: (values: string[]) => void;
+  onValueChange: (value: string, index: number) => void;
   placeholder?: string;
 };
 
@@ -1421,6 +1533,7 @@ function TextInputs({
   help,
   values,
   onValuesChange,
+  onValueChange,
   placeholder,
 }: TextInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1471,13 +1584,14 @@ function TextInputs({
               value={value}
               label={itemName}
               placeholder={placeholder}
-              onValueChange={(value) =>
-                onValuesChange([
-                  ...values.slice(0, index),
-                  value,
-                  ...values.slice(index + 1),
-                ])
-              }
+              onValueChange={(value) => onValueChange(value, index)}
+              // onValueChange={(value) =>
+              //   onValuesChange([
+              //     ...values.slice(0, index),
+              //     value,
+              //     ...values.slice(index + 1),
+              //   ])
+              // }
             />
           </div>
           <IconButton
@@ -1556,6 +1670,8 @@ type KeyValueInputProps = {
   valuePlaceholder: string;
   values: { name: string; value: string }[];
   onValuesChange: (values: { name: string; value: string }[]) => void;
+  onValueChange: (value: string, index: number) => void;
+  onKeyChange: (key: string, index: number) => void;
 };
 
 function TwoTextInputs({
@@ -1569,6 +1685,8 @@ function TwoTextInputs({
   valuePlaceholder,
   values,
   onValuesChange,
+  onValueChange,
+  onKeyChange,
 }: KeyValueInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1602,11 +1720,17 @@ function TwoTextInputs({
         if (
           Array.isArray(data) &&
           data.every(
-            (value: { name: string; value: string }) =>
-              typeof value.name === 'string' && typeof value.value === 'string'
+            (value: { [key: string]: string }) =>
+              typeof value[keyId] === 'string' &&
+              typeof value[valueId] === 'string'
           )
         ) {
-          onValuesChange(data);
+          onValuesChange(
+            data.map((v: { [key: string]: string }) => ({
+              name: v[keyId],
+              value: v[valueId],
+            }))
+          );
         }
       } catch (error) {
         console.error('Error importing file:', error);
@@ -1622,31 +1746,21 @@ function TwoTextInputs({
     <SettingsCard title={title} description={description}>
       {values.map((value, index) => (
         <div key={index} className="flex gap-2">
-          <div className="flex-1 flex gap-2">
-            <div className="flex-1">
-              <TextInput
-                value={value.name}
-                label={keyName}
-                placeholder={keyPlaceholder}
-                onValueChange={(value) => {
-                  const newValues = [...values];
-                  newValues[index].name = value;
-                  onValuesChange(newValues);
-                }}
-              />
-            </div>
-            <div className="flex-1">
-              <TextInput
-                value={value.value}
-                label={valueName}
-                placeholder={valuePlaceholder}
-                onValueChange={(value) => {
-                  const newValues = [...values];
-                  newValues[index].value = value;
-                  onValuesChange(newValues);
-                }}
-              />
-            </div>
+          <div className="flex-1">
+            <TextInput
+              value={value.name}
+              label={keyName}
+              placeholder={keyPlaceholder}
+              onValueChange={(newValue) => onKeyChange(newValue, index)}
+            />
+          </div>
+          <div className="flex-1">
+            <TextInput
+              value={value.value}
+              label={valueName}
+              placeholder={valuePlaceholder}
+              onValueChange={(newValue) => onValueChange(newValue, index)}
+            />
           </div>
           <IconButton
             size="sm"

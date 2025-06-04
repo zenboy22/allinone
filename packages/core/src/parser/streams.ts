@@ -1,7 +1,7 @@
 import { Stream, ParsedStream, Addon } from '../db';
-import { constants } from '../utils';
+import { constants, createLogger } from '../utils';
 import FileParser from './file';
-
+const logger = createLogger('parser');
 class StreamParser {
   get errorRegexes(): { pattern: RegExp; message: string }[] | undefined {
     return [
