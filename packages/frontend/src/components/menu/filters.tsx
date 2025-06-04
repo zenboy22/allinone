@@ -1424,6 +1424,7 @@ function FilterSettings<T extends string>({
               value={preferred}
               onValueChange={(values) => {
                 setPreferred(values as T[]);
+                onPreferredChange(values as T[]);
               }}
               options={options.map((opt) => ({
                 value: opt.value,
