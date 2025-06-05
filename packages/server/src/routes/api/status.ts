@@ -7,7 +7,7 @@ import {
 } from '@aiostreams/core';
 import { StatusResponse } from '@aiostreams/core';
 import { encryptString } from '@aiostreams/core';
-import { FeatureControl } from '@aiostreams/core/src/utils/feature';
+import { FeatureControl } from '@aiostreams/core';
 
 const router = Router();
 
