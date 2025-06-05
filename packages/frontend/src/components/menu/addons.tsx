@@ -547,19 +547,18 @@ function SortableAddonItem({
 
         <div className="flex items-center gap-1 sm:gap-2">
           <Switch
-            value={addon.enabled}
+            value={!!addon.enabled}
             onValueChange={onToggleEnabled}
             size="sm"
-            className="sm:scale-100 scale-90"
           />
           <IconButton
-            className="rounded-full sm:scale-100 scale-85"
+            className="rounded-full h-8 w-8 md:h-10 md:w-10"
             icon={<BiEdit />}
             intent="primary-subtle"
             onClick={onEdit}
           />
           <IconButton
-            className="rounded-full sm:scale-100 scale-85"
+            className="rounded-full h-8 w-8 md:h-10 md:w-10"
             icon={<BiTrash />}
             intent="alert-subtle"
             onClick={onRemove}
@@ -1026,19 +1025,42 @@ function CatalogSettingsCard() {
     try {
       const response = await UserConfigAPI.getCatalogs(userData);
       if (response.success && response.data) {
-        // Map catalogs to catalog modifications with default values
-        const modifications = response.data.map((catalog) => ({
-          id: catalog.id,
-          name: catalog.name,
-          type: catalog.type,
-          enabled: true,
-          shuffle: false,
-          rpdb: userData.rpdbApiKey ? true : false,
-        }));
-        setUserData((prev) => ({
-          ...prev,
-          catalogModifications: modifications,
-        }));
+        setUserData((prev) => {
+          const existingMods = prev.catalogModifications || [];
+          const existingIds = new Set(
+            existingMods.map((mod) => `${mod.id}-${mod.type}`)
+          );
+
+          // Keep existing modifications with their settings
+          const modifications = [...existingMods];
+
+          // Add new catalogs at the bottom
+          response.data!.forEach((catalog) => {
+            if (!existingIds.has(`${catalog.id}-${catalog.type}`)) {
+              modifications.push({
+                id: catalog.id,
+                name: catalog.name,
+                type: catalog.type,
+                enabled: true,
+                shuffle: false,
+                rpdb: userData.rpdbApiKey ? true : false,
+              });
+            }
+          });
+
+          // Filter out modifications for catalogs that no longer exist
+          const newCatalogIds = new Set(
+            response.data!.map((c) => `${c.id}-${c.type}`)
+          );
+          const filteredMods = modifications.filter((mod) =>
+            newCatalogIds.has(`${mod.id}-${mod.type}`)
+          );
+
+          return {
+            ...prev,
+            catalogModifications: filteredMods,
+          };
+        });
         toast.success('Catalogs fetched successfully');
       } else {
         toast.error(response.error || 'Failed to fetch catalogs');
@@ -1152,7 +1174,7 @@ function CatalogSettingsCard() {
   const confirmRefreshCatalogs = useConfirmationDialog({
     title: 'Refresh Catalogs',
     description:
-      'Are you sure you want to refresh the catalogs? This will replace all your current catalogs and their settings and fetch new ones from the addons.',
+      'Are you sure you want to refresh the catalogs? This will remove any catalogs that are no longer available',
     onConfirm: () => {
       fetchCatalogs();
     },
@@ -1167,7 +1189,7 @@ function CatalogSettingsCard() {
         </div>
         <IconButton
           size="sm"
-          intent="white-subtle"
+          intent="warning-subtle"
           icon={<MdRefresh />}
           rounded
           onClick={() => {
@@ -1385,27 +1407,26 @@ function SortableCatalogItem({
           </p>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <Switch
             value={catalog.enabled ?? true}
             onValueChange={onToggleEnabled}
             size="sm"
-            className="sm:scale-100 scale-90"
           />
           <IconButton
-            className="rounded-full sm:scale-100 scale-85"
+            className="rounded-full h-8 w-8 md:h-10 md:w-10"
             icon={<BiEdit />}
             intent="primary-subtle"
             onClick={onEdit}
           />
           <IconButton
-            className="rounded-full sm:scale-100 scale-85"
+            className="rounded-full h-8 w-8 md:h-10 md:w-10"
             icon={<LuChevronsUp />}
             intent="primary-subtle"
             onClick={moveToTop}
           />
           <IconButton
-            className="rounded-full sm:scale-100 scale-85"
+            className="rounded-full h-8 w-8 md:h-10 md:w-10"
             icon={<LuChevronsDown />}
             intent="primary-subtle"
             onClick={moveToBottom}
