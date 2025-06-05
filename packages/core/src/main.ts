@@ -117,7 +117,16 @@ export class AIOStreams {
 
     this.precomputeSortRegexes(deduplicatedStreams);
 
-    const sortedStreams = this.sortStreams(deduplicatedStreams, type);
+    const sortedStreams = this.sortStreams(deduplicatedStreams, type)
+      // remove HDR+DV from visual tags after filtering/sorting
+      .map((stream) => {
+        if (stream.parsedFile?.visualTags?.includes('HDR+DV')) {
+          stream.parsedFile.visualTags = stream.parsedFile.visualTags.filter(
+            (tag) => tag !== 'HDR+DV'
+          );
+        }
+        return stream;
+      });
 
     // step 6
     // limit the number of streams based on the limit criteria.
@@ -1102,6 +1111,7 @@ export class AIOStreams {
       // Track required stream type misses
       if (
         this.userData.requiredStreamTypes &&
+        this.userData.requiredStreamTypes.length > 0 &&
         !this.userData.requiredStreamTypes.includes(stream.type)
       ) {
         skipReasons.requiredStreamType.total++;
@@ -1126,6 +1136,7 @@ export class AIOStreams {
 
       if (
         this.userData.requiredResolutions &&
+        this.userData.requiredResolutions.length > 0 &&
         !this.userData.requiredResolutions.includes(
           (file?.resolution || 'Unknown') as any
         )
@@ -1153,6 +1164,7 @@ export class AIOStreams {
 
       if (
         this.userData.requiredQualities &&
+        this.userData.requiredQualities.length > 0 &&
         !this.userData.requiredQualities.includes(
           (file?.quality || 'Unknown') as any
         )
@@ -1179,6 +1191,7 @@ export class AIOStreams {
 
       if (
         this.userData.requiredEncodes &&
+        this.userData.requiredEncodes.length > 0 &&
         !this.userData.requiredEncodes.includes(
           file?.encode || ('Unknown' as any)
         )
@@ -1222,6 +1235,7 @@ export class AIOStreams {
 
       if (
         this.userData.requiredVisualTags &&
+        this.userData.requiredVisualTags.length > 0 &&
         !this.userData.requiredVisualTags.some((tag) =>
           file?.visualTags?.includes(tag)
         )
@@ -1234,11 +1248,6 @@ export class AIOStreams {
           (skipReasons.requiredVisualTag.details[tag!] || 0) + 1;
         return false;
       }
-
-      // // remove HDR+DV if it is present in the visual tags list
-      // if (file.visualTags.includes('HDR+DV')) {
-      //   file.visualTags = file.visualTags.filter((tag) => tag !== 'HDR+DV');
-      // }
 
       if (
         this.userData.excludedAudioTags?.some((tag) =>
@@ -1256,6 +1265,7 @@ export class AIOStreams {
 
       if (
         this.userData.requiredAudioTags &&
+        this.userData.requiredAudioTags.length > 0 &&
         !this.userData.requiredAudioTags.some((tag) =>
           file?.audioTags.includes(tag)
         )
@@ -1286,6 +1296,7 @@ export class AIOStreams {
 
       if (
         this.userData.requiredLanguages &&
+        this.userData.requiredLanguages.length > 0 &&
         !this.userData.requiredLanguages.some((lang) =>
           (file?.languages || ['Unknown']).includes(lang)
         )
