@@ -19,7 +19,7 @@ export function PageControls() {
         intent="white"
         size="md"
         rounded
-        className="min-w-[120px]"
+        className="min-w-[60px] md:min-w-[120px]"
         onClick={() => {
           previousMenu();
         }}
@@ -40,14 +40,14 @@ export function PageControls() {
         }}
         disabled={selectedMenu === firstMenu}
       >
-        Previous
+        <div className="hidden md:block">Previous</div>
       </Button>
       <Button
         rightIcon={<FiArrowRight />}
         intent="white"
         size="md"
         rounded
-        className="min-w-[120px]"
+        className="min-w-[60px] md:min-w-[120px]"
         onClick={() => {
           nextMenu();
         }}
@@ -67,7 +67,7 @@ export function PageControls() {
         }}
         disabled={selectedMenu === lastMenu}
       >
-        Next
+        <div className="hidden md:block">Next</div>
       </Button>
     </div>
   );
