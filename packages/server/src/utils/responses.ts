@@ -1,5 +1,6 @@
 import {
   createErrorStream,
+  createErrorSubtitle,
   createLogger,
   makeUrlLogSafe,
 } from '@aiostreams/core';
@@ -61,6 +62,10 @@ export function createResponse(
       if (success) {
         return {
           subtitles: data,
+        };
+      } else if (error) {
+        return {
+          subtitles: [createErrorSubtitle({ error: error?.message })],
         };
       }
     case 'catalog':

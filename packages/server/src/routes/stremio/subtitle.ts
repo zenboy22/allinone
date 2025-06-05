@@ -6,7 +6,7 @@ import { createResponse } from '../../utils/responses';
 const logger = createLogger('stremio/subtitle');
 const router = Router();
 
-router.get('/:type/:id.json', async (req, res, next) => {
+router.get('/:type/:id/:extras?.json', async (req, res, next) => {
   if (!req.userData) {
     res.status(200).json(
       createResponse(
@@ -45,14 +45,16 @@ router.get('/:type/:id.json', async (req, res, next) => {
       extras
     );
 
+    const transformedSubtitles = aiostreams.transformSubtitles({
+      subtitles,
+      errors,
+    });
+
     res.status(200).json(
       createResponse(
         {
           success: true,
-          data: {
-            subtitles,
-            addonErrors: errors.length > 0 ? errors : undefined,
-          },
+          data: transformedSubtitles,
         },
         req.originalUrl,
         true

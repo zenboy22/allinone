@@ -9,6 +9,7 @@ import {
   AUDIO_TAGS,
   constants,
   createErrorStream,
+  createErrorSubtitle,
   createLogger,
   getTimeTakenSincePoint,
   StreamType,
@@ -212,8 +213,11 @@ export class AIOStreams {
       })
     );
 
-    // add errors to the end (if this.userData.hideErrors is false  )
-    if (!this.userData.hideErrors) {
+    // add errors to the end (if this.userData.hideErrors is false  or the resource is not in this.userData.hideErrorsForResources)
+    if (
+      !this.userData.hideErrors ||
+      !this.userData.hideErrorsForResources?.includes('stream')
+    ) {
       transformedStreams.push(
         ...errors.map((error) =>
           createErrorStream({
@@ -334,10 +338,13 @@ export class AIOStreams {
     for (const [addonIndex, addonResources] of Object.entries(
       this.supportedResources
     )) {
-      const resource = addonResources.find((r) =>
-        r.name === 'subtitles' && r.types.includes(type) && r.idPrefixes
-          ? r.idPrefixes.some((prefix) => id.startsWith(prefix))
-          : true
+      const resource = addonResources.find(
+        (r) =>
+          r.name === 'subtitles' &&
+          r.types.includes(type) &&
+          (r.idPrefixes
+            ? r.idPrefixes.some((prefix) => id.startsWith(prefix))
+            : true)
       );
       if (resource) {
         const addon = this.getAddon(Number(addonIndex));
@@ -378,6 +385,29 @@ export class AIOStreams {
     };
   }
 
+  public transformSubtitles({
+    subtitles,
+    errors,
+  }: {
+    subtitles: Subtitle[];
+    errors: { addon: Addon; error: string }[];
+  }): Subtitle[] {
+    let transformedSubtitles: Subtitle[] = subtitles;
+    if (
+      errors.length > 0 &&
+      (!this.userData.hideErrors ||
+        !this.userData.hideErrorsForResources?.includes('subtitles'))
+    ) {
+      transformedSubtitles.push(
+        ...errors.map((error) =>
+          createErrorSubtitle({
+            error: `${error.addon.identifyingName} - ${error.error}`,
+          })
+        )
+      );
+    }
+    return transformedSubtitles;
+  }
   // addon_catalog resource
   public async getAddonCatalog(type: string, id: string) {
     logger.info(`getAddonCatalog: ${id}`);
@@ -696,9 +726,11 @@ export class AIOStreams {
     )) {
       const resource = addonResources.find(
         (r) =>
-          r.name === 'stream' && r.types.includes(type) && r.idPrefixes
+          r.name === 'stream' &&
+          r.types.includes(type) &&
+          (r.idPrefixes
             ? r.idPrefixes?.some((prefix) => id.startsWith(prefix))
-            : true // if no id prefixes are defined, assume it supports all IDs
+            : true) // if no id prefixes are defined, assume it supports all IDs
       );
       if (resource) {
         const addon = this.getAddon(Number(index));
