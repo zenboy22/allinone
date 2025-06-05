@@ -103,10 +103,10 @@ function Content() {
   const [type, setType] =
     useState<(typeof constants.STREAM_TYPES)[number]>('debrid');
   const [library, setLibrary] = useState(false);
-  const [duration, setDuration] = useState<number | undefined>(9120); // 2h 32m in seconds
+  const [duration, setDuration] = useState<number | undefined>(9120000); // 2h 32m in milliseconds
   const [fileSize, setFileSize] = useState<number | undefined>(62500000000); // 58.2 GB in bytes
   const [proxied, setProxied] = useState(false);
-  const [regexMatched, setRegexMatched] = useState('Regex Name');
+  const [regexMatched, setRegexMatched] = useState('');
 
   // Custom formatter state (to avoid losing one field when editing the other)
   const [customName, setCustomName] = useState(
@@ -403,8 +403,10 @@ function Content() {
             />
             <NumberInput
               label={<span className="truncate block">Duration (s)</span>}
-              value={duration}
-              onValueChange={(value) => setDuration(value || undefined)}
+              value={duration ? duration / 1000 : undefined}
+              onValueChange={(value) =>
+                setDuration(value ? value * 1000 : undefined)
+              }
               className="w-full"
               min={0}
               step={1000}
