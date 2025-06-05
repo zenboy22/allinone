@@ -9,40 +9,14 @@ const DefaultUserData: UserData = {
   },
   preferredQualities: Object.values(QUALITIES),
   preferredResolutions: Object.values(RESOLUTIONS),
+  excludedQualities: ['CAM', 'SCR', 'TS', 'TC'],
+  excludedVisualTags: ['3D'],
   sortCriteria: {
     global: [
       {
         key: 'cached',
         direction: 'desc',
       },
-      {
-        key: 'library',
-        direction: 'desc',
-      },
-      {
-        key: 'resolution',
-        direction: 'desc',
-      },
-      {
-        key: 'size',
-        direction: 'desc',
-      },
-    ],
-    uncached: [
-      {
-        key: 'resolution',
-        direction: 'desc',
-      },
-      {
-        key: 'seeders',
-        direction: 'desc',
-      },
-      {
-        key: 'size',
-        direction: 'desc',
-      },
-    ],
-    cached: [
       {
         key: 'library',
         direction: 'desc',
