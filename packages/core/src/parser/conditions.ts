@@ -106,7 +106,7 @@ export class ConditionParser {
         throw new Error('Resolution must be a string');
       }
       return streams.filter(
-        (stream) => stream.parsedFile.resolution === resolution
+        (stream) => stream.parsedFile?.resolution === resolution
       ).length;
     };
     this.parser.functions.groupByQuality = function (
@@ -120,7 +120,7 @@ export class ConditionParser {
       } else if (typeof quality !== 'string') {
         throw new Error('Quality must be a string');
       }
-      return streams.filter((stream) => stream.parsedFile.quality === quality)
+      return streams.filter((stream) => stream.parsedFile?.quality === quality)
         .length;
     };
     this.parser.functions.groupByType = function (
@@ -191,7 +191,7 @@ export class ConditionParser {
         throw new Error('Release group must be a string');
       }
       return streams.filter(
-        (stream) => stream.parsedFile.releaseGroup === releaseGroup
+        (stream) => stream.parsedFile?.releaseGroup === releaseGroup
       ).length;
     };
     this.parser.functions.count = function (streams: ParsedStream[]) {
