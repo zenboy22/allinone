@@ -51,7 +51,7 @@ class StreamParser {
   constructor(protected readonly addon: Addon) {}
 
   parse(stream: Stream): ParsedStream {
-    let parsedStream: any = {
+    let parsedStream: ParsedStream = {
       addon: this.addon,
       type: this.getStreamType(stream, undefined),
       url: stream.url,
@@ -92,7 +92,7 @@ class StreamParser {
       fileIdx: stream.fileIdx,
     };
 
-    return parsedStream as ParsedStream;
+    return parsedStream;
   }
 
   protected raiseErrorIfNecessary(stream: Stream) {

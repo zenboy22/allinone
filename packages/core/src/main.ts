@@ -180,7 +180,17 @@ export class AIOStreams {
     transformedStreams = await Promise.all(
       streams.map(async (stream: ParsedStream): Promise<Stream> => {
         const { name, description } = formatter.format(stream);
-        const bingeGroup = `${stream.proxied ? 'proxied.' : ''}${stream.parsedFile.resolution}|${stream.parsedFile.quality}|${stream.parsedFile.encode}`;
+        const identifyingAttributes = [
+          stream.parsedFile?.resolution,
+          stream.parsedFile?.quality,
+          stream.parsedFile?.encode,
+          stream.parsedFile?.audioTags,
+          stream.parsedFile?.visualTags,
+          stream.parsedFile?.languages,
+          stream.parsedFile?.releaseGroup,
+          stream.indexer,
+        ].filter(Boolean);
+        const bingeGroup = `${stream.proxied ? 'proxied.' : ''}${identifyingAttributes.join('|')}`;
         return {
           name,
           description,
@@ -958,7 +968,7 @@ export class AIOStreams {
       const file = stream.parsedFile;
       const stringsToTest = [
         stream.filename,
-        file.releaseGroup,
+        file?.releaseGroup,
         stream.indexer,
         stream.folderName,
       ].filter((v) => v !== undefined);
@@ -1008,7 +1018,7 @@ export class AIOStreams {
 
       if (
         this.userData.includedResolutions?.includes(
-          file.resolution || ('Unknown' as any)
+          file?.resolution || ('Unknown' as any)
         )
       ) {
         return true;
@@ -1016,7 +1026,7 @@ export class AIOStreams {
 
       if (
         this.userData.includedQualities?.includes(
-          file.quality || ('Unknown' as any)
+          file?.quality || ('Unknown' as any)
         )
       ) {
         return true;
@@ -1024,7 +1034,7 @@ export class AIOStreams {
 
       if (
         this.userData.includedVisualTags?.some((tag) =>
-          file.visualTags.includes(tag)
+          file?.visualTags.includes(tag)
         )
       ) {
         return true;
@@ -1032,7 +1042,7 @@ export class AIOStreams {
 
       if (
         this.userData.includedAudioTags?.some((tag) =>
-          file.audioTags.includes(tag)
+          file?.audioTags.includes(tag)
         )
       ) {
         return true;
@@ -1040,14 +1050,14 @@ export class AIOStreams {
 
       if (
         this.userData.includedLanguages?.some((lang) =>
-          file.languages.includes(lang)
+          (file?.languages || ['Unknown']).includes(lang)
         )
       ) {
         return true;
       }
 
       if (
-        this.userData.includedEncodes?.some((encode) => file.encode === encode)
+        this.userData.includedEncodes?.some((encode) => file?.encode === encode)
       ) {
         return true;
       }
@@ -1088,13 +1098,13 @@ export class AIOStreams {
       // Resolutions
       if (
         this.userData.excludedResolutions?.includes(
-          (file.resolution || 'Unknown') as any
+          (file?.resolution || 'Unknown') as any
         )
       ) {
         skipReasons.excludedResolution.total++;
-        skipReasons.excludedResolution.details[file.resolution || 'Unknown'] =
+        skipReasons.excludedResolution.details[file?.resolution || 'Unknown'] =
           (skipReasons.excludedResolution.details[
-            file.resolution || 'Unknown'
+            file?.resolution || 'Unknown'
           ] || 0) + 1;
         return false;
       }
@@ -1102,13 +1112,13 @@ export class AIOStreams {
       if (
         this.userData.requiredResolutions &&
         !this.userData.requiredResolutions.includes(
-          (file.resolution || 'Unknown') as any
+          (file?.resolution || 'Unknown') as any
         )
       ) {
         skipReasons.requiredResolution.total++;
-        skipReasons.requiredResolution.details[file.resolution || 'Unknown'] =
+        skipReasons.requiredResolution.details[file?.resolution || 'Unknown'] =
           (skipReasons.requiredResolution.details[
-            file.resolution || 'Unknown'
+            file?.resolution || 'Unknown'
           ] || 0) + 1;
         return false;
       }
@@ -1116,12 +1126,12 @@ export class AIOStreams {
       // Qualities
       if (
         this.userData.excludedQualities?.includes(
-          (file.quality || 'Unknown') as any
+          (file?.quality || 'Unknown') as any
         )
       ) {
         skipReasons.excludedQuality.total++;
-        skipReasons.excludedQuality.details[file.quality || 'Unknown'] =
-          (skipReasons.excludedQuality.details[file.quality || 'Unknown'] ||
+        skipReasons.excludedQuality.details[file?.quality || 'Unknown'] =
+          (skipReasons.excludedQuality.details[file?.quality || 'Unknown'] ||
             0) + 1;
         return false;
       }
@@ -1129,12 +1139,12 @@ export class AIOStreams {
       if (
         this.userData.requiredQualities &&
         !this.userData.requiredQualities.includes(
-          (file.quality || 'Unknown') as any
+          (file?.quality || 'Unknown') as any
         )
       ) {
         skipReasons.requiredQuality.total++;
-        skipReasons.requiredQuality.details[file.quality || 'Unknown'] =
-          (skipReasons.requiredQuality.details[file.quality || 'Unknown'] ||
+        skipReasons.requiredQuality.details[file?.quality || 'Unknown'] =
+          (skipReasons.requiredQuality.details[file?.quality || 'Unknown'] ||
             0) + 1;
         return false;
       }
@@ -1142,12 +1152,12 @@ export class AIOStreams {
       // encode
       if (
         this.userData.excludedEncodes?.includes(
-          file.encode || ('Unknown' as any)
+          file?.encode || ('Unknown' as any)
         )
       ) {
         skipReasons.excludedEncode.total++;
-        skipReasons.excludedEncode.details[file.encode || 'Unknown'] =
-          (skipReasons.excludedEncode.details[file.encode || 'Unknown'] || 0) +
+        skipReasons.excludedEncode.details[file?.encode || 'Unknown'] =
+          (skipReasons.excludedEncode.details[file?.encode || 'Unknown'] || 0) +
           1;
         return false;
       }
@@ -1155,12 +1165,12 @@ export class AIOStreams {
       if (
         this.userData.requiredEncodes &&
         !this.userData.requiredEncodes.includes(
-          file.encode || ('Unknown' as any)
+          file?.encode || ('Unknown' as any)
         )
       ) {
         skipReasons.requiredEncode.total++;
-        skipReasons.requiredEncode.details[file.encode || 'Unknown'] =
-          (skipReasons.requiredEncode.details[file.encode || 'Unknown'] || 0) +
+        skipReasons.requiredEncode.details[file?.encode || 'Unknown'] =
+          (skipReasons.requiredEncode.details[file?.encode || 'Unknown'] || 0) +
           1;
         return false;
       }
@@ -1168,26 +1178,26 @@ export class AIOStreams {
       // temporarily add HDR+DV to visual tags list if both HDR and DV are present
       // to allow HDR+DV option in userData to work
       if (
-        file.visualTags.some((tag) => tag.startsWith('HDR')) &&
-        file.visualTags.some((tag) => tag.startsWith('DV'))
+        file?.visualTags?.some((tag) => tag.startsWith('HDR')) &&
+        file?.visualTags?.some((tag) => tag.startsWith('DV'))
       ) {
-        const hdrIndex = file.visualTags.findIndex((tag) =>
+        const hdrIndex = file?.visualTags?.findIndex((tag) =>
           tag.startsWith('HDR')
         );
-        const dvIndex = file.visualTags.findIndex((tag) =>
+        const dvIndex = file?.visualTags?.findIndex((tag) =>
           tag.startsWith('DV')
         );
         const insertIndex = Math.min(hdrIndex, dvIndex);
-        file.visualTags.splice(insertIndex, 0, 'HDR+DV');
+        file?.visualTags?.splice(insertIndex, 0, 'HDR+DV');
       }
 
       if (
         this.userData.excludedVisualTags?.some((tag) =>
-          file.visualTags.includes(tag)
+          file?.visualTags?.includes(tag)
         )
       ) {
         const tag = this.userData.excludedVisualTags.find((tag) =>
-          file.visualTags.includes(tag)
+          file?.visualTags?.includes(tag)
         );
         skipReasons.excludedVisualTag.total++;
         skipReasons.excludedVisualTag.details[tag!] =
@@ -1198,11 +1208,11 @@ export class AIOStreams {
       if (
         this.userData.requiredVisualTags &&
         !this.userData.requiredVisualTags.some((tag) =>
-          file.visualTags.includes(tag)
+          file?.visualTags?.includes(tag)
         )
       ) {
         const tag = this.userData.requiredVisualTags.find((tag) =>
-          file.visualTags.includes(tag)
+          file?.visualTags?.includes(tag)
         );
         skipReasons.requiredVisualTag.total++;
         skipReasons.requiredVisualTag.details[tag!] =
@@ -1217,11 +1227,11 @@ export class AIOStreams {
 
       if (
         this.userData.excludedAudioTags?.some((tag) =>
-          file.audioTags.includes(tag)
+          file?.audioTags.includes(tag)
         )
       ) {
         const tag = this.userData.excludedAudioTags.find((tag) =>
-          file.audioTags.includes(tag)
+          file?.audioTags.includes(tag)
         );
         skipReasons.excludedAudioTag.total++;
         skipReasons.excludedAudioTag.details[tag!] =
@@ -1232,11 +1242,11 @@ export class AIOStreams {
       if (
         this.userData.requiredAudioTags &&
         !this.userData.requiredAudioTags.some((tag) =>
-          file.audioTags.includes(tag)
+          file?.audioTags.includes(tag)
         )
       ) {
         const tag = this.userData.requiredAudioTags.find((tag) =>
-          file.audioTags.includes(tag)
+          file?.audioTags.includes(tag)
         );
         skipReasons.requiredAudioTag.total++;
         skipReasons.requiredAudioTag.details[tag!] =
@@ -1247,11 +1257,11 @@ export class AIOStreams {
       // languages
       if (
         this.userData.excludedLanguages?.some((lang) =>
-          file.languages.includes(lang)
+          file?.languages.includes(lang)
         )
       ) {
         const lang = this.userData.excludedLanguages.find((lang) =>
-          file.languages.includes(lang)
+          file?.languages.includes(lang)
         );
         skipReasons.excludedLanguage.total++;
         skipReasons.excludedLanguage.details[lang!] =
@@ -1262,11 +1272,11 @@ export class AIOStreams {
       if (
         this.userData.requiredLanguages &&
         !this.userData.requiredLanguages.some((lang) =>
-          file.languages.includes(lang)
+          (file?.languages || ['Unknown']).includes(lang)
         )
       ) {
         const lang = this.userData.requiredLanguages.find((lang) =>
-          file.languages.includes(lang)
+          (file?.languages || ['Unknown']).includes(lang)
         );
         skipReasons.requiredLanguage.total++;
         skipReasons.requiredLanguage.details[lang!] =
@@ -1656,7 +1666,7 @@ export class AIOStreams {
           isMatch(preferredKeywordsPatterns, stream.folderName || '') ||
           isMatch(
             preferredKeywordsPatterns,
-            stream.parsedFile.releaseGroup || ''
+            stream.parsedFile?.releaseGroup || ''
           ) ||
           isMatch(preferredKeywordsPatterns, stream.indexer || '');
       });
@@ -1672,10 +1682,10 @@ export class AIOStreams {
               isMatch(regexPattern.pattern, stream.filename)) ||
               (stream.folderName &&
                 isMatch(regexPattern.pattern, stream.folderName)) ||
-              (stream.parsedFile.releaseGroup &&
+              (stream.parsedFile?.releaseGroup &&
                 isMatch(
                   regexPattern.pattern,
-                  stream.parsedFile.releaseGroup
+                  stream.parsedFile?.releaseGroup || ''
                 )) ||
               (stream.indexer && isMatch(regexPattern.pattern, stream.indexer)))
           ) {
@@ -1802,7 +1812,7 @@ export class AIOStreams {
           return (
             multiplier *
             (userData.preferredEncodes?.findIndex(
-              (encode) => encode === (stream.parsedFile.encode || 'Unknown')
+              (encode) => encode === (stream.parsedFile?.encode || 'Unknown')
             ) ?? 0)
           );
         case 'addon':
@@ -1820,7 +1830,7 @@ export class AIOStreams {
               (
                 userData.preferredResolutions?.findIndex(
                   (resolution) =>
-                    resolution === (stream.parsedFile.resolution || 'Unknown')
+                    resolution === (stream.parsedFile?.resolution || 'Unknown')
                 ) ?? 0
               )
             )
@@ -1834,7 +1844,7 @@ export class AIOStreams {
               (
                 userData.preferredQualities?.findIndex(
                   (quality) =>
-                    quality === (stream.parsedFile.quality || 'Unknown')
+                    quality === (stream.parsedFile?.quality || 'Unknown')
                 ) ?? 0
               )
             )
@@ -1845,7 +1855,10 @@ export class AIOStreams {
           if (minIndex === undefined) {
             return 0;
           }
-          for (const tag of stream.parsedFile.visualTags) {
+          if (!stream.parsedFile) {
+            return 0;
+          }
+          for (const tag of stream.parsedFile?.visualTags || []) {
             if (VISUAL_TAGS.includes(tag as any)) {
               const idx = userData.preferredVisualTags?.indexOf(tag as any);
               if (idx !== undefined && idx !== -1 && idx < minIndex) {
@@ -1858,6 +1871,9 @@ export class AIOStreams {
         case 'audioTag':
           let minAudioIndex = userData.preferredAudioTags?.length;
           if (minAudioIndex === undefined) {
+            return 0;
+          }
+          if (!stream.parsedFile) {
             return 0;
           }
           for (const tag of stream.parsedFile.audioTags) {
@@ -1885,7 +1901,7 @@ export class AIOStreams {
           if (minLanguageIndex === undefined) {
             return 0;
           }
-          for (const language of stream.parsedFile.languages) {
+          for (const language of stream.parsedFile?.languages || ['Unknown']) {
             const idx = userData.preferredLanguages?.indexOf(language as any);
             if (idx !== undefined && idx !== -1 && idx < minLanguageIndex) {
               minLanguageIndex = idx;
@@ -1981,9 +1997,9 @@ export class AIOStreams {
       }
 
       // Check release group limit
-      if (releaseGroup && stream.parsedFile.releaseGroup) {
+      if (releaseGroup && stream.parsedFile?.releaseGroup) {
         const count =
-          counts.releaseGroup.get(stream.parsedFile.releaseGroup) || 0;
+          counts.releaseGroup.get(stream.parsedFile?.releaseGroup || '') || 0;
         if (count >= releaseGroup) {
           indexesToRemove.add(index);
           return;
@@ -1992,23 +2008,29 @@ export class AIOStreams {
       }
 
       // Check resolution limit
-      if (resolution && stream.parsedFile.resolution) {
-        const count = counts.resolution.get(stream.parsedFile.resolution) || 0;
+      if (resolution) {
+        const count =
+          counts.resolution.get(stream.parsedFile?.resolution || 'Unknown') ||
+          0;
         if (count >= resolution) {
           indexesToRemove.add(index);
           return;
         }
-        counts.resolution.set(stream.parsedFile.resolution, count + 1);
+        counts.resolution.set(
+          stream.parsedFile?.resolution || 'Unknown',
+          count + 1
+        );
       }
 
       // Check quality limit
-      if (quality && stream.parsedFile.quality) {
-        const count = counts.quality.get(stream.parsedFile.quality) || 0;
+      if (quality) {
+        const count =
+          counts.quality.get(stream.parsedFile?.quality || 'Unknown') || 0;
         if (count >= quality) {
           indexesToRemove.add(index);
           return;
         }
-        counts.quality.set(stream.parsedFile.quality, count + 1);
+        counts.quality.set(stream.parsedFile?.quality || 'Unknown', count + 1);
       }
 
       // Check addon limit

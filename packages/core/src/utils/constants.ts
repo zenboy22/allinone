@@ -906,6 +906,7 @@ const LANGUAGES = [
   'Dual Audio',
   'Dubbed',
   'Multi',
+  'Unknown',
 ] as const;
 
 export const SNIPPETS = [

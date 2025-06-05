@@ -546,7 +546,7 @@ export type ParsedFile = z.infer<typeof ParsedFileSchema>;
 export const ParsedStreamSchema = z.object({
   proxied: z.boolean().optional(),
   addon: AddonSchema,
-  parsedFile: ParsedFileSchema,
+  parsedFile: ParsedFileSchema.optional(),
   message: z.string().max(1000).optional(),
   regexMatched: z
     .object({
