@@ -21,6 +21,7 @@ import {
   MdCleaningServices,
   MdHdrOn,
   MdMovieFilter,
+  MdPerson,
   MdVideoLibrary,
 } from 'react-icons/md';
 import { BiSolidCameraMovie } from 'react-icons/bi';
@@ -232,6 +233,10 @@ function Content() {
               <TabsTrigger value="language">
                 <FaLanguage className="text-lg mr-3" />
                 Language
+              </TabsTrigger>
+              <TabsTrigger value="seeders">
+                <MdPerson className="text-lg mr-3" />
+                Seeders
               </TabsTrigger>
               <TabsTrigger value="keyword">
                 <FaTextSlash className="text-lg mr-3" />
@@ -717,6 +722,114 @@ function Content() {
                   value: language,
                 }))}
               />
+            </PageWrapper>
+          </TabsContent>
+          <TabsContent value="seeders" className="space-y-4">
+            <PageWrapper>
+              <HeadingWithPageControls heading="Seeders" />
+              <SettingsCard
+                title="Seeder Filters"
+                description="Configure required, excluded, and included seeder ranges"
+              >
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <NumberInput
+                      label="Required Minimum Seeders"
+                      help="Streams with fewer seeders than this will be excluded"
+                      value={userData.requiredSeeders?.min}
+                      min={0}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          requiredSeeders: {
+                            ...prev.requiredSeeders,
+                            min: value,
+                          },
+                        }));
+                      }}
+                    />
+                    <NumberInput
+                      label="Required Maximum Seeders"
+                      help="Streams with more seeders than this will be excluded"
+                      value={userData.requiredSeeders?.max}
+                      min={0}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          requiredSeeders: {
+                            ...prev.requiredSeeders,
+                            max: value,
+                          },
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <NumberInput
+                      label="Excluded Minimum Seeders"
+                      help="Streams with more seeders than this will be excluded"
+                      value={userData.excludedSeeders?.min}
+                      min={0}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludedSeeders: {
+                            ...prev.excludedSeeders,
+                            min: value,
+                          },
+                        }));
+                      }}
+                    />
+                    <NumberInput
+                      label="Excluded Maximum Seeders"
+                      help="Streams with fewer seeders than this will be excluded"
+                      value={userData.excludedSeeders?.max}
+                      min={0}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludedSeeders: {
+                            ...prev.excludedSeeders,
+                            max: value,
+                          },
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <NumberInput
+                      label="Included Minimum Seeders"
+                      help="Streams with more seeders than this will be included, ignoring other filters"
+                      value={userData.includedSeeders?.min}
+                      min={0}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          includedSeeders: {
+                            ...prev.includedSeeders,
+                            min: value,
+                          },
+                        }));
+                      }}
+                    />
+                    <NumberInput
+                      label="Included Maximum Seeders"
+                      help="Streams with fewer seeders than this will be included, ignoring other filters"
+                      value={userData.includedSeeders?.max}
+                      min={0}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          includedSeeders: {
+                            ...prev.includedSeeders,
+                            max: value,
+                          },
+                        }));
+                      }}
+                    />
+                  </div>
+                </div>
+              </SettingsCard>
             </PageWrapper>
           </TabsContent>
           <TabsContent value="keyword" className="space-y-4">

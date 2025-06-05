@@ -1076,6 +1076,21 @@ export class AIOStreams {
         return true;
       }
 
+      if (
+        this.userData.includedSeeders?.min &&
+        stream.torrent?.seeders &&
+        stream.torrent.seeders > this.userData.includedSeeders.min
+      ) {
+        return true;
+      }
+      if (
+        this.userData.includedSeeders?.max &&
+        stream.torrent?.seeders &&
+        stream.torrent.seeders < this.userData.includedSeeders.max
+      ) {
+        return true;
+      }
+
       // Track stream type exclusions
       if (this.userData.excludedStreamTypes?.includes(stream.type)) {
         skipReasons.excludedStreamType.total++;
@@ -1350,6 +1365,36 @@ export class AIOStreams {
       if (
         requiredKeywordsPattern &&
         !(await testRegexes(stream, [requiredKeywordsPattern]))
+      ) {
+        return false;
+      }
+
+      if (
+        this.userData.requiredSeeders?.min &&
+        stream.torrent?.seeders &&
+        stream.torrent.seeders < this.userData.requiredSeeders.min
+      ) {
+        return false;
+      }
+      if (
+        this.userData.requiredSeeders?.max &&
+        stream.torrent?.seeders &&
+        stream.torrent.seeders > this.userData.requiredSeeders.max
+      ) {
+        return false;
+      }
+
+      if (
+        this.userData.excludedSeeders?.min &&
+        stream.torrent?.seeders &&
+        stream.torrent.seeders < this.userData.excludedSeeders.min
+      ) {
+        return false;
+      }
+      if (
+        this.userData.excludedSeeders?.max &&
+        stream.torrent?.seeders &&
+        stream.torrent.seeders > this.userData.excludedSeeders.max
       ) {
         return false;
       }

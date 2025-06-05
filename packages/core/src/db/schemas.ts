@@ -261,6 +261,24 @@ export const UserDataSchema = z.object({
   includedKeywords: z.array(z.string().min(1)).optional(),
   excludedKeywords: z.array(z.string().min(1)).optional(),
   preferredKeywords: z.array(z.string().min(1)).optional(),
+  excludedSeeders: z
+    .object({
+      min: z.number().optional(),
+      max: z.number().optional(),
+    })
+    .optional(),
+  includedSeeders: z
+    .object({
+      min: z.number().optional(),
+      max: z.number().optional(),
+    })
+    .optional(),
+  requiredSeeders: z
+    .object({
+      min: z.number().optional(),
+      max: z.number().optional(),
+    })
+    .optional(),
   excludeCached: z.boolean().optional(),
   excludeCachedFromAddons: z.array(z.string().min(1)).optional(),
   excludeCachedFromServices: z.array(z.string().min(1)).optional(),
@@ -303,7 +321,6 @@ export const UserDataSchema = z.object({
   strictTitleMatching: z.boolean().optional(),
   deduplicator: DeduplicatorOptions.optional(),
   precacheNextEpisode: z.boolean().optional(),
-  hideZeroSeederResults: z.boolean().optional(),
   services: ServiceList.optional(),
   presets: PresetList,
   catalogModifications: z.array(CatalogModification).optional(),
