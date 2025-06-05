@@ -7,6 +7,7 @@ import {
 } from '@aiostreams/core';
 import { StatusResponse } from '@aiostreams/core';
 import { encryptString } from '@aiostreams/core';
+import { FeatureControl } from '@aiostreams/core/src/utils/feature';
 
 const router = Router();
 
@@ -23,9 +24,7 @@ router.get('/', async (req: Request, res: Response) => {
       addonName: Env.ADDON_NAME,
       customHtml: Env.CUSTOM_HTML,
       protected: !!Env.ADDON_PASSWORD,
-      disabledAddons: [],
-      disabledServices: [],
-      disableRegexFilters: Env.DISABLE_REGEX_FILTERS,
+      regexFilterAccess: Env.REGEX_FILTER_ACCESS,
       forced: {
         proxy: {
           enabled: Env.FORCE_PROXY_ENABLED ?? null,
@@ -59,7 +58,17 @@ router.get('/', async (req: Request, res: Response) => {
         requiredRegex: Env.DEFAULT_REQUIRED_REGEX_PATTERNS ?? null,
         excludedRegex: Env.DEFAULT_EXCLUDED_REGEX_PATTERNS ?? null,
       },
-      presets: PresetManager.getPresetList(),
+      presets: PresetManager.getPresetList().map((preset) => ({
+        ...preset,
+        DISABLED: FeatureControl.disabledAddons.has(preset.ID)
+          ? {
+              reason:
+                FeatureControl.disabledAddons.get(preset.ID) ||
+                'Disabled by owner of the instance',
+              disabled: true,
+            }
+          : undefined,
+      })),
       services: getEnvironmentServiceDetails(),
     },
   };

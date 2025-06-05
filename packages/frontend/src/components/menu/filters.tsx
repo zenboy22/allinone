@@ -242,7 +242,7 @@ function Content() {
                 <FaTextSlash className="text-lg mr-3" />
                 Keyword
               </TabsTrigger>
-              {!status?.settings.disableRegexFilters && (
+              {status?.settings.regexFilterAccess !== 'none' && (
                 <TabsTrigger value="regex">
                   <BsRegex className="text-lg mr-3" />
                   Regex
@@ -944,20 +944,23 @@ function Content() {
                 </p>
               </div>
               <div className="mb-4">
-                <Alert
-                  intent="info"
-                  title="Admin Only"
-                  description={
-                    <>
-                      <p>
-                        Regex filters are only available to Admin users due to
-                        the potential for abuse. Add your UUID to the{' '}
-                        <code className="font-mono">ADMIN_UUIDS</code>{' '}
-                        environment variable to be able to use this feature.
-                      </p>
-                    </>
-                  }
-                />
+                {status?.settings.regexFilterAccess === 'trusted' && (
+                  <Alert
+                    intent="info"
+                    title="Admin Only"
+                    description={
+                      <>
+                        <p>
+                          Regex filters are only available to trusted users due
+                          to the potential for abuse. Ask the owner of the
+                          instance to add your UUID to the{' '}
+                          <code className="font-mono">TRUSTED_UUIDS</code>{' '}
+                          environment variable.
+                        </p>
+                      </>
+                    }
+                  />
+                )}
               </div>
               <div className="space-y-4">
                 <TextInputs

@@ -66,18 +66,30 @@ export const userDataMiddleware = async (
     }
 
     // Get and validate user data
-    const decryptedConfig = await validateConfig(
-      await UserRepository.getUser(uuid, decryptedPassword),
-      true,
-      true
-    );
-    if (!decryptedConfig) {
+    let userData = await UserRepository.getUser(uuid, decryptedPassword);
+
+    if (!userData) {
       next(new APIError(constants.ErrorCode.USER_INVALID_PASSWORD));
       return;
     }
 
+    if (resource !== 'configure') {
+      try {
+        userData = await validateConfig(userData, true, true);
+      } catch (error: any) {
+        next(
+          new APIError(
+            constants.ErrorCode.USER_INVALID_CONFIG,
+            undefined,
+            error.message
+          )
+        );
+        return;
+      }
+    }
+
     // Attach validated data to request
-    req.userData = decryptedConfig;
+    req.userData = userData;
     req.userData.ip = req.userIp;
     req.uuid = uuid;
     next();
@@ -86,7 +98,7 @@ export const userDataMiddleware = async (
     if (error instanceof APIError) {
       next(error);
     } else {
-      next(new APIError(constants.ErrorCode.USER_ERROR));
+      next(new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR));
     }
   }
 };

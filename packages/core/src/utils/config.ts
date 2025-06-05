@@ -17,6 +17,7 @@ import { createLogger } from './logger';
 import { ZodError } from 'zod';
 import { ConditionParser } from '../parser/conditions';
 import { RPDB } from './rpdb';
+import { FeatureControl } from './feature';
 
 const logger = createLogger('core');
 
@@ -204,31 +205,33 @@ function getServiceCredentialForced(
 
 export function getEnvironmentServiceDetails(): typeof constants.SERVICE_DETAILS {
   return Object.fromEntries(
-    Object.entries(constants.SERVICE_DETAILS).map(([id, service]) => [
-      id as constants.ServiceId,
-      {
-        id: service.id,
-        name: service.name,
-        shortName: service.shortName,
-        knownNames: service.knownNames,
-        signUpText: service.signUpText,
-        credentials: service.credentials.map((cred) => ({
-          id: cred.id,
-          name: cred.name,
-          description: cred.description,
-          type: cred.type,
-          required: cred.required,
-          default: getServiceCredentialDefault(service.id, cred.id)
-            ? encryptString(getServiceCredentialDefault(service.id, cred.id)!)
-                .data
-            : null,
-          forced: getServiceCredentialForced(service.id, cred.id)
-            ? encryptString(getServiceCredentialForced(service.id, cred.id)!)
-                .data
-            : null,
-        })),
-      },
-    ])
+    Object.entries(constants.SERVICE_DETAILS)
+      .filter(([id, _]) => !FeatureControl.disabledServices.has(id))
+      .map(([id, service]) => [
+        id as constants.ServiceId,
+        {
+          id: service.id,
+          name: service.name,
+          shortName: service.shortName,
+          knownNames: service.knownNames,
+          signUpText: service.signUpText,
+          credentials: service.credentials.map((cred) => ({
+            id: cred.id,
+            name: cred.name,
+            description: cred.description,
+            type: cred.type,
+            required: cred.required,
+            default: getServiceCredentialDefault(service.id, cred.id)
+              ? encryptString(getServiceCredentialDefault(service.id, cred.id)!)
+                  .data
+              : null,
+            forced: getServiceCredentialForced(service.id, cred.id)
+              ? encryptString(getServiceCredentialForced(service.id, cred.id)!)
+                  .data
+              : null,
+          })),
+        },
+      ])
   ) as typeof constants.SERVICE_DETAILS;
 }
 
@@ -282,6 +285,14 @@ export async function validateConfig(
       await rpdb.validateApiKey();
     } catch (error) {
       throw new Error(`Invalid RPDB API key: ${error}`);
+    }
+  }
+
+  if (FeatureControl.disabledServices.size > 0) {
+    for (const service of config.services ?? []) {
+      if (FeatureControl.disabledServices.has(service.id)) {
+        service.enabled = false;
+      }
     }
   }
 

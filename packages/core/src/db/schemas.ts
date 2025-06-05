@@ -218,7 +218,7 @@ const CatalogModification = z.object({
 
 export const UserDataSchema = z.object({
   uuid: z.string().uuid().optional(),
-  admin: z.boolean().optional(),
+  trusted: z.boolean().optional(),
   addonPassword: z.string().min(1).optional(),
   ip: z.string().ip().optional(),
   addonName: z.string().min(1).optional(),
@@ -612,6 +612,12 @@ export type ParsedStream = z.infer<typeof ParsedStreamSchema>;
 const PresetMetadataSchema = z.object({
   ID: z.string(),
   NAME: z.string(),
+  DISABLED: z
+    .object({
+      reason: z.string(),
+      disabled: z.boolean(),
+    })
+    .optional(),
   LOGO: z.string(),
   DESCRIPTION: z.string(),
   URL: z.string(),
@@ -635,9 +641,7 @@ const StatusResponseSchema = z.object({
     addonName: z.string(),
     customHtml: z.string().optional(),
     protected: z.boolean(),
-    disabledAddons: z.array(z.string()),
-    disabledServices: z.array(z.string()),
-    disableRegexFilters: z.boolean(),
+    regexFilterAccess: z.enum(['none', 'trusted', 'all']),
     forced: z.object({
       proxy: z.object({
         enabled: z.boolean().or(z.null()),

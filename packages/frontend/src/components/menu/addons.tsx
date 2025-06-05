@@ -50,6 +50,8 @@ import {
   useConfirmationDialog,
 } from '../shared/confirmation-dialog';
 import { MdRefresh } from 'react-icons/md';
+import { Alert } from '../ui/alert';
+import MarkdownLite from '../shared/markdown-lite';
 
 interface CatalogModification {
   id: string;
@@ -662,12 +664,21 @@ function AddonCard({
           ))}
         </div>
       </div>
-      {/* Button at bottom */}
-      <div className="mt-auto pt-3 flex items-end">
-        <Button size="md" className="w-full" onClick={onAdd}>
-          Configure
-        </Button>
-      </div>
+      {preset.DISABLED ? (
+        <div className="mt-auto pt-3 flex items-end">
+          <Alert
+            intent="alert"
+            className="w-full overflow-x-auto whitespace-nowrap"
+            description={<MarkdownLite>{preset.DISABLED.reason}</MarkdownLite>}
+          />
+        </div>
+      ) : (
+        <div className="mt-auto pt-3 flex items-end">
+          <Button size="md" className="w-full" onClick={onAdd}>
+            Configure
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
   Env,
   verifyHash,
   validateConfig,
+  formatZodError,
 } from '../utils';
 
 const APIError = constants.APIError;
@@ -154,23 +155,35 @@ export class UserRepository {
         result[0].config_salt
       );
 
-      let validatedConfig: UserData;
-      try {
-        // skip errors, and dont decrypt credentials either, as this would make
-        // encryption pointless
-        validatedConfig = await validateConfig(decryptedConfig, true, false);
-      } catch (error: any) {
+      // try {
+      //   // skip errors, and dont decrypt credentials either, as this would make
+      //   // encryption pointless
+      //   validatedConfig = await validateConfig(decryptedConfig, true, false);
+      // } catch (error: any) {
+      //   return Promise.reject(
+      //     new APIError(
+      //       constants.ErrorCode.USER_INVALID_CONFIG,
+      //       undefined,
+      //       error.message
+      //     )
+      //   );
+      // }
+      const {
+        success,
+        data: validatedConfig,
+        error,
+      } = UserDataSchema.safeParse(decryptedConfig);
+      if (!success) {
         return Promise.reject(
           new APIError(
             constants.ErrorCode.USER_INVALID_CONFIG,
             undefined,
-            error.message
+            formatZodError(error)
           )
         );
       }
-
-      validatedConfig.admin =
-        Env.ADMIN_UUIDS?.split(',').some((u) => new RegExp(u).test(uuid)) ??
+      validatedConfig.trusted =
+        Env.TRUSTED_UUIDS?.split(',').some((u) => new RegExp(u).test(uuid)) ??
         false;
       logger.info(`Retrieved configuration for user ${uuid}`);
       return validatedConfig;

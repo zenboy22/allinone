@@ -34,6 +34,7 @@ import {
 import { isMatch } from 'super-regex';
 import { ConditionParser } from './parser/conditions';
 import { RPDB } from './utils/rpdb';
+import { FeatureControl } from './utils/feature';
 const logger = createLogger('core');
 
 export class AIOStreams {
@@ -778,6 +779,24 @@ export class AIOStreams {
       let summaryMsg = '';
       try {
         const start = Date.now();
+        if (
+          addon.fromPresetId &&
+          FeatureControl.disabledAddons.has(addon.fromPresetId)
+        ) {
+          throw new Error(
+            `Addon ${addon.identifyingName} is disabled: ${FeatureControl.disabledAddons.get(
+              addon.fromPresetId
+            )}`
+          );
+        } else if (
+          FeatureControl.disabledHosts.has(new URL(addon.manifestUrl).host)
+        ) {
+          throw new Error(
+            `Addon ${addon.identifyingName} is using a disabled host: ${FeatureControl.disabledHosts.get(
+              new URL(addon.manifestUrl).host
+            )}`
+          );
+        }
         const streams = await new Wrapper(addon).getStreams(type, id);
         parsedStreams.push(...streams);
 
@@ -901,39 +920,29 @@ export class AIOStreams {
       requiredResolution: { total: 0, details: {} },
       excludedQuality: { total: 0, details: {} },
       requiredQuality: { total: 0, details: {} },
-      excludedVisualTags: { total: 0, details: {} },
-      requiredVisualTags: { total: 0, details: {} },
-      excludedAudioTags: { total: 0, details: {} },
-      requiredAudioTags: { total: 0, details: {} },
+      excludedEncode: { total: 0, details: {} },
+      requiredEncode: { total: 0, details: {} },
+      excludedVisualTag: { total: 0, details: {} },
+      requiredVisualTag: { total: 0, details: {} },
+      excludedAudioTag: { total: 0, details: {} },
+      requiredAudioTag: { total: 0, details: {} },
+      excludedLanguage: { total: 0, details: {} },
+      requiredLanguage: { total: 0, details: {} },
+      excludedUncached: { total: 0, details: {} },
+      requiredUncached: { total: 0, details: {} },
       excludedRegex: { total: 0, details: {} },
       requiredRegex: { total: 0, details: {} },
       excludedKeywords: { total: 0, details: {} },
       requiredKeywords: { total: 0, details: {} },
-      excludedCached: { total: 0, details: {} },
-      requiredCached: { total: 0, details: {} },
-      excludedUncached: { total: 0, details: {} },
-      requiredUncached: { total: 0, details: {} },
-      excludedUncachedFromAddons: { total: 0, details: {} },
-      requiredUncachedFromAddons: { total: 0, details: {} },
-      excludedUncachedFromServices: { total: 0, details: {} },
-      requiredUncachedFromServices: { total: 0, details: {} },
-      excludedUncachedMode: { total: 0, details: {} },
-      requiredUncachedMode: { total: 0, details: {} },
-      excludedEncode: { total: 0, details: {} },
-      requiredEncode: { total: 0, details: {} },
-      excludedCachedFromAddons: { total: 0, details: {} },
-      requiredCachedFromAddons: { total: 0, details: {} },
-      excludedCachedFromServices: { total: 0, details: {} },
-      requiredCachedFromServices: { total: 0, details: {} },
-      excludedCachedMode: { total: 0, details: {} },
-      requiredCachedMode: { total: 0, details: {} },
-      requiredLanguage: { total: 0, details: {} },
+      requiredSeeders: { total: 0, details: {} },
+      excludedSeeders: { total: 0, details: {} },
     };
 
     const start = Date.now();
+    const isRegexAllowed = FeatureControl.isRegexAllowed(this.userData);
 
     const excludedRegexPatterns =
-      this.userData.admin && this.userData.excludedRegexPatterns
+      isRegexAllowed && this.userData.excludedRegexPatterns
         ? await Promise.all(
             this.userData.excludedRegexPatterns.map(async (pattern) =>
               compileRegex(pattern)
@@ -942,7 +951,7 @@ export class AIOStreams {
         : undefined;
 
     const requiredRegexPatterns =
-      this.userData.admin && this.userData.requiredRegexPatterns
+      isRegexAllowed && this.userData.requiredRegexPatterns
         ? await Promise.all(
             this.userData.requiredRegexPatterns.map(async (pattern) =>
               compileRegex(pattern)
@@ -951,7 +960,7 @@ export class AIOStreams {
         : undefined;
 
     const includedRegexPatterns =
-      this.userData.admin && this.userData.includedRegexPatterns
+      isRegexAllowed && this.userData.includedRegexPatterns
         ? await Promise.all(
             this.userData.includedRegexPatterns.map(async (pattern) =>
               compileRegex(pattern)
@@ -1357,12 +1366,14 @@ export class AIOStreams {
         excludedRegexPatterns &&
         (await testRegexes(stream, excludedRegexPatterns))
       ) {
+        skipReasons.excludedRegex.total++;
         return false;
       }
       if (
         requiredRegexPatterns &&
         !(await testRegexes(stream, requiredRegexPatterns))
       ) {
+        skipReasons.requiredRegex.total++;
         return false;
       }
 
@@ -1370,6 +1381,7 @@ export class AIOStreams {
         excludedKeywordsPattern &&
         (await testRegexes(stream, [excludedKeywordsPattern]))
       ) {
+        skipReasons.excludedKeywords.total++;
         return false;
       }
 
@@ -1377,6 +1389,7 @@ export class AIOStreams {
         requiredKeywordsPattern &&
         !(await testRegexes(stream, [requiredKeywordsPattern]))
       ) {
+        skipReasons.requiredKeywords.total++;
         return false;
       }
 
@@ -1385,6 +1398,7 @@ export class AIOStreams {
         stream.torrent?.seeders &&
         stream.torrent.seeders < this.userData.requiredSeeders.min
       ) {
+        skipReasons.requiredSeeders.total++;
         return false;
       }
       if (
@@ -1392,6 +1406,7 @@ export class AIOStreams {
         stream.torrent?.seeders &&
         stream.torrent.seeders > this.userData.requiredSeeders.max
       ) {
+        skipReasons.requiredSeeders.total++;
         return false;
       }
 
@@ -1400,6 +1415,7 @@ export class AIOStreams {
         stream.torrent?.seeders &&
         stream.torrent.seeders < this.userData.excludedSeeders.min
       ) {
+        skipReasons.excludedSeeders.total++;
         return false;
       }
       if (
@@ -1407,6 +1423,7 @@ export class AIOStreams {
         stream.torrent?.seeders &&
         stream.torrent.seeders > this.userData.excludedSeeders.max
       ) {
+        skipReasons.excludedSeeders.total++;
         return false;
       }
 
@@ -1717,7 +1734,8 @@ export class AIOStreams {
 
   private async precomputeSortRegexes(streams: ParsedStream[]) {
     const preferredRegexPatterns =
-      this.userData.admin && this.userData.preferredRegexPatterns
+      FeatureControl.isRegexAllowed(this.userData) &&
+      this.userData.preferredRegexPatterns
         ? await Promise.all(
             this.userData.preferredRegexPatterns.map(async (pattern) => {
               return {

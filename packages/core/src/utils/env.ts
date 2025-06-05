@@ -188,6 +188,23 @@ export const Env = cleanEnv(process.env, {
     default: metadata?.commitTime || 'unknown',
     desc: 'Build commit time of the addon',
   }),
+  DISABLED_HOSTS: str({
+    default: undefined,
+    desc: 'Comma separated list of disabled hosts in format of host:reason',
+  }),
+  DISABLED_ADDONS: str({
+    default: undefined,
+    desc: 'Comma separated list of disabled addons in format of addon:reason',
+  }),
+  DISABLED_SERVICES: str({
+    default: undefined,
+    desc: 'Comma separated list of disabled services in format of service:reason',
+  }),
+  REGEX_FILTER_ACCESS: str({
+    default: 'trusted',
+    desc: 'Who can use regex filters',
+    choices: ['none', 'trusted', 'all'],
+  }),
   BASE_URL: url({
     default: undefined,
     desc: 'Base URL of the addon e.g. https://aiostreams.com',
@@ -232,9 +249,9 @@ export const Env = cleanEnv(process.env, {
     default: {},
     desc: 'Comma separated list of alias:uuid pairs.',
   }),
-  ADMIN_UUIDS: str({
+  TRUSTED_UUIDS: str({
     default: undefined,
-    desc: 'Comma separated list of admin UUIDs. Admin UUIDs can use regex features.',
+    desc: 'Comma separated list of trusted UUIDs. Trusted UUIDs can currently use regex filters if.',
   }),
   TMDB_ACCESS_TOKEN: str({
     default: undefined,
@@ -290,12 +307,6 @@ export const Env = cleanEnv(process.env, {
   MAX_CACHE_SIZE: num({
     default: 100000,
     desc: 'Max cache size for the addon',
-  }),
-
-  // feature controls
-  DISABLE_REGEX_FILTERS: bool({
-    default: false,
-    desc: 'Disable regex filters',
   }),
 
   // configuration settings
