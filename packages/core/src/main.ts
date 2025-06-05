@@ -1564,6 +1564,15 @@ export class AIOStreams {
                 return aProviderIndex - bProviderIndex;
               }
 
+              // look at seeders for p2p and uncached streams
+              if (
+                (type === 'p2p' || type === 'uncached') &&
+                a.torrent?.seeders &&
+                b.torrent?.seeders
+              ) {
+                return (b.torrent.seeders || 0) - (a.torrent.seeders || 0);
+              }
+
               // now look at the addon index
 
               const aAddonIndex =
@@ -1642,6 +1651,11 @@ export class AIOStreams {
                 if (aTypeIndex !== bTypeIndex) {
                   return aTypeIndex - bTypeIndex;
                 }
+
+                // look at seeders for p2p and uncached streams
+                if (type === 'p2p' || type === 'uncached') {
+                  return (b.torrent?.seeders || 0) - (a.torrent?.seeders || 0);
+                }
                 return 0;
               })[0];
             });
@@ -1677,6 +1691,11 @@ export class AIOStreams {
                   ) ?? -1;
                 if (aServiceIndex !== bServiceIndex) {
                   return aServiceIndex - bServiceIndex;
+                }
+
+                // look at seeders for p2p and uncached streams
+                if (type === 'p2p' || type === 'uncached') {
+                  return (b.torrent?.seeders || 0) - (a.torrent?.seeders || 0);
                 }
                 return 0;
               })[0];
