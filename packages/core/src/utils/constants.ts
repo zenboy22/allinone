@@ -206,26 +206,23 @@ export const PROXY_SERVICE_DETAILS: Record<
     name: string;
     description: string;
     credentialDescription: string;
-    url: string;
   }
 > = {
   [MEDIAFLOW_SERVICE]: {
     id: MEDIAFLOW_SERVICE,
-    name: 'MediaFlow',
+    name: 'MediaFlow Proxy',
     description:
-      'MediaFlow is a proxy service that allows you to proxy your requests to the server.',
+      '[MediaFlow Proxy](https://github.com/mhdzumair/mediaflow-proxy) is a high performance proxy server which supports HTTP, HLS, and more.',
     credentialDescription:
       'The value of your MediaFlow Proxy instance `API_PASSWORD` environment variable.',
-    url: 'https://github.com/mhdzumair/mediaflow-proxy',
   },
   [STREMTHRU_SERVICE]: {
     id: STREMTHRU_SERVICE,
     name: 'StremThru',
     description:
-      'StremThru is a proxy service that allows you to proxy your requests to the server.',
+      '[StremThru](https://github.com/MunifTanjim/stremthru) is a feature packed companion to Stremio which also offers a HTTP proxy, written in Go.',
     credentialDescription:
       'A valid credential for your StremThru instance, defined in the `STREMTHRU_PROXY_AUTH` environment variable.',
-    url: 'https://github.com/MunifTanjim/stremthru',
   },
 };
 
@@ -911,19 +908,33 @@ const LANGUAGES = [
 
 export const SNIPPETS = [
   {
-    name: 'Title Only',
-    description: 'Just the title of the stream',
-    value: '{title}',
+    name: 'Year + Season + Episode',
+    description:
+      'Outputs a nicely formatted year along with the season and episode number',
+    value:
+      '{stream.year::exists["({stream.year}) "||""]}{stream.seasonEpisode::exists["{stream.seasonEpisode::join(\' • \')}"||""]}',
   },
   {
-    name: 'Title + Year',
-    description: 'Title and year',
-    value: '{title} ({year})',
+    name: 'File Size',
+    description: 'Outputs the file size of the stream',
+    value: '{stream.size::>0["{stream.size::bytes}"||""]}',
   },
   {
-    name: 'Full Info',
-    description: 'Title, year, resolution, quality',
-    value: '{title} ({year}) [{resolution}] [{quality}]',
+    name: 'Duration',
+    description: 'Outputs the duration of the stream',
+    value: '{stream.duration::>0["{stream.duration::time}"||""]}',
+  },
+  {
+    name: 'P2P marker',
+    description: 'Displays a [P2P] marker if the stream is a P2P stream',
+    value: '{stream.type::equals["p2p"]["[P2P]"]||""}',
+  },
+  {
+    name: 'Languages',
+    description:
+      'Outputs the languages of the stream. Tip: use stream.languageEmojis if you prefer the flags',
+    value:
+      '{stream.languages::exists["{stream.languages::join(\' • \')}"||""]}',
   },
 ];
 
