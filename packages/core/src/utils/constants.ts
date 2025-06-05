@@ -927,7 +927,7 @@ export const SNIPPETS = [
   {
     name: 'P2P marker',
     description: 'Displays a [P2P] marker if the stream is a P2P stream',
-    value: '{stream.type::equals["p2p"]["[P2P]"]||""}',
+    value: '{stream.type::=p2p["[P2P]"||""]}',
   },
   {
     name: 'Languages',
