@@ -1184,7 +1184,9 @@ function CatalogSettingsCard() {
     <div className="rounded-[--radius] border bg-[--paper] shadow-sm p-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold">Catalogs</h3>
+          <h3 className="font-semibold text-xl text-[--muted] transition-colors hover:text-[--brand]">
+            Catalogs
+          </h3>
           <p className="text-[--muted] text-sm">Manage your catalogs</p>
         </div>
         <IconButton
