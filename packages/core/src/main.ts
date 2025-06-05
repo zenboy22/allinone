@@ -1544,6 +1544,8 @@ export class AIOStreams {
         let type = stream.type as string;
         if (type === 'debrid' && stream.service) {
           type = stream.service.cached ? 'cached' : 'uncached';
+        } else if (type === 'usenet' && stream.service) {
+          type = 'cached';
         }
         const typeGroup = streamsByType.get(type) || [];
         typeGroup.push(stream);
