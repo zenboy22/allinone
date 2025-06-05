@@ -28,17 +28,17 @@ export function createResponse(
   const { success, data, error } = options;
   let type: string = 'api';
   // adapt responses for path specific response types
+  let stremioResponse = false;
   if (adaptResponses && path) {
-    if (path.match(/\/stremio(?:\/[^\/]+){0,2}\/stream/)) {
-      type = 'stream';
-    } else if (path.match(/\/stremio(?:\/[^\/]+){0,2}\/catalog/)) {
-      type = 'catalog';
-    } else if (path.match(/\/stremio(?:\/[^\/]+){0,2}\/subtitles/)) {
-      type = 'subtitles';
-    } else if (path.match(/\/stremio(?:\/[^\/]+){0,2}\/meta/)) {
-      type = 'meta';
+    const match = path?.match(
+      /\/stremio(?:\/[^\/]+){0,2}\/(stream|catalog|subtitles|meta|addon_catalog)/
+    );
+    if (match) {
+      stremioResponse = true;
+      type = match[1];
     }
   }
+
   logger.debug('Creating response object', {
     success,
     error,
@@ -78,6 +78,12 @@ export function createResponse(
       if (success) {
         return {
           meta: data,
+        };
+      }
+    case 'addon_catalog':
+      if (success) {
+        return {
+          addons: data,
         };
       }
     default:

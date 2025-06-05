@@ -14,6 +14,7 @@ import {
   catalog,
   meta,
   subtitle,
+  addonCatalog,
 } from './routes/stremio';
 
 import {
@@ -73,6 +74,7 @@ stremioAuthRouter.use('/configure.txt', (req, res) => {
 stremioAuthRouter.use('/meta', meta);
 stremioAuthRouter.use('/catalog', catalog);
 stremioAuthRouter.use('/subtitles', subtitle);
+stremioAuthRouter.use('/addon_catalog', addonCatalog);
 
 app.use('/stremio', stremioRouter); // For public routes
 app.use('/stremio/:uuid/:encryptedPassword', stremioAuthRouter); // For authenticated routes

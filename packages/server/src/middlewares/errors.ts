@@ -27,7 +27,7 @@ export const errorMiddleware = (
 
   let stremioResponse = false;
   const match = req.originalUrl.match(
-    /\/stremio(?:\/[^\/]+){0,2}\/(stream|catalog|subtitles|meta)/
+    /\/stremio(?:\/[^\/]+){0,2}\/(stream|catalog|subtitles|meta|addon_catalog)/
   );
   if (match) {
     stremioResponse = true;

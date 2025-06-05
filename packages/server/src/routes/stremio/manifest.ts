@@ -22,6 +22,7 @@ const manifest = async (config?: UserData): Promise<Manifest> => {
   }
   let catalogs: Manifest['catalogs'] = [];
   let resources: Manifest['resources'] = [];
+  let addonCatalogs: Manifest['addonCatalogs'] = [];
   if (config) {
     const aiostreams = new AIOStreams(config);
 
@@ -29,6 +30,7 @@ const manifest = async (config?: UserData): Promise<Manifest> => {
 
     catalogs = aiostreams.getCatalogs();
     resources = aiostreams.getResources();
+    addonCatalogs = aiostreams.getAddonCatalogs();
   }
   return {
     name: config?.addonName || Env.ADDON_NAME,
@@ -48,6 +50,7 @@ const manifest = async (config?: UserData): Promise<Manifest> => {
       configurable: true,
       configurationRequired: config ? false : true,
     },
+    addonCatalogs,
     stremioAddonsConfig:
       Env.STREMIO_ADDONS_CONFIG_ISSUER && Env.STREMIO_ADDONS_CONFIG_SIGNATURE
         ? {

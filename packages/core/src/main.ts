@@ -265,7 +265,7 @@ export class AIOStreams {
 
     // step 2
     // get the actual catalog id from the id
-    const actualCatalogId = id.split('.', 2)[1];
+    const actualCatalogId = id.split('.').slice(1).join('.');
     // step 3
     // get the catalog from the addon
     let catalog = await new Wrapper(addon).getCatalog(
@@ -441,7 +441,7 @@ export class AIOStreams {
 
     // step 2
     // get the actual addon catalog id from the id
-    const actualAddonCatalogId = id.split('.', 2)[1];
+    const actualAddonCatalogId = id.split('.').slice(1).join('.');
 
     // step 3
     // get the addon catalog from the addon
@@ -513,6 +513,12 @@ export class AIOStreams {
 
       const addon = this.addons[Number(index)];
 
+      logger.verbose(
+        `Determined that ${addon.identifyingName} (Index: ${index}) has support for the following resources: ${JSON.stringify(
+          addonResources
+        )}`
+      );
+
       // Filter and merge resources
       for (const resource of addonResources) {
         if (
@@ -571,6 +577,35 @@ export class AIOStreams {
 
       this.supportedResources[Number(index)] = addonResources;
     }
+
+    logger.verbose(
+      `Parsed all catalogs and determined the following catalogs: ${JSON.stringify(
+        this.finalCatalogs.map((c) => ({
+          id: c.id,
+          name: c.name,
+          type: c.type,
+        }))
+      )}`
+    );
+
+    logger.verbose(
+      `Parsed all addon catalogs and determined the following catalogs: ${JSON.stringify(
+        this.finalAddonCatalogs?.map((c) => ({
+          id: c.id,
+          name: c.name,
+          type: c.type,
+        }))
+      )}`
+    );
+
+    logger.verbose(
+      `Parsed all resources and determined the following resources: ${JSON.stringify(
+        this.finalResources.map((r) => ({
+          name: r.name,
+          types: r.types,
+        }))
+      )}`
+    );
 
     if (this.userData.catalogModifications) {
       this.finalCatalogs = this.finalCatalogs
