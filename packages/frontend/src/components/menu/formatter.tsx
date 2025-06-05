@@ -22,19 +22,40 @@ import { NumberInput } from '../ui/number-input';
 import { PageControls } from '../shared/page-controls';
 const formatterChoices = Object.values(constants.FORMATTER_DETAILS);
 
-// Simple throttle utility
-let lastCall = 0;
-function throttle<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  return (...args: Parameters<T>) => {
-    const now = Date.now();
-    if (now - lastCall >= wait) {
-      lastCall = now;
-      func(...args);
+// Remove the throttle utility and replace with FormatQueue
+class FormatQueue {
+  private queue: (() => Promise<void>)[] = [];
+  private processing = false;
+  private readonly delay: number;
+
+  constructor(delay: number) {
+    this.delay = delay;
+  }
+
+  enqueue(formatFn: () => Promise<void>) {
+    // Replace any existing queued format request with the new one
+    this.queue = [formatFn];
+    this.process();
+  }
+
+  private async process() {
+    if (this.processing) return;
+
+    this.processing = true;
+    while (this.queue.length > 0) {
+      const formatFn = this.queue.shift();
+      if (formatFn) {
+        try {
+          await formatFn();
+        } catch (error) {
+          console.error('Error in format queue:', error);
+        }
+        // Wait for the specified delay before processing the next request
+        await new Promise((resolve) => setTimeout(resolve, this.delay));
+      }
     }
-  };
+    this.processing = false;
+  }
 }
 
 export function FormatterMenu() {
@@ -85,6 +106,9 @@ function Content() {
   } | null>(null);
   const [isFormatting, setIsFormatting] = useState(false);
 
+  // Create format queue ref to persist between renders
+  const formatQueueRef = React.useRef<FormatQueue>(new FormatQueue(200));
+
   // Stream preview state
   const [filename, setFilename] = useState(
     'Movie.Title.2023.2160p.BluRay.HEVC.DV.TrueHD.Atmos.7.1.iTA.ENG-GROUP.mkv'
@@ -106,7 +130,9 @@ function Content() {
   const [duration, setDuration] = useState<number | undefined>(9120000); // 2h 32m in milliseconds
   const [fileSize, setFileSize] = useState<number | undefined>(62500000000); // 58.2 GB in bytes
   const [proxied, setProxied] = useState(false);
-  const [regexMatched, setRegexMatched] = useState('');
+  const [regexMatched, setRegexMatched] = useState<string | undefined>(
+    undefined
+  );
 
   // Custom formatter state (to avoid losing one field when editing the other)
   const [customName, setCustomName] = useState(
@@ -247,14 +273,8 @@ function Content() {
     regexMatched,
   ]);
 
-  // Throttled format function
-  const throttledFormat = useCallback(throttle(formatStream, 200), [
-    formatStream,
-  ]);
-
-  // Call format whenever relevant values change
   useEffect(() => {
-    throttledFormat();
+    formatQueueRef.current.enqueue(formatStream);
   }, [
     filename,
     folder,
@@ -424,7 +444,7 @@ function Content() {
             <TextInput
               label={<span className="truncate block">Regex Matched</span>}
               value={regexMatched}
-              onValueChange={(value) => setRegexMatched(value || '')}
+              onValueChange={(value) => setRegexMatched(value || undefined)}
               className="w-full"
             />
           </div>
