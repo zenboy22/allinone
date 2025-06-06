@@ -91,7 +91,6 @@ export class DB {
     if (this.uri.dialect === 'postgres') {
       const pool = new Pool({
         connectionString: this.uri.url.toString(),
-        max: 10,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 2000,
       });
