@@ -297,14 +297,17 @@ export class UserRepository {
     });
   }
 
-  static async pruneUsers(maxDays: number = 30): Promise<void> {
+  static async pruneUsers(maxDays: number = 30): Promise<number> {
     try {
       const query =
         db.getDialect() === 'postgres'
-          ? `DELETE FROM users WHERE accessed_at < NOW() - INTERVAL ${maxDays} DAY`
+          ? `DELETE FROM users WHERE accessed_at < NOW() - INTERVAL '${maxDays} days'`
           : `DELETE FROM users WHERE accessed_at < datetime('now', '-' || ${maxDays} || ' days')`;
-      await db.execute(query);
-      logger.info(`Pruned users older than ${maxDays} days`);
+
+      const result = await db.execute(query);
+      const deletedCount = result.changes || result.rowCount || 0;
+      logger.info(`Pruned ${deletedCount} users older than ${maxDays} days`);
+      return deletedCount;
     } catch (error) {
       logger.error('Failed to prune users:', error);
       return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));

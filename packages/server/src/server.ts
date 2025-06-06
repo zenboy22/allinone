@@ -14,9 +14,17 @@ async function initialiseDatabase() {
   }
 }
 
+async function startAutoPrune() {
+  try {
+    await UserRepository.pruneUsers(Env.PRUNE_MAX_DAYS);
+  } catch {}
+  setTimeout(startAutoPrune, Env.PRUNE_INTERVAL * 1000);
+}
+
 async function start() {
   try {
     await initialiseDatabase();
+    startAutoPrune();
     app.listen(Env.PORT, () => {
       logger.info(`Server running on port ${Env.PORT}`);
     });

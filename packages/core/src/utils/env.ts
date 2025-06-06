@@ -284,6 +284,15 @@ export const Env = cleanEnv(process.env, {
     desc: 'Signature for the Stremio addons config',
   }),
 
+  PRUNE_INTERVAL: num({
+    default: 86400, // 24 hours
+    desc: 'Interval for pruning inactive users in seconds',
+  }),
+  PRUNE_MAX_DAYS: num({
+    default: 30,
+    desc: 'Maximum days of inactivity before pruning',
+  }),
+
   DEFAULT_USER_AGENT: userAgent({
     default: `AIOStreams/${metadata?.version || 'unknown'}`,
     desc: 'Default user agent for the addon',
