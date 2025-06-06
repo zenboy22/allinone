@@ -50,6 +50,9 @@ COPY --from=builder /build/resources ./resources
 
 COPY --from=builder /build/node_modules ./node_modules
 
-EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:$PORT/api/v1/status || exit 1
+
+EXPOSE $PORT
 
 ENTRYPOINT ["npm", "run", "start"]
