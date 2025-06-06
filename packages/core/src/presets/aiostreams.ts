@@ -16,7 +16,7 @@ class AIOStreamsStreamParser extends StreamParser {
     return {
       addon: {
         ...this.addon,
-        name: aioStream.streamData?.addon ?? this.addon.name,
+        name: `${this.addon.name} | ${aioStream.streamData?.addon ?? ''}`,
       },
       error: aioStream.streamData?.error,
       type: aioStream.streamData?.type ?? 'http',
