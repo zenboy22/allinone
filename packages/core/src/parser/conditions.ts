@@ -12,7 +12,8 @@ export class ConditionParser {
     previousStreams: ParsedStream[],
     totalStreams: ParsedStream[],
     previousGroupTimeTaken: number,
-    totalTimeTaken: number
+    totalTimeTaken: number,
+    queryType: string
   ) {
     this.previousStreams = previousStreams;
     this.totalStreams = totalStreams;
@@ -73,6 +74,7 @@ export class ConditionParser {
 
     this.parser.consts.previousStreams = this.previousStreams;
     this.parser.consts.totalStreams = this.totalStreams;
+    this.parser.consts.type = queryType;
     this.parser.consts.previousGroupTimeTaken = this.previousGroupTimeTaken;
     this.parser.consts.totalTimeTaken = this.totalTimeTaken;
     this.parser.functions.indexerPresent = function (
@@ -84,14 +86,15 @@ export class ConditionParser {
     this.parser.functions.groupByRegexMatched = function (
       streams: ParsedStream[]
     ) {
-      return streams.filter((stream) => stream.regexMatched).length;
+      return streams.filter((stream) => stream.regexMatched);
     };
     this.parser.functions.groupBySpecificRegexMatched = function (
       streams: ParsedStream[],
       regexName: string
     ) {
-      return streams.filter((stream) => stream.regexMatched?.name === regexName)
-        .length;
+      return streams.filter(
+        (stream) => stream.regexMatched?.name === regexName
+      );
     };
     this.parser.functions.groupByIndexer = function (
       streams: ParsedStream[],
@@ -104,7 +107,7 @@ export class ConditionParser {
       } else if (typeof indexer !== 'string') {
         throw new Error('Indexer must be a string');
       }
-      return streams.filter((stream) => stream.indexer === indexer).length;
+      return streams.filter((stream) => stream.indexer === indexer);
     };
     this.parser.functions.groupByResolution = function (
       streams: ParsedStream[],
@@ -119,7 +122,7 @@ export class ConditionParser {
       }
       return streams.filter(
         (stream) => stream.parsedFile?.resolution === resolution
-      ).length;
+      );
     };
     this.parser.functions.groupByQuality = function (
       streams: ParsedStream[],
@@ -132,8 +135,7 @@ export class ConditionParser {
       } else if (typeof quality !== 'string') {
         throw new Error('Quality must be a string');
       }
-      return streams.filter((stream) => stream.parsedFile?.quality === quality)
-        .length;
+      return streams.filter((stream) => stream.parsedFile?.quality === quality);
     };
     this.parser.functions.groupByType = function (
       streams: ParsedStream[],
@@ -146,7 +148,7 @@ export class ConditionParser {
       } else if (typeof type !== 'string') {
         throw new Error('Type must be a string');
       }
-      return streams.filter((stream) => stream.type === type).length;
+      return streams.filter((stream) => stream.type === type);
     };
     this.parser.functions.groupByService = function (
       streams: ParsedStream[],
@@ -175,7 +177,7 @@ export class ConditionParser {
           'Service must be a string and one of: realdebrid, debridlink, alldebrid, torbox, pikpak, seedr, offcloud, premiumize, easynews, easydebrid'
         );
       }
-      return streams.filter((stream) => stream.service?.id === service).length;
+      return streams.filter((stream) => stream.service?.id === service);
     };
     this.parser.functions.groupByCached = function (
       streams: ParsedStream[],
@@ -186,10 +188,11 @@ export class ConditionParser {
           "Please use one of 'totalStreams' or 'previousStreams' as the first argument"
         );
       } else if (typeof cached !== 'boolean') {
-        throw new Error('Cached must be a boolean');
+        throw new Error(
+          `Expected cached to be of type boolean, but got ${typeof cached}`
+        );
       }
-      return streams.filter((stream) => stream.service?.cached === cached)
-        .length;
+      return streams.filter((stream) => stream.service?.cached === cached);
     };
     this.parser.functions.groupByReleaseGroup = function (
       streams: ParsedStream[],
@@ -204,7 +207,7 @@ export class ConditionParser {
       }
       return streams.filter(
         (stream) => stream.parsedFile?.releaseGroup === releaseGroup
-      ).length;
+      );
     };
     this.parser.functions.count = function (streams: ParsedStream[]) {
       if (!Array.isArray(streams)) {
@@ -233,7 +236,7 @@ export class ConditionParser {
   }
 
   static async testParse(condition: string) {
-    const parser = new ConditionParser([], [], 0, 0);
+    const parser = new ConditionParser([], [], 0, 0, 'movie');
     return await parser.parse(condition);
   }
 }

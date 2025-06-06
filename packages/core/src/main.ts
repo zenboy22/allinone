@@ -945,7 +945,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             previousGroupStreams,
             parsedStreams,
             previousGroupTimeTaken,
-            totalTimeTaken
+            totalTimeTaken,
+            type
           );
           const shouldFetch = await parser.parse(group.condition);
           if (shouldFetch) {
