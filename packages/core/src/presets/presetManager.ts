@@ -11,6 +11,7 @@ import { EasynewsPlusPlusPreset } from './easynewsPlusPlus';
 import { StremthruTorzPreset } from './stremthruTorz';
 import { DebridioPreset } from './debridio';
 import { AIOStreamsPreset } from './aiostreams';
+import { OpenSubtitlesPreset } from './opensubtitles';
 
 const PRESET_LIST: string[] = [
   'torrentio',
@@ -24,6 +25,7 @@ const PRESET_LIST: string[] = [
   'easynewsPlusPlus',
   'debridio',
   'aiostreams',
+  'opensubtitles',
   'custom',
 ];
 
@@ -58,6 +60,8 @@ export class PresetManager {
         return DebridioPreset;
       case 'aiostreams':
         return AIOStreamsPreset;
+      case 'opensubtitles':
+        return OpenSubtitlesPreset;
       default:
         throw new Error(`Preset ${id} not found`);
     }

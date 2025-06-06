@@ -823,6 +823,19 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default GDrive user agent',
   }),
 
+  OPENSUBTITLES_URL: url({
+    default: 'https://opensubtitles-v3.strem.io',
+    desc: 'The base URL of the OpenSubtitles stremio addon',
+  }),
+  DEFAULT_OPENSUBTITLES_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default OpenSubtitles timeout',
+  }),
+  DEFAULT_OPENSUBTITLES_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default OpenSubtitles user agent',
+  }),
+
   // Rate limiting settings
   DISABLE_RATE_LIMITS: bool({
     default: false,
