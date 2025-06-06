@@ -216,10 +216,9 @@ export const Env = cleanEnv(process.env, {
   }),
   SECRET_KEY: secretKey({
     desc: 'Secret key for the addon, used for encryption and must be 64 characters of hex',
-    default: '',
   }),
   ADDON_PASSWORD: str({
-    default: '',
+    default: undefined,
     desc: 'Password required to create and modify addon configurations',
   }),
   DATABASE_URI: str({
