@@ -209,7 +209,7 @@ export class MediaFusionPreset extends Preset {
     return {
       ID: 'mediafusion',
       NAME: 'MediaFusion',
-      LOGO: `${Env.MEDIAFUSION_URL}/static/images/mediafusion-elfhosted-logo.png`,
+      LOGO: `https://raw.githubusercontent.com/mhdzumair/MediaFusion/refs/heads/main/resources/images/mediafusion_logo.png`,
       URL: Env.MEDIAFUSION_URL,
       TIMEOUT: Env.DEFAULT_MEDIAFUSION_TIMEOUT || Env.DEFAULT_TIMEOUT,
       USER_AGENT: Env.DEFAULT_MEDIAFUSION_USER_AGENT || Env.DEFAULT_USER_AGENT,
