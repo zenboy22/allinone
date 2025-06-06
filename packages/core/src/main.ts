@@ -814,6 +814,11 @@ export class AIOStreams {
       let summaryMsg = '';
       const start = Date.now();
       try {
+        if (addon.manifestUrl.includes(this.userData.uuid || '')) {
+          throw new Error(
+            `${addon.identifyingName} appears to be trying to scrape the current user's AIOStreams instance.`
+          );
+        }
         if (
           addon.fromPresetId &&
           FeatureControl.disabledAddons.has(addon.fromPresetId)
