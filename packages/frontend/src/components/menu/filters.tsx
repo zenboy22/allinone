@@ -311,7 +311,7 @@ function Content() {
                       label="Apply mode"
                       disabled={userData.excludeCached === true}
                       help="How these two options (from addons and services) are applied. AND means a result must match both, OR means a result only needs to match one"
-                      value={userData.excludeCachedMode ?? 'and'}
+                      value={userData.excludeCachedMode ?? 'or'}
                       onValueChange={(value) => {
                         setUserData((prev) => ({
                           ...prev,
@@ -391,7 +391,7 @@ function Content() {
                       label="Apply mode"
                       disabled={userData.excludeUncached === true}
                       help="How these two options (from addons and services) are applied. AND means a result must match both, OR means a result only needs to match one"
-                      value={userData.excludeUncachedMode ?? 'and'}
+                      value={userData.excludeUncachedMode ?? 'or'}
                       onValueChange={(value) => {
                         setUserData((prev) => ({
                           ...prev,
