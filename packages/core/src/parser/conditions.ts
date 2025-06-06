@@ -171,7 +171,7 @@ export class ConditionParser {
       }
       return streams.filter((stream) => stream.service?.id === service);
     };
-    this.parser.functions.cache = function (
+    this.parser.functions.cached = function (
       streams: ParsedStream[],
       cached: boolean
     ) {
