@@ -9,6 +9,7 @@ import {
   AUDIO_TAGS,
   constants,
   createLogger,
+  Env,
   getSimpleTextHash,
   getTimeTakenSincePoint,
   StreamType,
@@ -817,6 +818,13 @@ export class AIOStreams {
         if (addon.manifestUrl.includes(this.userData.uuid || '')) {
           throw new Error(
             `${addon.identifyingName} appears to be trying to scrape the current user's AIOStreams instance.`
+          );
+        } else if (
+          new URL(addon.manifestUrl).host === new URL(Env.BASE_URL).host &&
+          Env.DISABLE_SELF_SCRAPING === true
+        ) {
+          throw new Error(
+            `Scraping the same AIOStreams instance is disabled. Please use a different AIOStreams instance, or enable it through the environment variables.`
           );
         }
         if (

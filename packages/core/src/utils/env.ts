@@ -177,6 +177,10 @@ export const Env = cleanEnv(process.env, {
     default: metadata?.commitTime || 'unknown',
     desc: 'Build commit time of the addon',
   }),
+  DISABLE_SELF_SCRAPING: bool({
+    default: true,
+    desc: 'Disable self scraping. If true, addons will not be able to scrape the same AIOStreams instance.',
+  }),
   DISABLED_HOSTS: str({
     default: undefined,
     desc: 'Comma separated list of disabled hosts in format of host:reason',
@@ -195,7 +199,6 @@ export const Env = cleanEnv(process.env, {
     choices: ['none', 'trusted', 'all'],
   }),
   BASE_URL: url({
-    default: undefined,
     desc: 'Base URL of the addon e.g. https://aiostreams.com',
   }),
   ADDON_NAME: str({
