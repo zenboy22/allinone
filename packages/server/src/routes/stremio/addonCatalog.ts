@@ -1,72 +1,65 @@
-import { Router } from 'express';
-import { AIOStreams, constants } from '@aiostreams/core';
+import { Router, Request, Response } from 'express';
+import { AddonCatalogResponse, AIOStreams, constants } from '@aiostreams/core';
 import { createLogger } from '@aiostreams/core';
 import { createResponse } from '../../utils/responses';
+import { StremioTransformer } from '@aiostreams/core';
 
-const logger = createLogger('stremio/addonCatalog');
+const logger = createLogger('server');
 const router = Router();
 
-router.get('/:type/:id.json', async (req, res, next) => {
-  if (!req.userData) {
-    res.status(200).json(
-      createResponse(
-        {
-          success: false,
-          error: {
-            code: constants.ErrorCode.USER_NOT_FOUND,
-            message: 'Please configure the addon first',
-          },
-        },
-        req.originalUrl,
-        true
-      )
-    );
-    return;
-  }
-
-  try {
-    const { type, id } = req.params;
-    logger.debug('Addon catalog request received', {
-      type,
-      id,
-      userData: req.userData,
-    });
-
-    const aiostreams = new AIOStreams(req.userData);
-    await aiostreams.initialise();
-
-    const addonCatalog = await aiostreams.getAddonCatalog(type, id);
-
-    if (!addonCatalog) {
-      res.status(200).json(
-        createResponse(
-          {
-            success: false,
-            error: {
-              code: constants.ErrorCode.USER_ERROR,
-              message: 'No addon catalog found',
-            },
-          },
-          req.originalUrl,
-          true
-        )
-      );
+router.get(
+  '/:type/:id.json',
+  async (req: Request, res: Response<AddonCatalogResponse>, next) => {
+    if (!req.userData) {
+      res.status(200).json({
+        addons: [
+          StremioTransformer.createErrorAddonCatalog({
+            errorDescription: 'Please configure the addon first',
+          }),
+        ],
+      });
       return;
     }
+    const transformer = new StremioTransformer(req.userData);
 
-    res.status(200).json(
-      createResponse(
+    try {
+      const { type, id } = req.params;
+      logger.debug('Addon catalog request received', {
+        type,
+        id,
+      });
+      res
+        .status(200)
+        .json(
+          transformer.transformAddonCatalog(
+            await (
+              await new AIOStreams(req.userData).initialise()
+            ).getAddonCatalog(type, id)
+          )
+        );
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errors = [
         {
-          success: true,
-          data: addonCatalog,
+          description: errorMsg,
         },
-        req.originalUrl,
-        true
-      )
-    );
-  } catch (error) {
-    next(error);
+      ];
+      if (transformer.showError('addon_catalog', errors)) {
+        logger.error(
+          `Unexpected error during addon catalog retrieval: ${errorMsg}`
+        );
+        res.status(200).json(
+          transformer.transformAddonCatalog({
+            success: false,
+            data: [],
+            errors,
+          })
+        );
+      } else {
+        next(error);
+      }
+    }
   }
-});
+);
 
 export default router;

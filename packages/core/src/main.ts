@@ -8,8 +8,6 @@ import {
 import {
   AUDIO_TAGS,
   constants,
-  createErrorStream,
-  createErrorSubtitle,
   createLogger,
   getTimeTakenSincePoint,
   StreamType,
@@ -19,6 +17,8 @@ import { Wrapper } from './wrapper';
 import { PresetManager } from './presets';
 import {
   AddonCatalog,
+  Meta,
+  MetaPreview,
   ParsedStream,
   SortCriterion,
   Stream,
@@ -36,6 +36,17 @@ import { ConditionParser } from './parser/conditions';
 import { RPDB } from './utils/rpdb';
 import { FeatureControl } from './utils/feature';
 const logger = createLogger('core');
+
+export interface AIOStreamsError {
+  title?: string;
+  description?: string;
+}
+
+export interface AIOStreamsResponse<T> {
+  success: boolean;
+  data: T;
+  errors: AIOStreamsError[];
+}
 
 export class AIOStreams {
   private readonly userData: UserData;
@@ -60,12 +71,13 @@ export class AIOStreams {
     this.skipFailedAddons = skipFailedAddons;
   }
 
-  public async initialise() {
-    if (this.isInitialised) return;
+  public async initialise(): Promise<AIOStreams> {
+    if (this.isInitialised) return this;
     await this.applyPresets();
     await this.fetchManifests();
     await this.fetchResources();
     this.isInitialised = true;
+    return this;
   }
 
   private checkInitialised() {
@@ -79,10 +91,7 @@ export class AIOStreams {
   public async getStreams(
     id: string,
     type: string
-  ): Promise<{
-    streams: ParsedStream[];
-    errors: { addon: Addon; error: string }[];
-  }> {
+  ): Promise<AIOStreamsResponse<ParsedStream[]>> {
     logger.info(`Handling stream request`, { type, id });
 
     // step 1
@@ -149,109 +158,20 @@ export class AIOStreams {
       `Returning ${proxifiedStreams.length} streams and ${errors.length} errors`
     );
     return {
-      streams: proxifiedStreams,
-      errors: errors,
+      success: true,
+      data: proxifiedStreams,
+      errors: errors.map((error) => ({
+        title: error.title,
+        description: error.description,
+      })),
     };
   }
 
-  public async transformStreams({
-    streams,
-    errors,
-  }: {
-    streams: ParsedStream[];
-    errors: { addon: Addon; error: string }[];
-  }): Promise<Stream[]> {
-    let transformedStreams: Stream[] = [];
-    // need to generate a name, description, and other stremio-specific fields
-    // use the configured formatter to generate the name and description.
-    let formatter;
-    if (this.userData.formatter.id === constants.CUSTOM_FORMATTER) {
-      const template = this.userData.formatter.definition;
-      if (!template) {
-        throw new Error('No template defined for custom formatter');
-      }
-      formatter = createFormatter(
-        this.userData.formatter.id,
-        template,
-        this.userData.addonName
-      );
-    } else {
-      formatter = createFormatter(
-        this.userData.formatter.id,
-        undefined,
-        this.userData.addonName
-      );
-    }
-
-    logger.info(
-      `Transforming ${streams.length} streams, using formatter ${this.userData.formatter.id}`
-    );
-
-    transformedStreams = await Promise.all(
-      streams.map(async (stream: ParsedStream): Promise<Stream> => {
-        const { name, description } = formatter.format(stream);
-        const identifyingAttributes = [
-          stream.parsedFile?.resolution,
-          stream.parsedFile?.quality,
-          stream.parsedFile?.encode,
-          stream.parsedFile?.audioTags,
-          stream.parsedFile?.visualTags,
-          stream.parsedFile?.languages,
-          stream.parsedFile?.releaseGroup,
-          stream.indexer,
-        ].filter(Boolean);
-        const bingeGroup = `${stream.proxied ? 'proxied.' : ''}${identifyingAttributes.join('|')}`;
-        return {
-          name,
-          description,
-          url: ['http', 'usenet', 'debrid', 'live'].includes(stream.type)
-            ? stream.url
-            : undefined,
-          infoHash:
-            stream.type === 'p2p' ? stream.torrent?.infoHash : undefined,
-          ytId: stream.type === 'youtube' ? stream.ytId : undefined,
-          externalUrl:
-            stream.type === 'external' ? stream.externalUrl : undefined,
-          sources: stream.type === 'p2p' ? stream.torrent?.sources : undefined,
-          subtitles: stream.subtitles,
-          behaviorHints: {
-            countryWhitelist: stream.countryWhitelist,
-            notWebReady: stream.notWebReady,
-            bingeGroup: bingeGroup,
-            proxyHeaders:
-              stream.requestHeaders || stream.responseHeaders
-                ? {
-                    request: stream.requestHeaders,
-                    response: stream.responseHeaders,
-                  }
-                : undefined,
-            videoHash: stream.videoHash,
-            videoSize: stream.size,
-            filename: stream.filename,
-          },
-        };
-      })
-    );
-
-    // add errors to the end (if this.userData.hideErrors is false  or the resource is not in this.userData.hideErrorsForResources)
-    if (
-      !this.userData.hideErrors ||
-      !this.userData.hideErrorsForResources?.includes('stream')
-    ) {
-      transformedStreams.push(
-        ...errors.map((error) =>
-          createErrorStream({
-            description: error.error,
-            name: `[❌] ${error.addon.identifyingName}`,
-          })
-        )
-      );
-    }
-
-    return transformedStreams;
-  }
-
-  public async getCatalog(type: string, id: string, extras?: string) {
+  public async getCatalog(
+    type: string,
+    id: string,
+    extras?: string
+  ): Promise<AIOStreamsResponse<MetaPreview[]>> {
     // step 1
     // get the addon index from the id
     logger.info(`Handling catalog request`, { type, id, extras });
@@ -260,7 +180,16 @@ export class AIOStreams {
     const addon = this.getAddon(Number(addonIndex));
     if (!addon) {
       logger.error(`Addon ${addonIndex} not found`);
-      throw new Error(`Addon ${addonIndex} not found`);
+      return {
+        success: false,
+        data: [],
+        errors: [
+          {
+            title: `Addon ${addonIndex} not found`,
+            description: 'Addon not found',
+          },
+        ],
+      };
     }
 
     // step 2
@@ -305,10 +234,17 @@ export class AIOStreams {
     }
 
     // step 4
-    return catalog;
+    return {
+      success: true,
+      data: catalog,
+      errors: [],
+    };
   }
 
-  public async getMeta(type: string, id: string) {
+  public async getMeta(
+    type: string,
+    id: string
+  ): Promise<AIOStreamsResponse<Meta | null>> {
     logger.info(`Handling meta request`, { type, id });
     // step 1
     // First try to find an addon that has a matching idPrefix
@@ -325,7 +261,29 @@ export class AIOStreams {
           addonName: addon.name,
           addonIndex: index,
         });
-        return new Wrapper(addon).getMeta(type, id);
+        try {
+          const meta = await new Wrapper(addon).getMeta(type, id);
+          return {
+            success: true,
+            data: meta,
+            errors: [],
+          };
+        } catch (error) {
+          logger.error(`Error getting meta from addon ${addon.name}`, {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return {
+            success: false,
+            data: null,
+            errors: [
+              {
+                title: `[❌] ${addon.name}`,
+                description:
+                  error instanceof Error ? error.message : String(error),
+              },
+            ],
+          };
+        }
       }
     }
 
@@ -341,7 +299,29 @@ export class AIOStreams {
           addonName: addon.name,
           addonIndex: index,
         });
-        return new Wrapper(addon).getMeta(type, id);
+        try {
+          const meta = await new Wrapper(addon).getMeta(type, id);
+          return {
+            success: true,
+            data: meta,
+            errors: [],
+          };
+        } catch (error) {
+          logger.error(`Error getting meta from addon ${addon.name}`, {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return {
+            success: false,
+            data: null,
+            errors: [
+              {
+                title: `[❌] ${addon.name}`,
+                description:
+                  error instanceof Error ? error.message : String(error),
+              },
+            ],
+          };
+        }
       }
     }
 
@@ -350,7 +330,11 @@ export class AIOStreams {
   }
 
   // subtitle resource
-  public async getSubtitles(type: string, id: string, extras?: string) {
+  public async getSubtitles(
+    type: string,
+    id: string,
+    extras?: string
+  ): Promise<AIOStreamsResponse<Subtitle[]>> {
     logger.info(`getSubtitles: ${id}`);
 
     // Find all addons that support subtitles for this type and id prefix
@@ -375,8 +359,12 @@ export class AIOStreams {
     }
 
     // Request subtitles from all supported addons in parallel
-    let errors: { addon: Addon; error: string }[] =
-      this.addonInitialisationErrors;
+    let errors: AIOStreamsError[] = this.addonInitialisationErrors.map(
+      (error) => ({
+        title: `[❌] ${error.addon.identifyingName}`,
+        description: error.error,
+      })
+    );
     let allSubtitles: Subtitle[] = [];
 
     await Promise.all(
@@ -392,51 +380,41 @@ export class AIOStreams {
           }
         } catch (error) {
           errors.push({
-            addon: addon,
-            error: error instanceof Error ? error.message : String(error),
+            title: `[❌] ${addon.identifyingName}`,
+            description: error instanceof Error ? error.message : String(error),
           });
         }
       })
     );
 
     return {
-      subtitles: allSubtitles,
+      success: true,
+      data: allSubtitles,
       errors: errors,
     };
   }
 
-  public transformSubtitles({
-    subtitles,
-    errors,
-  }: {
-    subtitles: Subtitle[];
-    errors: { addon: Addon; error: string }[];
-  }): Subtitle[] {
-    let transformedSubtitles: Subtitle[] = subtitles;
-    if (
-      errors.length > 0 &&
-      (!this.userData.hideErrors ||
-        !this.userData.hideErrorsForResources?.includes('subtitles'))
-    ) {
-      transformedSubtitles.push(
-        ...errors.map((error) =>
-          createErrorSubtitle({
-            error: `${error.addon.identifyingName} - ${error.error}`,
-          })
-        )
-      );
-    }
-    return transformedSubtitles;
-  }
   // addon_catalog resource
-  public async getAddonCatalog(type: string, id: string) {
+  public async getAddonCatalog(
+    type: string,
+    id: string
+  ): Promise<AIOStreamsResponse<AddonCatalog[]>> {
     logger.info(`getAddonCatalog: ${id}`);
     // step 1
     // get the addon index from the id
     const addonIndex = id.split('.', 2)[0];
     const addon = this.getAddon(Number(addonIndex));
     if (!addon) {
-      throw new Error(`Addon ${addonIndex} not found`);
+      return {
+        success: false,
+        data: [],
+        errors: [
+          {
+            title: `Addon ${addonIndex} not found`,
+            description: 'Addon not found',
+          },
+        ],
+      };
     }
 
     // step 2
@@ -445,12 +423,30 @@ export class AIOStreams {
 
     // step 3
     // get the addon catalog from the addon
-    const addonCatalogs: AddonCatalog[] = await new Wrapper(
-      addon
-    ).getAddonCatalog(type, actualAddonCatalogId);
-
+    let addonCatalogs: AddonCatalog[] = [];
+    try {
+      addonCatalogs = await new Wrapper(addon).getAddonCatalog(
+        type,
+        actualAddonCatalogId
+      );
+    } catch (error) {
+      return {
+        success: false,
+        data: [],
+        errors: [
+          {
+            title: `[❌] ${addon.identifyingName}`,
+            description: error instanceof Error ? error.message : String(error),
+          },
+        ],
+      };
+    }
     // step 4
-    return addonCatalogs;
+    return {
+      success: true,
+      data: addonCatalogs,
+      errors: [],
+    };
   }
   // converts all addons to
   private async applyPresets() {
@@ -603,6 +599,7 @@ export class AIOStreams {
         this.finalResources.map((r) => ({
           name: r.name,
           types: r.types,
+          idPrefixes: r.idPrefixes,
         }))
       )}`
     );
@@ -802,8 +799,10 @@ export class AIOStreams {
       }
     );
 
-    let errors: { addon: Addon; error: string }[] =
-      this.addonInitialisationErrors;
+    let errors: AIOStreamsError[] = this.addonInitialisationErrors.map((e) => ({
+      title: `[❌] ${e.addon.identifyingName}`,
+      description: e.error,
+    }));
     let parsedStreams: ParsedStream[] = [];
     let totalTimeTaken = 0;
     let previousGroupStreams: ParsedStream[] = [];
@@ -812,8 +811,8 @@ export class AIOStreams {
     // Helper function to fetch streams from an addon and log summary
     const fetchFromAddon = async (addon: Addon) => {
       let summaryMsg = '';
+      const start = Date.now();
       try {
-        const start = Date.now();
         if (
           addon.fromPresetId &&
           FeatureControl.disabledAddons.has(addon.fromPresetId)
@@ -833,15 +832,47 @@ export class AIOStreams {
           );
         }
         const streams = await new Wrapper(addon).getStreams(type, id);
-        parsedStreams.push(...streams);
+        // filter out error type streams and put them in errors instead
+        const errorStreams = streams.filter(
+          (s) => s.type === constants.ERROR_STREAM_TYPE
+        );
+        if (errorStreams.length > 0) {
+          logger.error(
+            `Found ${errorStreams.length} error streams from ${addon.identifyingName}`,
+            {
+              errorStreams: errorStreams.map((s) => s.error?.title),
+            }
+          );
+          errors.push(
+            ...errorStreams.map((s) => ({
+              title: `[❌] ${s.error?.title || addon.identifyingName}`,
+              description: s.error?.description || 'Unknown error',
+            }))
+          );
+        }
+
+        parsedStreams.push(
+          ...streams.filter((s) => s.type !== constants.ERROR_STREAM_TYPE)
+        );
+        // const errorStreams = streams.filter((s) => s.type === constants.ERROR_STREAM_TYPE);
+        // parsedStreams.push(...streams.filter((s) => s.type !== constants.ERROR_STREAM_TYPE));
+        // errors.push(...errorStreams.map((s) => ({
+        //   addon: addon.identifyingName,
+        //   error: s.error?.description || 'Unknown error',
+        // })));
 
         summaryMsg = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🟢 [${addon.identifyingName}] Scrape Summary
+  ${errorStreams.length > 0 ? '🟠' : '🟢'} [${addon.identifyingName}] Scrape Summary
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ✔ Status      : SUCCESS
+  ✔ Status      : ${errorStreams.length > 0 ? 'PARTIAL SUCCESS' : 'SUCCESS'}
   📦 Streams    : ${streams.length}
-  📋 Details    : Successfully fetched streams.
+${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    • ${s.error?.title || 'Unknown error'}: ${s.error?.description || 'No description'}`).join('\n')}` : ''}
+  📋 Details    : ${
+    errorStreams.length > 0
+      ? `Found errors:\n${errorStreams.map((s) => `    • ${s.error?.title || 'Unknown error'}: ${s.error?.description || 'No description'}`).join('\n')}`
+      : 'Successfully fetched streams.'
+  }
   ⏱️ Time       : ${getTimeTakenSincePoint(start)}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
         return {
@@ -851,13 +882,17 @@ export class AIOStreams {
         };
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
-        errors.push({ addon, error: errMsg });
+        errors.push({
+          title: `[❌] ${addon.identifyingName}`,
+          description: errMsg,
+        });
         summaryMsg = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   🔴 [${addon.identifyingName}] Scrape Summary
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ✖ Status      : FAILED
   🚫 Error      : ${errMsg}
+  ⏱️ Time       : ${getTimeTakenSincePoint(start)}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
         return { success: false as const, error: errMsg, timeTaken: 0 };
       } finally {
@@ -963,6 +998,8 @@ export class AIOStreams {
       requiredAudioTag: { total: 0, details: {} },
       excludedLanguage: { total: 0, details: {} },
       requiredLanguage: { total: 0, details: {} },
+      excludedCached: { total: 0, details: {} },
+      requiredCached: { total: 0, details: {} },
       excludedUncached: { total: 0, details: {} },
       requiredUncached: { total: 0, details: {} },
       excludedRegex: { total: 0, details: {} },
@@ -1043,21 +1080,21 @@ export class AIOStreams {
       serviceIds: string[] | undefined,
       cached: boolean
     ) => {
-      const addonCriteriaMet =
-        !addonIds ||
-        addonIds.length === 0 ||
-        (addonIds.some((addonId) => stream.addon.id === addonId) &&
-          stream.service?.cached === cached);
-      const serviceCriteriaMet =
-        !serviceIds ||
-        serviceIds.length === 0 ||
-        (serviceIds.some((serviceId) => stream.service?.id === serviceId) &&
-          stream.service?.cached === cached);
+      const isAddonFilteredOut =
+        addonIds &&
+        addonIds.length > 0 &&
+        addonIds.some((addonId) => stream.addon.id === addonId) &&
+        stream.service?.cached === cached;
+      const isServiceFilteredOut =
+        serviceIds &&
+        serviceIds.length > 0 &&
+        serviceIds.some((serviceId) => stream.service?.id === serviceId) &&
+        stream.service?.cached === cached;
 
       if (mode === 'and') {
-        return addonCriteriaMet && serviceCriteriaMet;
+        return !(isAddonFilteredOut && isServiceFilteredOut);
       } else {
-        return addonCriteriaMet || serviceCriteriaMet;
+        return !(isAddonFilteredOut || isServiceFilteredOut);
       }
     };
 
@@ -1542,7 +1579,7 @@ export class AIOStreams {
       if (deduplicationKeys.includes('filename') && stream.filename) {
         let normalisedFilename = stream.filename
           .replace(
-            /\.(mkv|mp4|avi|mov|wmv|flv|webm|m4v|mpg|mpeg|3gp|3g2|m2ts|ts|vob|ogv|ogm|divx|xvid|rm|rmvb|asf|mxf|mka|mks|mk3d|webm|f4v|f4p|f4a|f4b)$/i,
+            /(mkv|mp4|avi|mov|wmv|flv|webm|m4v|mpg|mpeg|3gp|3g2|m2ts|ts|vob|ogv|ogm|divx|xvid|rm|rmvb|asf|mxf|mka|mks|mk3d|webm|f4v|f4p|f4a|f4b)$/i,
             ''
           )
           .replace(/[^\p{L}\p{N}+]/gu, '')
@@ -1577,10 +1614,8 @@ export class AIOStreams {
       const streamsByType = new Map<string, ParsedStream[]>();
       for (const stream of group) {
         let type = stream.type as string;
-        if (type === 'debrid' && stream.service) {
+        if ((type === 'debrid' || type === 'usenet') && stream.service) {
           type = stream.service.cached ? 'cached' : 'uncached';
-        } else if (type === 'usenet' && stream.service) {
-          type = 'cached';
         }
         const typeGroup = streamsByType.get(type) || [];
         typeGroup.push(stream);

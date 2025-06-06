@@ -25,12 +25,8 @@ import {
   corsMiddleware,
 } from './middlewares';
 
-import {
-  constants,
-  createErrorStream,
-  createLogger,
-  Env,
-} from '@aiostreams/core';
+import { constants, createLogger, Env } from '@aiostreams/core';
+import { StremioTransformer } from '@aiostreams/core';
 import { createResponse } from './utils/responses';
 import path from 'path';
 const app = express();
@@ -99,11 +95,10 @@ app.get('/:config?/stream/:type/:id.json', (req, res) => {
     }`;
   res.json({
     streams: [
-      createErrorStream({
-        name: '[❌] AIOStreams',
-        description:
+      StremioTransformer.createErrorStream({
+        errorDescription:
           'AIOStreams v2 requires you to reconfigure. Please click this stream to reconfigure.',
-        externalUrl: `${baseUrl}/stremio/configure`,
+        errorUrl: `${baseUrl}/stremio/configure`,
       }),
     ],
   });
@@ -114,7 +109,7 @@ app.use((req, res) => {
   res.status(404).json(
     createResponse({
       success: false,
-      message: 'Not Found',
+      detail: 'Not Found',
     })
   );
 });

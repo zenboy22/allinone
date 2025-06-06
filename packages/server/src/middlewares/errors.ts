@@ -25,35 +25,14 @@ export const errorMiddleware = (
     error = err;
   }
 
-  let stremioResponse = false;
-  const match = req.originalUrl.match(
-    /\/stremio(?:\/[^\/]+){0,2}\/(stream|catalog|subtitles|meta|addon_catalog)/
+  res.status(error.statusCode).json(
+    createResponse({
+      success: false,
+      error: {
+        code: error.code,
+        message: error.message,
+      },
+    })
   );
-  if (match) {
-    stremioResponse = true;
-  }
-
-  res
-    .status(
-      stremioResponse
-        ? req.userData?.hideErrors ||
-          req.userData?.hideErrorsForResources?.includes(match![1])
-          ? error.statusCode
-          : 200
-        : error.statusCode
-    )
-    .json(
-      createResponse(
-        {
-          success: false,
-          error: {
-            code: error.code,
-            message: error.message,
-          },
-        },
-        req.path,
-        true
-      )
-    );
   return;
 };

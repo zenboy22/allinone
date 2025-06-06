@@ -711,6 +711,7 @@ export const DEBRID_STREAM_TYPE = 'debrid' as const;
 export const HTTP_STREAM_TYPE = 'http' as const;
 export const EXTERNAL_STREAM_TYPE = 'external' as const;
 export const YOUTUBE_STREAM_TYPE = 'youtube' as const;
+export const ERROR_STREAM_TYPE = 'error' as const;
 
 const STREAM_TYPES = [
   P2P_STREAM_TYPE,
@@ -720,6 +721,7 @@ const STREAM_TYPES = [
   HTTP_STREAM_TYPE,
   EXTERNAL_STREAM_TYPE,
   YOUTUBE_STREAM_TYPE,
+  ERROR_STREAM_TYPE,
 ] as const;
 
 export type StreamType = (typeof STREAM_TYPES)[number];

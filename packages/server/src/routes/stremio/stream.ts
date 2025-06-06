@@ -1,62 +1,63 @@
-import { Router } from 'express';
-import { AIOStreams, constants } from '@aiostreams/core';
+import { Router, Request, Response } from 'express';
+import { AIOStreams, AIOStreamResponse } from '@aiostreams/core';
 import { stremioStreamRateLimiter } from '../../middlewares/ratelimit';
-import { createLogger, APIError } from '@aiostreams/core';
-import { createResponse } from '../../utils/responses';
+import { createLogger } from '@aiostreams/core';
+import { StremioTransformer } from '@aiostreams/core';
 const router = Router();
 
 const logger = createLogger('server');
 
 router.use(stremioStreamRateLimiter);
 
-router.get('/:type/:id.json', async (req, res, next) => {
-  // Check if we have user data (set by middleware in authenticated routes)
-  if (!req.userData) {
-    // Return a response indicating configuration is needed
-    res.status(200).json(
-      createResponse(
+router.get(
+  '/:type/:id.json',
+  async (req: Request, res: Response<AIOStreamResponse>, next) => {
+    // Check if we have user data (set by middleware in authenticated routes)
+    if (!req.userData) {
+      // Return a response indicating configuration is needed
+      res.status(200).json(
+        StremioTransformer.createDynamicError('stream', {
+          errorDescription: 'Please configure the addon first',
+        })
+      );
+      return;
+    }
+    const transformer = new StremioTransformer(req.userData);
+
+    try {
+      const { type, id } = req.params;
+
+      res
+        .status(200)
+        .json(
+          await transformer.transformStreams(
+            await (
+              await new AIOStreams(req.userData).initialise()
+            ).getStreams(id, type)
+          )
+        );
+    } catch (error) {
+      let errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      let errors = [
         {
-          success: false,
-          error: {
-            code: constants.ErrorCode.USER_NOT_FOUND,
-            message: 'Please configure the addon first',
-          },
+          description: errorMessage,
         },
-        req.originalUrl,
-        true
-      )
-    );
-    return;
+      ];
+      if (transformer.showError('stream', errors)) {
+        logger.error(
+          `Unexpected error during stream retrieval: ${errorMessage}`
+        );
+        res.status(200).json(
+          StremioTransformer.createDynamicError('stream', {
+            errorDescription: errorMessage,
+          })
+        );
+        return;
+      }
+      next(error);
+    }
   }
-
-  try {
-    const { type, id } = req.params;
-
-    const aiostreams = new AIOStreams(req.userData);
-    await aiostreams.initialise();
-
-    // Get streams from all addons
-    const { streams, errors } = await aiostreams.getStreams(id, type);
-
-    // Transform streams to Stremio format
-    const transformedStreams = await aiostreams.transformStreams({
-      streams,
-      errors,
-    });
-
-    res.status(200).json(
-      createResponse(
-        {
-          success: true,
-          data: transformedStreams,
-        },
-        req.originalUrl,
-        true
-      )
-    );
-  } catch (error) {
-    next(error);
-  }
-});
+);
 
 export default router;

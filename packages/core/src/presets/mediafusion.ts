@@ -1,4 +1,4 @@
-import { Addon, Option, UserData, Resource, Stream } from '../db';
+import { Addon, Option, UserData, Resource, Stream, ParsedStream } from '../db';
 import { baseOptions, Preset } from './preset';
 import { createLogger, Env } from '../utils';
 import { constants, ServiceId } from '../utils';
@@ -7,7 +7,10 @@ import { StreamParser } from '../parser';
 const logger = createLogger('core');
 
 class MediaFusionStreamParser extends StreamParser {
-  protected override raiseErrorIfNecessary(stream: Stream): void {
+  protected override raiseErrorIfNecessary(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): void {
     if (stream.description?.includes('Content Warning')) {
       throw new Error(stream.description);
     }
@@ -17,7 +20,10 @@ class MediaFusionStreamParser extends StreamParser {
     return ['🔗'];
   }
 
-  protected override getFolder(stream: Stream): string | undefined {
+  protected override getFolder(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     const regex = this.getRegexForTextAfterEmojis(['📂']);
     const file = stream.description?.match(regex)?.[1];
     if (file && file.includes('┈➤')) {
@@ -26,7 +32,10 @@ class MediaFusionStreamParser extends StreamParser {
     return undefined;
   }
 
-  protected override getFilename(stream: Stream): string | undefined {
+  protected override getFilename(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     const regex = this.getRegexForTextAfterEmojis(['📂']);
     const file = stream.description?.match(regex)?.[1];
     if (file && file.includes('┈➤')) {
@@ -35,8 +44,11 @@ class MediaFusionStreamParser extends StreamParser {
     return file?.trim();
   }
 
-  protected override getIndexer(stream: Stream): string | undefined {
-    const indexer = super.getIndexer(stream);
+  protected override getIndexer(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
+    const indexer = super.getIndexer(stream, currentParsedStream);
     if (indexer?.includes('Contribution')) {
       const contributor = stream.description?.match(
         this.getRegexForTextAfterEmojis(['🧑‍💻'])

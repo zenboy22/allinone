@@ -35,7 +35,7 @@ router.head('/', async (req, res, next) => {
       res.status(200).json(
         createResponse({
           success: true,
-          message: 'User exists',
+          detail: 'User exists',
           data: {
             uuid,
           },
@@ -89,7 +89,7 @@ router.get('/', async (req, res, next) => {
   res.status(200).json(
     createResponse({
       success: true,
-      message: 'User details retrieved successfully',
+      detail: 'User details retrieved successfully',
       data: {
         userData: userData,
         encryptedPassword: encryptedPassword,
@@ -120,7 +120,7 @@ router.put('/', async (req, res, next) => {
     res.status(201).json(
       createResponse({
         success: true,
-        message: 'User was successfully created',
+        detail: 'User was successfully created',
         data: {
           uuid,
           encryptedPassword,
@@ -155,7 +155,7 @@ router.post('/', async (req, res, next) => {
     res.status(200).json(
       createResponse({
         success: true,
-        message: 'User updated successfully',
+        detail: 'User updated successfully',
         data: {
           uuid,
           userData: updatedUser,

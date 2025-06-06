@@ -6,8 +6,10 @@ import {
   Env,
   decryptString,
   validateConfig,
+  Resource,
 } from '@aiostreams/core';
 import { UserDataSchema, UserRepository, UserData } from '@aiostreams/core';
+import { StremioTransformer } from '@aiostreams/core';
 
 const logger = createLogger('server');
 
@@ -50,6 +52,14 @@ export const userDataMiddleware = async (
     // Check if user exists
     const userExists = await UserRepository.checkUserExists(uuid);
     if (!userExists) {
+      if (constants.RESOURCES.includes(resource as Resource)) {
+        res.status(200).json(
+          StremioTransformer.createDynamicError(resource as Resource, {
+            errorDescription: 'User not found',
+          })
+        );
+        return;
+      }
       next(new APIError(constants.ErrorCode.USER_NOT_FOUND));
       return;
     }
@@ -60,7 +70,14 @@ export const userDataMiddleware = async (
     const { success: successfulDecryption, data: decryptedPassword } =
       decryptString(encryptedPassword!);
     if (!successfulDecryption) {
-      // return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+      if (constants.RESOURCES.includes(resource as Resource)) {
+        res.status(200).json(
+          StremioTransformer.createDynamicError(resource as Resource, {
+            errorDescription: 'Invalid password',
+          })
+        );
+        return;
+      }
       next(new APIError(constants.ErrorCode.USER_ERROR));
       return;
     }
@@ -69,6 +86,14 @@ export const userDataMiddleware = async (
     let userData = await UserRepository.getUser(uuid, decryptedPassword);
 
     if (!userData) {
+      if (constants.RESOURCES.includes(resource as Resource)) {
+        res.status(200).json(
+          StremioTransformer.createDynamicError(resource as Resource, {
+            errorDescription: 'Invalid password',
+          })
+        );
+        return;
+      }
       next(new APIError(constants.ErrorCode.USER_INVALID_PASSWORD));
       return;
     }
@@ -77,6 +102,14 @@ export const userDataMiddleware = async (
       try {
         userData = await validateConfig(userData, true, true);
       } catch (error: any) {
+        if (constants.RESOURCES.includes(resource as Resource)) {
+          res.status(200).json(
+            StremioTransformer.createDynamicError(resource as Resource, {
+              errorDescription: 'Invalid configuration',
+            })
+          );
+          return;
+        }
         next(
           new APIError(
             constants.ErrorCode.USER_INVALID_CONFIG,
@@ -90,6 +123,7 @@ export const userDataMiddleware = async (
 
     // Attach validated data to request
     req.userData = userData;
+    req.userData.uuid = uuid;
     req.userData.ip = req.userIp;
     req.uuid = uuid;
     next();

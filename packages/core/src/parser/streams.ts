@@ -53,7 +53,7 @@ class StreamParser {
   parse(stream: Stream): ParsedStream {
     let parsedStream: ParsedStream = {
       addon: this.addon,
-      type: this.getStreamType(stream, undefined),
+      type: 'http',
       url: stream.url,
       externalUrl: stream.externalUrl,
       ytId: stream.ytId,
@@ -65,18 +65,28 @@ class StreamParser {
 
     stream.description = stream.description || stream.title;
 
-    this.raiseErrorIfNecessary(stream);
+    this.raiseErrorIfNecessary(stream, parsedStream);
 
-    parsedStream.filename = this.getFilename(stream);
-    parsedStream.folderName = this.getFolder(stream);
-    parsedStream.size = this.getSize(stream);
-    parsedStream.indexer = this.getIndexer(stream);
-    parsedStream.service = this.getService(stream);
-    parsedStream.duration = this.getDuration(stream);
-    parsedStream.type = this.getStreamType(stream, parsedStream.service);
-    parsedStream.library = this.getInLibrary(stream);
-    parsedStream.age = this.getAge(stream);
-    parsedStream.message = this.getMessage(stream);
+    parsedStream.error = this.getError(stream, parsedStream);
+    if (parsedStream.error) {
+      parsedStream.type = constants.ERROR_STREAM_TYPE;
+      return parsedStream;
+    }
+
+    parsedStream.filename = this.getFilename(stream, parsedStream);
+    parsedStream.folderName = this.getFolder(stream, parsedStream);
+    parsedStream.size = this.getSize(stream, parsedStream);
+    parsedStream.indexer = this.getIndexer(stream, parsedStream);
+    parsedStream.service = this.getService(stream, parsedStream);
+    parsedStream.duration = this.getDuration(stream, parsedStream);
+    parsedStream.type = this.getStreamType(
+      stream,
+      parsedStream.service,
+      parsedStream
+    );
+    parsedStream.library = this.getInLibrary(stream, parsedStream);
+    parsedStream.age = this.getAge(stream, parsedStream);
+    parsedStream.message = this.getMessage(stream, parsedStream);
 
     if (parsedStream.filename) {
       parsedStream.parsedFile = FileParser.parse(parsedStream.filename);
@@ -86,8 +96,8 @@ class StreamParser {
       infoHash:
         parsedStream.type === 'p2p'
           ? stream.infoHash
-          : this.getInfoHash(stream),
-      seeders: this.getSeeders(stream),
+          : this.getInfoHash(stream, parsedStream),
+      seeders: this.getSeeders(stream, parsedStream),
       sources: stream.sources,
       fileIdx: stream.fileIdx,
     };
@@ -95,7 +105,10 @@ class StreamParser {
     return parsedStream;
   }
 
-  protected raiseErrorIfNecessary(stream: Stream) {
+  protected raiseErrorIfNecessary(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ) {
     if (!this.errorRegexes) {
       return;
     }
@@ -106,7 +119,17 @@ class StreamParser {
     }
   }
 
-  protected getFilename(stream: Stream): string | undefined {
+  protected getError(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): ParsedStream['error'] | undefined {
+    return undefined;
+  }
+
+  protected getFilename(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     let filename = stream.behaviorHints?.filename;
 
     if (filename) {
@@ -146,7 +169,10 @@ class StreamParser {
     return filename;
   }
 
-  protected getFolder(stream: Stream): string | undefined {
+  protected getFolder(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     if (this.folderNameRegex) {
       const match = stream.description?.match(this.folderNameRegex);
       if (match) {
@@ -156,7 +182,10 @@ class StreamParser {
     return undefined;
   }
 
-  protected getSize(stream: Stream): number | undefined {
+  protected getSize(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): number | undefined {
     const description = stream.description || stream.title;
     let size =
       stream.behaviorHints?.videoSize ||
@@ -175,7 +204,10 @@ class StreamParser {
     return size;
   }
 
-  protected getSeeders(stream: Stream): number | undefined {
+  protected getSeeders(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): number | undefined {
     const regex = this.seedersRegex;
     if (!regex) {
       return undefined;
@@ -188,7 +220,10 @@ class StreamParser {
     return undefined;
   }
 
-  protected getAge(stream: Stream): string | undefined {
+  protected getAge(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     const regex = this.ageRegex;
     if (!regex) {
       return undefined;
@@ -201,7 +236,10 @@ class StreamParser {
     return undefined;
   }
 
-  protected getIndexer(stream: Stream): string | undefined {
+  protected getIndexer(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     const regex = this.indexerRegex;
     if (!regex) {
       return undefined;
@@ -214,19 +252,31 @@ class StreamParser {
     return undefined;
   }
 
-  protected getMessage(stream: Stream): string | undefined {
+  protected getMessage(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     return undefined;
   }
 
-  protected getService(stream: Stream): ParsedStream['service'] | undefined {
+  protected getService(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): ParsedStream['service'] | undefined {
     return this.parseServiceData(stream.name || '');
   }
 
-  protected getInfoHash(stream: Stream): string | undefined {
+  protected getInfoHash(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     return undefined;
   }
 
-  protected getDuration(stream: Stream): number | undefined {
+  protected getDuration(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): number | undefined {
     // Regular expression to match different formats of time durations
     const regex =
       /(?<![^\s\[(_\-,.])(?:(\d+)h[:\s]?(\d+)m[:\s]?(\d+)s|(\d+)h[:\s]?(\d+)m|(\d+)h|(\d+)m|(\d+)s)(?=[\s\)\]_.\-,]|$)/gi;
@@ -248,7 +298,8 @@ class StreamParser {
 
   protected getStreamType(
     stream: Stream,
-    service: ParsedStream['service']
+    service: ParsedStream['service'],
+    currentParsedStream: ParsedStream
   ): ParsedStream['type'] {
     if (stream.infoHash) {
       return 'p2p';
@@ -280,7 +331,10 @@ class StreamParser {
     throw new Error('Invalid stream, missing a required stream property');
   }
 
-  protected getInLibrary(stream: Stream): boolean {
+  protected getInLibrary(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): boolean {
     return this.addon.library ?? false;
   }
 

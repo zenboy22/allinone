@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import {
   AIOStreams,
   APIError,
@@ -61,7 +61,7 @@ const manifest = async (config?: UserData): Promise<Manifest> => {
   };
 };
 
-router.get('/', async (req, res, next) => {
+router.get('/', async (req: Request, res: Response<Manifest>, next) => {
   logger.debug('Manifest request received', { userData: req.userData });
   try {
     res.status(200).json(await manifest(req.userData));

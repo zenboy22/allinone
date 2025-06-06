@@ -1,68 +1,59 @@
-import { Router } from 'express';
-import { AIOStreams, constants } from '@aiostreams/core';
+import { Router, Request, Response } from 'express';
+import { AIOStreams, SubtitleResponse } from '@aiostreams/core';
 import { createLogger } from '@aiostreams/core';
-import { createResponse } from '../../utils/responses';
+import { StremioTransformer } from '@aiostreams/core';
 
-const logger = createLogger('stremio/subtitle');
+const logger = createLogger('server');
 const router = Router();
 
-router.get('/:type/:id/:extras?.json', async (req, res, next) => {
-  if (!req.userData) {
-    res.status(200).json(
-      createResponse(
+router.get(
+  '/:type/:id/:extras?.json',
+  async (req: Request, res: Response<SubtitleResponse>, next) => {
+    if (!req.userData) {
+      res.status(200).json(
+        StremioTransformer.createDynamicError('subtitles', {
+          errorDescription: 'Please configure the addon first',
+        })
+      );
+      return;
+    }
+    const transformer = new StremioTransformer(req.userData);
+    try {
+      const { type, id } = req.params;
+      const { videoHash, videoSize } = req.query;
+      const extras = [videoHash, videoSize].filter(Boolean).join(',');
+
+      res
+        .status(200)
+        .json(
+          transformer.transformSubtitles(
+            await (
+              await new AIOStreams(req.userData).initialise()
+            ).getSubtitles(type, id, extras)
+          )
+        );
+    } catch (error) {
+      let errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      let errors = [
         {
-          success: false,
-          error: {
-            code: constants.ErrorCode.USER_NOT_FOUND,
-            message: 'Please configure the addon first',
-          },
+          description: errorMessage,
         },
-        req.originalUrl,
-        true
-      )
-    );
-    return;
+      ];
+      if (transformer.showError('subtitles', errors)) {
+        logger.error(
+          `Unexpected error during subtitle retrieval: ${errorMessage}`
+        );
+        res.status(200).json(
+          StremioTransformer.createDynamicError('subtitles', {
+            errorDescription: errorMessage,
+          })
+        );
+        return;
+      }
+      next(error);
+    }
   }
-
-  try {
-    const { type, id } = req.params;
-    const { videoHash, videoSize } = req.query;
-    const extras = [videoHash, videoSize].filter(Boolean).join(',');
-
-    logger.debug('Subtitle request received', {
-      type,
-      id,
-      extras,
-      userData: req.userData,
-    });
-
-    const aiostreams = new AIOStreams(req.userData);
-    await aiostreams.initialise();
-
-    const { subtitles, errors } = await aiostreams.getSubtitles(
-      type,
-      id,
-      extras
-    );
-
-    const transformedSubtitles = aiostreams.transformSubtitles({
-      subtitles,
-      errors,
-    });
-
-    res.status(200).json(
-      createResponse(
-        {
-          success: true,
-          data: transformedSubtitles,
-        },
-        req.originalUrl,
-        true
-      )
-    );
-  } catch (error) {
-    next(error);
-  }
-});
+);
 
 export default router;

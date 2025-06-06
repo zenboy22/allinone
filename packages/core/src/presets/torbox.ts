@@ -6,7 +6,10 @@ import { StreamParser } from '../parser';
 import { Stream } from '../db';
 
 class TorboxStreamParser extends StreamParser {
-  override getSeeders(stream: Stream): number | undefined {
+  override getSeeders(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): number | undefined {
     return (stream as any).seeders && (stream as any).seeders >= 0
       ? (stream as any).seeders
       : undefined;
@@ -17,14 +20,21 @@ class TorboxStreamParser extends StreamParser {
   override get indexerRegex() {
     return /Source:\s*([^\n]+)/;
   }
-  override getInfoHash(stream: Stream): string | undefined {
+  override getInfoHash(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     return (stream as any).hash;
   }
-  override getInLibrary(stream: Stream): boolean {
+  override getInLibrary(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): boolean {
     return (stream as any).is_your_media || stream.name?.includes('Your Media');
   }
   protected override getService(
-    stream: Stream
+    stream: Stream,
+    currentParsedStream: ParsedStream
   ): ParsedStream['service'] | undefined {
     return {
       id: constants.TORBOX_SERVICE,
@@ -32,14 +42,20 @@ class TorboxStreamParser extends StreamParser {
     };
   }
 
-  protected override getFilename(stream: Stream): string | undefined {
+  protected override getFilename(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     if (stream.description?.includes('Click play to start')) {
       return undefined;
     }
-    return super.getFilename(stream);
+    return super.getFilename(stream, currentParsedStream);
   }
 
-  protected override getMessage(stream: Stream): string | undefined {
+  protected override getMessage(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
     if (stream.description?.includes('Click play to start')) {
       return 'Click play to start streaming your media';
     }
@@ -48,7 +64,8 @@ class TorboxStreamParser extends StreamParser {
 
   protected override getStreamType(
     stream: Stream,
-    service: ParsedStream['service']
+    service: ParsedStream['service'],
+    currentParsedStream: ParsedStream
   ): ParsedStream['type'] {
     if ((stream as any).type === 'usenet') {
       return constants.USENET_STREAM_TYPE;
@@ -61,7 +78,7 @@ class TorboxStreamParser extends StreamParser {
         return constants.USENET_STREAM_TYPE;
       }
     }
-    return super.getStreamType(stream, service);
+    return super.getStreamType(stream, service, currentParsedStream);
   }
 }
 

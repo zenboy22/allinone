@@ -406,11 +406,13 @@ export const ManifestSchema = z.object({
 
 export type Manifest = z.infer<typeof ManifestSchema>;
 
-export const SubtitleSchema = z.object({
-  id: z.string().min(1),
-  url: z.string().url(),
-  lang: z.string().min(1),
-});
+export const SubtitleSchema = z
+  .object({
+    id: z.string().min(1),
+    url: z.string().url(),
+    lang: z.string().min(1),
+  })
+  .passthrough();
 
 export const SubtitleResponseSchema = z.object({
   subtitles: z.array(SubtitleSchema),
@@ -418,35 +420,37 @@ export const SubtitleResponseSchema = z.object({
 export type SubtitleResponse = z.infer<typeof SubtitleResponseSchema>;
 export type Subtitle = z.infer<typeof SubtitleSchema>;
 
-export const StreamSchema = z.object({
-  url: z.string().url().optional(),
-  ytId: z.string().min(1).optional(),
-  infoHash: z.string().min(1).optional(),
-  fileIdx: z.number().optional(),
-  externalUrl: z.string().min(1).optional(),
+export const StreamSchema = z
+  .object({
+    url: z.string().url().optional(),
+    ytId: z.string().min(1).optional(),
+    infoHash: z.string().min(1).optional(),
+    fileIdx: z.number().optional(),
+    externalUrl: z.string().min(1).optional(),
 
-  name: z.string().min(1).optional(),
-  title: z.string().min(1).optional(),
-  description: z.string().min(1).optional(),
-  subtitles: z.array(SubtitleSchema).optional(),
-  sources: z.array(z.string().min(1)).optional(),
-  behaviorHints: z
-    .object({
-      countryWhitelist: z.array(z.string().length(3)).optional(),
-      notWebReady: z.boolean().optional(),
-      bingeGroup: z.string().min(1).optional(),
-      proxyHeaders: z
-        .object({
-          request: z.record(z.string().min(1), z.string().min(1)).optional(),
-          response: z.record(z.string().min(1), z.string().min(1)).optional(),
-        })
-        .optional(),
-      videoHash: z.string().min(1).optional(),
-      videoSize: z.number().optional(),
-      filename: z.string().min(1).optional(),
-    })
-    .optional(),
-});
+    name: z.string().min(1).optional(),
+    title: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
+    subtitles: z.array(SubtitleSchema).optional(),
+    sources: z.array(z.string().min(1)).optional(),
+    behaviorHints: z
+      .object({
+        countryWhitelist: z.array(z.string().length(3)).optional(),
+        notWebReady: z.boolean().optional(),
+        bingeGroup: z.string().min(1).optional(),
+        proxyHeaders: z
+          .object({
+            request: z.record(z.string().min(1), z.string().min(1)).optional(),
+            response: z.record(z.string().min(1), z.string().min(1)).optional(),
+          })
+          .optional(),
+        videoHash: z.string().min(1).optional(),
+        videoSize: z.number().optional(),
+        filename: z.string().min(1).optional(),
+      })
+      .optional(),
+  })
+  .passthrough();
 
 export const StreamResponseSchema = z.object({
   streams: z.array(StreamSchema),
@@ -605,9 +609,67 @@ export const ParsedStreamSchema = z.object({
   url: z.string().url().optional(),
   ytId: z.string().min(1).optional(),
   externalUrl: z.string().min(1).optional(),
+  error: z
+    .object({
+      title: z.string().min(1),
+      description: z.string().min(1),
+    })
+    .optional(),
 });
 
 export type ParsedStream = z.infer<typeof ParsedStreamSchema>;
+
+const AIOStreamSchema = StreamSchema.extend({
+  streamData: z.object({
+    error: z
+      .object({
+        title: z.string().min(1),
+        description: z.string().min(1),
+      })
+      .optional(),
+    proxied: z.boolean().optional(),
+    addon: z.string().optional(),
+    filename: z.string().optional(),
+    folderName: z.string().optional(),
+    service: z
+      .object({
+        id: z.enum(constants.SERVICES),
+        cached: z.boolean(),
+      })
+      .optional(),
+    parsedFile: ParsedFileSchema.optional(),
+    message: z.string().max(1000).optional(),
+    regexMatched: z
+      .object({
+        name: z.string().min(1).optional(),
+        pattern: z.string().min(1).optional(),
+        index: z.number().optional(),
+      })
+      .optional(),
+    keywordMatched: z.boolean().optional(),
+    size: z.number().optional(),
+    type: StreamTypes.optional(),
+    indexer: z.string().optional(),
+    age: z.string().optional(),
+    torrent: z
+      .object({
+        infoHash: z.string().min(1).optional(),
+        fileIdx: z.number().optional(),
+        seeders: z.number().optional(),
+        sources: z.array(z.string().min(1)).optional(), // array of tracker urls and DHT nodes
+      })
+      .optional(),
+    duration: z.number().optional(),
+    library: z.boolean().optional(),
+  }),
+});
+
+export type AIOStream = z.infer<typeof AIOStreamSchema>;
+
+const AIOStreamResponseSchema = z.object({
+  streams: z.array(AIOStreamSchema),
+});
+export type AIOStreamResponse = z.infer<typeof AIOStreamResponseSchema>;
 
 const PresetMetadataSchema = z.object({
   ID: z.string(),

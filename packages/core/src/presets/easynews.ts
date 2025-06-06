@@ -13,7 +13,8 @@ import { StreamParser } from '../parser';
 export class EasynewsParser extends StreamParser {
   protected override getStreamType(
     stream: Stream,
-    service: ParsedStream['service']
+    service: ParsedStream['service'],
+    currentParsedStream: ParsedStream
   ): ParsedStream['type'] {
     return constants.USENET_STREAM_TYPE;
   }
