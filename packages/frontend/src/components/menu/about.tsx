@@ -126,12 +126,12 @@ function Content() {
         </div>
         {/* Custom HTML section, styled like a card, only if present */}
         {customHtml && (
-          <div className="rounded-[--radius] border border-gray-800 bg-gray-900 p-4 my-2">
+          <SettingsCard>
             <div
-              className="prose prose-invert max-w-none [&_a]:text-[--brand] [&_a]:hover:underline"
+              className="[&_a]:text-[--brand] [&_a:hover]:underline"
               dangerouslySetInnerHTML={{ __html: customHtml }}
             />
-          </div>
+          </SettingsCard>
         )}
 
         {/* Main content: Quick Start & Guides and Changelog */}
