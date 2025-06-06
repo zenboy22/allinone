@@ -15,6 +15,7 @@ import {
   meta,
   subtitle,
   addonCatalog,
+  alias,
 } from './routes/stremio';
 
 import {
@@ -56,6 +57,8 @@ stremioRouter.use('/configure', configure);
 stremioRouter.use('/configure.txt', (req, res) => {
   res.sendFile(path.join(__dirname, '../../frontend/out/index.txt'));
 });
+
+stremioRouter.use('/u', alias);
 
 // Protected routes with authentication
 const stremioAuthRouter = express.Router({ mergeParams: true });

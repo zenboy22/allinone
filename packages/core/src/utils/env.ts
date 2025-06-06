@@ -118,36 +118,25 @@ const userAgent = makeValidator((x) => {
 // comma separated list of alias:uuid
 const aliasedUUIDs = makeValidator((x) => {
   try {
-    // const parsed = JSON.parse(x);
-    // if (typeof parsed !== 'object') {
-    //   throw new Error('Custom configs must be an object');
-    // }
-    // // must be a simple key-value object, of string-string
-    // for (const key in parsed) {
-    //   if (typeof parsed[key] !== 'string') {
-    //     throw new Error(
-    //       `Custom config ${key} must be a string, got ${typeof parsed[key]}`
-    //     );
-    //   }
-    // }
-    // return parsed;
-    const aliases: Record<string, string> = {};
+    const aliases: Record<string, { uuid: string; password: string }> = {};
     const parsed = x.split(',').map((x) => {
-      const [alias, uuid] = x.split(':');
-      if (!alias || !uuid) {
-        throw new Error('Invalid alias:uuid pair');
+      const [alias, uuid, password] = x.split(':');
+      if (!alias || !uuid || !password) {
+        throw new Error('Invalid alias:uuid:password pair');
       } else if (
         /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
           uuid
-        )
+        ) === false
       ) {
         throw new Error('Invalid UUID');
       }
-      aliases[alias] = uuid;
+      aliases[alias] = { uuid, password };
     });
     return aliases;
   } catch (e) {
-    throw new Error('Custom configs must be a valid JSON string');
+    throw new Error(
+      `Custom configs must be a valid comma separated list of alias:uuid:password pairs`
+    );
   }
 });
 
@@ -245,9 +234,9 @@ export const Env = cleanEnv(process.env, {
     default: undefined,
     desc: 'Proxy config for the addon in format of comma separated hostname:boolean',
   }),
-  ALIASED_UUIDS: aliasedUUIDs({
+  ALIASED_CONFIGURATIONS: aliasedUUIDs({
     default: {},
-    desc: 'Comma separated list of alias:uuid pairs.',
+    desc: 'Comma separated list of alias:uuid:encryptedPassword pairs. Can then access at /stremio/u/alias/manifest.json ',
   }),
   TRUSTED_UUIDS: str({
     default: undefined,

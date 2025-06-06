@@ -90,7 +90,7 @@ export function encryptString(data: string, secretKey?: Buffer): Response {
     const { iv, data: encrypted } = encryptData(secretKey, compressed);
     return {
       success: true,
-      data: `aioEncrypt:${encodeURIComponent(iv)}:${encodeURIComponent(encrypted)}`,
+      data: encodeURIComponent(`aioEncrypt:${iv}:${encrypted}`),
       error: null,
     };
   } catch (error: any) {
@@ -114,7 +114,7 @@ export function decryptString(data: string, secretKey?: Buffer): Response {
     secretKey = Buffer.from(Env.SECRET_KEY, 'hex');
   }
   try {
-    const [_, ivHex, encryptedHex] = data.split(':').map(decodeURIComponent);
+    const [_, ivHex, encryptedHex] = decodeURIComponent(data).split(':');
     const iv = Buffer.from(ivHex, 'base64');
     const encrypted = Buffer.from(encryptedHex, 'base64');
     const decrypted = decryptData(secretKey, encrypted, iv);
