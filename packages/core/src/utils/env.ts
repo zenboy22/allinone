@@ -200,6 +200,8 @@ export const Env = cleanEnv(process.env, {
   }),
   BASE_URL: url({
     desc: 'Base URL of the addon e.g. https://aiostreams.com',
+    default: undefined,
+    devDefault: 'http://localhost:3000',
   }),
   ADDON_NAME: str({
     default: 'AIOStreams',

@@ -820,6 +820,7 @@ export class AIOStreams {
             `${addon.identifyingName} appears to be trying to scrape the current user's AIOStreams instance.`
           );
         } else if (
+          Env.BASE_URL &&
           new URL(addon.manifestUrl).host === new URL(Env.BASE_URL).host &&
           Env.DISABLE_SELF_SCRAPING === true
         ) {
