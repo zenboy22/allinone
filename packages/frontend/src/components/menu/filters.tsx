@@ -60,10 +60,14 @@ import { PageControls } from '../shared/page-controls';
 import { Switch } from '../ui/switch';
 import { useStatus } from '@/context/status';
 import { NumberInput } from '../ui/number-input';
-import { IconButton } from '../ui/button';
+import { IconButton, Button } from '../ui/button';
 import { TextInput } from '../ui/text-input';
 import { Tooltip } from '../ui/tooltip';
 import { Alert } from '../ui/alert';
+import { Modal } from '../ui/modal';
+import { useDisclosure } from '@/hooks/disclosure';
+import { toast } from 'sonner';
+
 type Resolution = (typeof RESOLUTIONS)[number];
 type Quality = (typeof QUALITIES)[number];
 type Encode = (typeof ENCODES)[number];
@@ -1653,7 +1657,15 @@ function TextInputs({
   onValueChange,
   placeholder,
 }: TextInputProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const importModalDisclosure = useDisclosure(false);
+
+  const handleImport = (data: any) => {
+    if (Array.isArray(data.values)) {
+      onValuesChange(data.values);
+    } else {
+      toast.error('Invalid import format');
+    }
+  };
 
   const handleExport = () => {
     const data = { values: values };
@@ -1670,28 +1682,6 @@ function TextInputs({
     URL.revokeObjectURL(url);
   };
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const data = JSON.parse(content);
-        if (Array.isArray(data.values)) {
-          onValuesChange(data.values);
-        }
-      } catch (error) {
-        console.error('Error importing file:', error);
-      }
-    };
-    reader.readAsText(file);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
   return (
     <SettingsCard title={label} description={help} key={label}>
       {values.map((value, index) => (
@@ -1702,13 +1692,6 @@ function TextInputs({
               label={itemName}
               placeholder={placeholder}
               onValueChange={(value) => onValueChange(value, index)}
-              // onValueChange={(value) =>
-              //   onValuesChange([
-              //     ...values.slice(0, index),
-              //     value,
-              //     ...values.slice(index + 1),
-              //   ])
-              // }
             />
           </div>
           <IconButton
@@ -1734,13 +1717,6 @@ function TextInputs({
           onClick={() => onValuesChange([...values, ''])}
         />
         <div className="ml-auto flex gap-2">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImport}
-            accept=".json"
-            className="hidden"
-          />
           <Tooltip
             trigger={
               <IconButton
@@ -1748,7 +1724,7 @@ function TextInputs({
                 size="sm"
                 intent="primary-subtle"
                 icon={<FaFileImport />}
-                onClick={() => fileInputRef.current?.click()}
+                onClick={importModalDisclosure.open}
               />
             }
           >
@@ -1769,6 +1745,11 @@ function TextInputs({
           </Tooltip>
         </div>
       </div>
+      <ImportModal
+        open={importModalDisclosure.isOpen}
+        onOpenChange={importModalDisclosure.toggle}
+        onImport={handleImport}
+      />
     </SettingsCard>
   );
 }
@@ -1805,7 +1786,26 @@ function TwoTextInputs({
   onValueChange,
   onKeyChange,
 }: KeyValueInputProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const importModalDisclosure = useDisclosure(false);
+
+  const handleImport = (data: any) => {
+    if (
+      Array.isArray(data) &&
+      data.every(
+        (value: { [key: string]: string }) =>
+          typeof value[keyId] === 'string' && typeof value[valueId] === 'string'
+      )
+    ) {
+      onValuesChange(
+        data.map((v: { [key: string]: string }) => ({
+          name: v[keyId],
+          value: v[valueId],
+        }))
+      );
+    } else {
+      toast.error('Invalid import format');
+    }
+  };
 
   const handleExport = () => {
     const data = values.map((value) => ({
@@ -1823,40 +1823,6 @@ function TwoTextInputs({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const data = JSON.parse(content);
-        if (
-          Array.isArray(data) &&
-          data.every(
-            (value: { [key: string]: string }) =>
-              typeof value[keyId] === 'string' &&
-              typeof value[valueId] === 'string'
-          )
-        ) {
-          onValuesChange(
-            data.map((v: { [key: string]: string }) => ({
-              name: v[keyId],
-              value: v[valueId],
-            }))
-          );
-        }
-      } catch (error) {
-        console.error('Error importing file:', error);
-      }
-    };
-    reader.readAsText(file);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   return (
@@ -1902,13 +1868,6 @@ function TwoTextInputs({
           onClick={() => onValuesChange([...values, { name: '', value: '' }])}
         />
         <div className="ml-auto flex gap-2">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImport}
-            accept=".json"
-            className="hidden"
-          />
           <Tooltip
             trigger={
               <IconButton
@@ -1916,7 +1875,7 @@ function TwoTextInputs({
                 size="sm"
                 intent="primary-subtle"
                 icon={<FaFileImport />}
-                onClick={() => fileInputRef.current?.click()}
+                onClick={importModalDisclosure.open}
               />
             }
           >
@@ -1937,6 +1896,131 @@ function TwoTextInputs({
           </Tooltip>
         </div>
       </div>
+      <ImportModal
+        open={importModalDisclosure.isOpen}
+        onOpenChange={importModalDisclosure.toggle}
+        onImport={handleImport}
+      />
     </SettingsCard>
+  );
+}
+
+function ImportModal({
+  open,
+  onOpenChange,
+  onImport,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onImport: (data: any) => void;
+}) {
+  const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const urlModalDisclosure = useDisclosure(false);
+  const [url, setUrl] = useState('');
+
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+        onImport(data);
+        onOpenChange(false);
+      } catch (error) {
+        console.error('Error importing file:', error);
+        toast.error('Failed to parse JSON file');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleUrlImport = async () => {
+    if (!url) {
+      toast.error('Please enter a URL');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch URL');
+      }
+      const data = await response.json();
+      onImport(data);
+      urlModalDisclosure.close();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error importing from URL:', error);
+      toast.error('Failed to import from URL');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Modal open={open} onOpenChange={onOpenChange} title="Import">
+        <div className="space-y-4">
+          <div className="flex flex-col gap-4">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileImport}
+              accept=".json"
+              className="hidden"
+            />
+            <Button
+              intent="primary"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full"
+            >
+              Import from File
+            </Button>
+            <Button
+              intent="primary"
+              onClick={urlModalDisclosure.open}
+              className="w-full"
+            >
+              Import from URL
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={urlModalDisclosure.isOpen}
+        onOpenChange={urlModalDisclosure.close}
+        title="Import from URL"
+      >
+        <div className="space-y-4">
+          <TextInput
+            label="URL"
+            value={url}
+            onValueChange={setUrl}
+            placeholder="Enter URL to JSON file"
+          />
+          <div className="flex justify-end gap-2">
+            <Button intent="primary-outline" onClick={urlModalDisclosure.close}>
+              Cancel
+            </Button>
+            <Button
+              intent="primary"
+              onClick={handleUrlImport}
+              loading={isLoading}
+            >
+              Import
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
