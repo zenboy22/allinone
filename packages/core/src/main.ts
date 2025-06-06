@@ -127,7 +127,7 @@ export class AIOStreams {
     // step 5
     // sort the streams based on the sort criteria.
 
-    this.precomputeSortRegexes(deduplicatedStreams);
+    await this.precomputeSortRegexes(deduplicatedStreams);
 
     const sortedStreams = this.sortStreams(deduplicatedStreams, type)
       // remove HDR+DV from visual tags after filtering/sorting
