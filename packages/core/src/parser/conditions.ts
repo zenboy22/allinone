@@ -81,6 +81,18 @@ export class ConditionParser {
     ) {
       return streams.some((stream) => stream.indexer === indexer);
     };
+    this.parser.functions.groupByRegexMatched = function (
+      streams: ParsedStream[]
+    ) {
+      return streams.filter((stream) => stream.regexMatched).length;
+    };
+    this.parser.functions.groupBySpecificRegexMatched = function (
+      streams: ParsedStream[],
+      regexName: string
+    ) {
+      return streams.filter((stream) => stream.regexMatched?.name === regexName)
+        .length;
+    };
     this.parser.functions.groupByIndexer = function (
       streams: ParsedStream[],
       indexer: string
