@@ -22,7 +22,7 @@ class StreamParser {
     return /(\d+(\.\d+)?)\s?(KB|MB|GB|TB)/i;
   }
   protected get sizeK(): 1024 | 1000 {
-    return 1000;
+    return 1024;
   }
 
   protected get seedersRegex(): RegExp | undefined {
