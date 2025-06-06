@@ -7,6 +7,11 @@ import { cn } from '@/components/ui/core/styling';
 import React from 'react';
 import { PageControls } from '@/components/shared/page-controls';
 import { useMenu } from '@/context/menu';
+import { Button } from '@/components/ui/button';
+import { HeartIcon } from 'lucide-react';
+import { useDisclosure } from '@/hooks/disclosure';
+import { DonationModal } from '@/components/shared/donation-modal';
+
 type TopNavbarProps = {
   children?: React.ReactNode;
 };
@@ -14,7 +19,7 @@ type TopNavbarProps = {
 export function TopNavbar(props: TopNavbarProps) {
   const { children, ...rest } = props;
   const { selectedMenu } = useMenu();
-
+  const donationModal = useDisclosure(false);
   const serverStatus = useStatus();
   const isOffline = !serverStatus.status;
 
@@ -40,13 +45,28 @@ export function TopNavbar(props: TopNavbarProps) {
               data-top-navbar-content-separator
               className="flex flex-1"
             ></div>
-            {selectedMenu !== 'about' && (
+            {selectedMenu !== 'about' ? (
               <div className="block lg:hidden">
                 <PageControls />
+              </div>
+            ) : (
+              <div className="block lg:hidden absolute top-0 right-4">
+                <Button
+                  intent="alert-subtle"
+                  size="md"
+                  leftIcon={<HeartIcon />}
+                  onClick={donationModal.open}
+                >
+                  Support Me
+                </Button>
               </div>
             )}
           </div>
         </div>
+        <DonationModal
+          open={donationModal.isOpen}
+          onOpenChange={donationModal.toggle}
+        />
         <LayoutHeaderBackground />
       </div>
     </>
