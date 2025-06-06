@@ -49,6 +49,7 @@ export interface ParseValue {
     filename: string | null;
     folderName: string | null;
     size: number | null;
+    folderSize: number | null;
     library: boolean | null;
     quality: string | null;
     resolution: string | null;
@@ -116,6 +117,7 @@ export abstract class BaseFormatter {
         filename: stream.filename || null,
         folderName: stream.folderName || null,
         size: stream.size || null,
+        folderSize: stream.folderSize || null,
         library: stream.library !== undefined ? stream.library : null,
         quality: stream.parsedFile?.quality || null,
         resolution: stream.parsedFile?.resolution || null,

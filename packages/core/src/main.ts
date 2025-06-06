@@ -9,6 +9,7 @@ import {
   AUDIO_TAGS,
   constants,
   createLogger,
+  getSimpleTextHash,
   getTimeTakenSincePoint,
   StreamType,
   VISUAL_TAGS,
@@ -1590,6 +1591,18 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       if (deduplicationKeys.includes('infoHash') && stream.torrent?.infoHash) {
         keys.push(`infoHash:${stream.torrent.infoHash}`);
+      }
+
+      if (deduplicationKeys.includes('smartDetect')) {
+        // generate a hash using many different attributes
+        // round size to nearest 100MB for some margin of error
+        const roundedSize = stream.size
+          ? Math.round(stream.size / 100000000) * 100000000
+          : undefined;
+        const hash = getSimpleTextHash(
+          `${roundedSize}${stream.parsedFile?.resolution}${stream.parsedFile?.quality}${stream.parsedFile?.visualTags}${stream.parsedFile?.audioTags}${stream.parsedFile?.languages}${stream.parsedFile?.encode}`
+        );
+        keys.push(`smartDetect:${hash}`);
       }
 
       // If no keys match, keep the stream

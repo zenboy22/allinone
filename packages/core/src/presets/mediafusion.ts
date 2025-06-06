@@ -32,6 +32,19 @@ class MediaFusionStreamParser extends StreamParser {
     return undefined;
   }
 
+  protected override getFolderSize(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): number | undefined {
+    const regex = /💾\s?.*\s?\/\s?💾\s?([^💾\n]+)/;
+    const match = stream.description?.match(regex);
+    if (match) {
+      const folderSize = match[1].trim();
+      return this.calculateBytesFromSizeString(folderSize);
+    }
+    return undefined;
+  }
+
   protected override getFilename(
     stream: Stream,
     currentParsedStream: ParsedStream

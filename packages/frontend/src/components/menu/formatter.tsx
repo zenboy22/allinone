@@ -129,6 +129,9 @@ function Content() {
   const [library, setLibrary] = useState(false);
   const [duration, setDuration] = useState<number | undefined>(9120000); // 2h 32m in milliseconds
   const [fileSize, setFileSize] = useState<number | undefined>(62500000000); // 58.2 GB in bytes
+  const [folderSize, setFolderSize] = useState<number | undefined>(
+    125000000000
+  ); // 116.4 GB in bytes
   const [proxied, setProxied] = useState(false);
   const [regexMatched, setRegexMatched] = useState<string | undefined>(
     undefined
@@ -196,6 +199,7 @@ function Content() {
         parsedFile,
         filename,
         folderName: folder,
+        folderSize,
         indexer,
         regexMatched: {
           name: regexMatched,
@@ -265,6 +269,7 @@ function Content() {
     library,
     duration,
     fileSize,
+    folderSize,
     proxied,
     selectedFormatter,
     isFormatting,
@@ -288,6 +293,7 @@ function Content() {
     library,
     duration,
     fileSize,
+    folderSize,
     proxied,
     selectedFormatter,
     customName,
@@ -441,16 +447,21 @@ function Content() {
               defaultValue={0}
               min={0}
             />
-            <TextInput
-              label={<span className="truncate block">Regex Matched</span>}
-              value={regexMatched}
-              onValueChange={(value) => setRegexMatched(value || undefined)}
+            <NumberInput
+              label={
+                <span className="truncate block">Folder Size (bytes)</span>
+              }
+              value={folderSize}
+              onValueChange={(value) => setFolderSize(value || undefined)}
               className="w-full"
+              step={1000000000}
+              defaultValue={0}
+              min={0}
             />
           </div>
 
           {/* Service, Addon Name, and Stream Type on the same row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <Select
               label={<span className="truncate block">Service</span>}
               value={providerId}
@@ -482,6 +493,12 @@ function Content() {
                 label: type.charAt(0).toUpperCase() + type.slice(1),
                 value: type,
               }))}
+              className="w-full"
+            />
+            <TextInput
+              label={<span className="truncate block">Regex Matched</span>}
+              value={regexMatched}
+              onValueChange={(value) => setRegexMatched(value || undefined)}
               className="w-full"
             />
           </div>

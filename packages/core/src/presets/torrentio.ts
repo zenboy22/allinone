@@ -5,6 +5,12 @@ import { constants, ServiceId } from '../utils';
 import { StreamParser } from '../parser';
 
 export class TorrentioParser extends StreamParser {
+  protected override get sizeK(): 1024 | 1000 {
+    return 1024;
+  }
+  // protected override get sizeRegex(): RegExp | undefined {
+  //   return /💾\s*(\d+(\.\d+)?)\s?(KB|MB|GB|TB)/i;
+  // }
   override getFolder(stream: Stream): string | undefined {
     const description = stream.description || stream.title;
     if (!description) {

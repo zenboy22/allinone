@@ -122,6 +122,7 @@ export class StremioTransformer {
             duration: stream.duration,
             library: stream.library,
             size: stream.size,
+            folderSize: stream.folderSize,
             torrent: stream.torrent,
             addon: stream.addon.name,
             filename: stream.filename,

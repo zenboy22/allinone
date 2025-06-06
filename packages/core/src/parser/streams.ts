@@ -19,10 +19,10 @@ class StreamParser {
   }
 
   protected get sizeRegex(): RegExp | undefined {
-    return /(\d+(\.\d+)?)\s?(KB|MB|GB)/i;
+    return /(\d+(\.\d+)?)\s?(KB|MB|GB|TB)/i;
   }
-  protected get sizeK(): number {
-    return 1024;
+  protected get sizeK(): 1024 | 1000 {
+    return 1000;
   }
 
   protected get seedersRegex(): RegExp | undefined {
@@ -76,6 +76,7 @@ class StreamParser {
     parsedStream.filename = this.getFilename(stream, parsedStream);
     parsedStream.folderName = this.getFolder(stream, parsedStream);
     parsedStream.size = this.getSize(stream, parsedStream);
+    parsedStream.folderSize = this.getFolderSize(stream, parsedStream);
     parsedStream.indexer = this.getIndexer(stream, parsedStream);
     parsedStream.service = this.getService(stream, parsedStream);
     parsedStream.duration = this.getDuration(stream, parsedStream);
@@ -186,7 +187,10 @@ class StreamParser {
     stream: Stream,
     currentParsedStream: ParsedStream
   ): number | undefined {
-    const description = stream.description || stream.title;
+    let description = stream.description || stream.title;
+    if (currentParsedStream.filename && description) {
+      description = description.replace(currentParsedStream.filename, '');
+    }
     let size =
       stream.behaviorHints?.videoSize ||
       (stream as any).size ||
@@ -202,6 +206,13 @@ class StreamParser {
     }
 
     return size;
+  }
+
+  protected getFolderSize(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): number | undefined {
+    return undefined;
   }
 
   protected getSeeders(
@@ -338,7 +349,7 @@ class StreamParser {
     return this.addon.library ?? false;
   }
 
-  private calculateBytesFromSizeString(size: string): number | undefined {
+  protected calculateBytesFromSizeString(size: string): number | undefined {
     const k = this.sizeK;
     if (!this.sizeRegex) {
       return undefined;

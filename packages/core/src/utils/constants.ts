@@ -486,7 +486,11 @@ const OPTION_TYPES = [
   MULTI_SELECT_OPTION_TYPE,
 ] as const;
 
-export const DEDUPLICATOR_KEYS = ['filename', 'infoHash'] as const;
+export const DEDUPLICATOR_KEYS = [
+  'filename',
+  'infoHash',
+  'smartDetect',
+] as const;
 
 const RESOLUTIONS = [
   '2160p',
