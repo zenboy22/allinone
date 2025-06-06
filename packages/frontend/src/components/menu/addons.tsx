@@ -593,7 +593,7 @@ function AddonCard({
           <img
             src={preset.LOGO}
             alt={preset.NAME}
-            className="w-28 h-28 min-w-[7rem] min-h-[7rem] object-cover rounded-lg bg-gray-800"
+            className="w-28 h-28 min-w-[7rem] min-h-[7rem] object-contain rounded-lg bg-gray-800"
           />
         )}
         <div className="flex flex-col min-w-0 flex-1">
