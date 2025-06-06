@@ -74,29 +74,21 @@ export class ConditionParser {
 
     this.parser.consts.previousStreams = this.previousStreams;
     this.parser.consts.totalStreams = this.totalStreams;
-    this.parser.consts.type = queryType;
+    this.parser.consts.queryType = queryType;
     this.parser.consts.previousGroupTimeTaken = this.previousGroupTimeTaken;
     this.parser.consts.totalTimeTaken = this.totalTimeTaken;
-    this.parser.functions.indexerPresent = function (
+
+    this.parser.functions.regexMatched = function (
       streams: ParsedStream[],
-      indexer: string
+      regexName?: string
     ) {
-      return streams.some((stream) => stream.indexer === indexer);
-    };
-    this.parser.functions.groupByRegexMatched = function (
-      streams: ParsedStream[]
-    ) {
-      return streams.filter((stream) => stream.regexMatched);
-    };
-    this.parser.functions.groupBySpecificRegexMatched = function (
-      streams: ParsedStream[],
-      regexName: string
-    ) {
-      return streams.filter(
-        (stream) => stream.regexMatched?.name === regexName
+      return streams.filter((stream) =>
+        regexName
+          ? stream.regexMatched?.name === regexName
+          : stream.regexMatched
       );
     };
-    this.parser.functions.groupByIndexer = function (
+    this.parser.functions.indexer = function (
       streams: ParsedStream[],
       indexer: string
     ) {
@@ -109,7 +101,7 @@ export class ConditionParser {
       }
       return streams.filter((stream) => stream.indexer === indexer);
     };
-    this.parser.functions.groupByResolution = function (
+    this.parser.functions.resolution = function (
       streams: ParsedStream[],
       resolution: string
     ) {
@@ -124,7 +116,7 @@ export class ConditionParser {
         (stream) => stream.parsedFile?.resolution === resolution
       );
     };
-    this.parser.functions.groupByQuality = function (
+    this.parser.functions.quality = function (
       streams: ParsedStream[],
       quality: string
     ) {
@@ -137,7 +129,7 @@ export class ConditionParser {
       }
       return streams.filter((stream) => stream.parsedFile?.quality === quality);
     };
-    this.parser.functions.groupByType = function (
+    this.parser.functions.type = function (
       streams: ParsedStream[],
       type: string
     ) {
@@ -150,7 +142,7 @@ export class ConditionParser {
       }
       return streams.filter((stream) => stream.type === type);
     };
-    this.parser.functions.groupByService = function (
+    this.parser.functions.service = function (
       streams: ParsedStream[],
       service: string
     ) {
@@ -179,7 +171,7 @@ export class ConditionParser {
       }
       return streams.filter((stream) => stream.service?.id === service);
     };
-    this.parser.functions.groupByCached = function (
+    this.parser.functions.cache = function (
       streams: ParsedStream[],
       cached: boolean
     ) {
@@ -194,7 +186,7 @@ export class ConditionParser {
       }
       return streams.filter((stream) => stream.service?.cached === cached);
     };
-    this.parser.functions.groupByReleaseGroup = function (
+    this.parser.functions.releaseGroup = function (
       streams: ParsedStream[],
       releaseGroup: string
     ) {
