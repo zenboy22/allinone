@@ -433,10 +433,9 @@ export const StreamSchema = z
   .object({
     url: z.string().url().optional(),
     ytId: z.string().min(1).optional(),
-    infoHash: z.string().min(1).optional(),
-    fileIdx: z.number().optional(),
+    infoHash: z.string().min(1).or(z.null()).optional(),
+    fileIdx: z.number().or(z.null()).optional(),
     externalUrl: z.string().min(1).optional(),
-
     name: z.string().min(1).optional(),
     title: z.string().min(1).optional(),
     description: z.string().min(1).optional(),
@@ -593,8 +592,8 @@ export const ParsedStreamSchema = z.object({
   age: z.string().optional(),
   torrent: z
     .object({
-      infoHash: z.string().min(1).optional(),
-      fileIdx: z.number().optional(),
+      infoHash: z.string().min(1).or(z.null()).optional(),
+      fileIdx: z.number().or(z.null()).optional(),
       seeders: z.number().optional(),
       sources: z.array(z.string().min(1)).optional(), // array of tracker urls and DHT nodes
     })
@@ -666,8 +665,8 @@ const AIOStreamSchema = StreamSchema.extend({
     age: z.string().optional(),
     torrent: z
       .object({
-        infoHash: z.string().min(1).optional(),
-        fileIdx: z.number().optional(),
+        infoHash: z.string().min(1).or(z.null()).optional(),
+        fileIdx: z.number().or(z.null()).optional(),
         seeders: z.number().optional(),
         sources: z.array(z.string().min(1)).optional(), // array of tracker urls and DHT nodes
       })

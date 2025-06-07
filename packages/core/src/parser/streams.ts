@@ -30,7 +30,7 @@ class StreamParser {
   }
 
   protected get indexerEmojis(): string[] {
-    return ['🌐', '⚙️', '🔗', '🔎', '☁️'];
+    return ['🌐', '⚙️', '🔗', '🔎', '🔍', '☁️'];
   }
 
   protected get indexerRegex(): RegExp | undefined {
@@ -375,7 +375,9 @@ class StreamParser {
       const language = Object.entries(LANGUAGE_EMOJI_MAPPING).find(
         ([_, value]) => value === flag
       )?.[0];
-      return language;
+      return language
+        ? language.charAt(0).toUpperCase() + language.slice(1)
+        : undefined;
     });
     return languages.filter((language) => language !== undefined);
   }
@@ -424,7 +426,7 @@ class StreamParser {
       // for each service, generate a regexp which creates a regex with all known names separated by |
       const regex = new RegExp(
         `(^|(?<![^ |[(_\\/\\-.]))(${service.knownNames.join('|')})(?=[ ⬇️⏳⚡+/|\\)\\]_.-]|$|\n)`,
-        'i'
+        'im'
       );
       // check if the string contains the regex
       if (regex.test(cleanString)) {

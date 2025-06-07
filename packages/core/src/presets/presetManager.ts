@@ -17,6 +17,7 @@ import { DMMCastPreset } from './dmmCast';
 import { MarvelPreset } from './marvel';
 import { JackettioPreset } from './jackettio';
 import { OrionPreset } from './orion';
+import { StreamFusionPreset } from './streamfusion';
 
 const PRESET_LIST: string[] = [
   'torrentio',
@@ -31,6 +32,7 @@ const PRESET_LIST: string[] = [
   'easynewsPlus',
   'easynewsPlusPlus',
   'debridio',
+  'streamfusion',
   'dmm-cast',
   'orion',
   'opensubtitles',
@@ -82,6 +84,8 @@ export class PresetManager {
         return MarvelPreset;
       case 'orion':
         return OrionPreset;
+      case 'streamfusion':
+        return StreamFusionPreset;
       default:
         throw new Error(`Preset ${id} not found`);
     }

@@ -293,7 +293,7 @@ const SERVICE_DETAILS: Record<
   },
   [DEBRIDLINK_SERVICE]: {
     id: DEBRIDLINK_SERVICE,
-    name: 'Debridlink',
+    name: 'Debrid-Link',
     shortName: 'DL',
     knownNames: ['DL', 'Debrid Link', 'DebridLink', 'Debrid-Link'],
     signUpText:

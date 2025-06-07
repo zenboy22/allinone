@@ -799,6 +799,23 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default StremThru Torz user agent',
   }),
 
+  DEFAULT_STREAMFUSION_URL: url({
+    default: 'https://stream-fusion.stremiofr.com',
+    desc: 'Default StreamFusion URL',
+  }),
+  DEFAULT_STREAMFUSION_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default StreamFusion timeout',
+  }),
+  DEFAULT_STREAMFUSION_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default StreamFusion user agent',
+  }),
+  DEFAULT_STREAMFUSION_STREMTHRU_URL: url({
+    default: 'https://stremthru.13377001.xyz',
+    desc: 'Default StreamFusion StremThru URL',
+  }),
+
   // DMM Cast settings
   DEFAULT_DMM_CAST_TIMEOUT: num({
     default: undefined,
