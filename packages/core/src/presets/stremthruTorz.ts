@@ -1,9 +1,24 @@
-import { Addon, Option, UserData, Resource } from '../db';
+import { Addon, Option, UserData, Resource, ParsedStream, Stream } from '../db';
 import { baseOptions, Preset } from './preset';
 import { Env } from '../utils';
 import { constants, ServiceId } from '../utils';
+import { StreamParser } from '../parser';
+
+class StremthruTorzStreamParser extends StreamParser {
+  // ensure release groups aren't misidentified as indexers
+  protected override getIndexer(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string | undefined {
+    return undefined;
+  }
+}
 
 export class StremthruTorzPreset extends Preset {
+  static override getParser(): typeof StreamParser {
+    return StremthruTorzStreamParser;
+  }
+
   static override get METADATA() {
     const supportedServices: ServiceId[] = [
       constants.REALDEBRID_SERVICE,
