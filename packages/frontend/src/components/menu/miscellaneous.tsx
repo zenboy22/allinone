@@ -64,6 +64,20 @@ function Content() {
             }}
           />
         </SettingsCard>
+        <SettingsCard title="Strict Title Matching">
+          <Switch
+            label="Strict Title Matching"
+            help="AIOStreams will only return streams that match the title exactly."
+            side="right"
+            value={userData.strictTitleMatching}
+            onValueChange={(value) => {
+              setUserData({
+                ...userData,
+                strictTitleMatching: value,
+              });
+            }}
+          />
+        </SettingsCard>
       </div>
     </>
   );

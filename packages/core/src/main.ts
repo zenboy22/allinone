@@ -37,6 +37,7 @@ import { isMatch } from 'super-regex';
 import { ConditionParser } from './parser/conditions';
 import { RPDB } from './utils/rpdb';
 import { FeatureControl } from './utils/feature';
+import { MediaType, TMDBMetadata } from './utils/metadata';
 const logger = createLogger('core');
 
 export interface AIOStreamsError {
@@ -117,7 +118,7 @@ export class AIOStreams {
     // step 3
     // apply all filters to the streams.
 
-    const filteredStreams = await this.applyFilters(streams, type);
+    const filteredStreams = await this.applyFilters(streams, type, id);
 
     // step 4
     // deduplicate streams based on the depuplicatoroptions
@@ -1001,13 +1002,15 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
   private async applyFilters(
     streams: ParsedStream[],
-    type: string
+    type: string,
+    id: string
   ): Promise<ParsedStream[]> {
     interface SkipReason {
       total: number;
       details: Record<string, number>;
     }
     const skipReasons: Record<string, SkipReason> = {
+      strictTitleMatching: { total: 0, details: {} },
       excludedStreamType: { total: 0, details: {} },
       requiredStreamType: { total: 0, details: {} },
       excludedResolution: { total: 0, details: {} },
@@ -1036,6 +1039,45 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
     const start = Date.now();
     const isRegexAllowed = FeatureControl.isRegexAllowed(this.userData);
+
+    let titles: string[] = [];
+    if (
+      this.userData.strictTitleMatching &&
+      ['movie', 'series'].includes(type)
+    ) {
+      try {
+        titles = await new TMDBMetadata().getTitles(id, type as MediaType);
+        logger.info(`Found ${titles.length} titles for ${id}`, { titles });
+      } catch (error) {
+        logger.error(`Error fetching titles for ${id}: ${error}`);
+      }
+    }
+
+    const performTitleMatch = (stream: ParsedStream) => {
+      if (!this.userData.strictTitleMatching) {
+        return true;
+      }
+      if (titles.length === 0) {
+        // don't filter out streams if no titles could be found
+        return true;
+      }
+      const streamTitle = stream.parsedFile?.title;
+      if (!streamTitle) {
+        // if a specific stream doesn't have a title, filter it out.
+        return false;
+      }
+      return titles.some(
+        (title) =>
+          title
+            .replace(/[^\p{L}\p{N}+]/gu, '')
+            .replace(/\s+/g, '')
+            .toLowerCase() ===
+          streamTitle
+            .replace(/[^\p{L}\p{N}+]/gu, '')
+            .replace(/\s+/g, '')
+            .toLowerCase()
+      );
+    };
 
     const excludedRegexPatterns =
       isRegexAllowed && this.userData.excludedRegexPatterns
@@ -1520,6 +1562,17 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         stream.torrent.seeders > this.userData.excludedSeeders.max
       ) {
         skipReasons.excludedSeeders.total++;
+        return false;
+      }
+
+      if (!performTitleMatch(stream)) {
+        skipReasons.strictTitleMatching.total++;
+        skipReasons.strictTitleMatching.details[
+          stream.parsedFile?.title || 'Unknown'
+        ] =
+          (skipReasons.strictTitleMatching.details[
+            stream.parsedFile?.title || 'Unknown'
+          ] || 0) + 1;
         return false;
       }
 
