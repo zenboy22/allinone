@@ -739,9 +739,6 @@ const StatusResponseSchema = z.object({
         proxiedServices: z.array(z.string()).or(z.null()),
       }),
       timeout: z.number().or(z.null()),
-      preferredRegex: z.array(z.string()),
-      requiredRegex: z.array(z.string()),
-      excludedRegex: z.array(z.string()),
     }),
     presets: z.array(PresetMetadataSchema),
     services: z.record(
