@@ -38,6 +38,7 @@ import {
   LuGlobe,
   LuChevronsUp,
   LuChevronsDown,
+  LuShuffle,
 } from 'react-icons/lu';
 import { AnimatePresence } from 'framer-motion';
 import { PageControls } from '../shared/page-controls';
@@ -1419,6 +1420,9 @@ function SortableCatalogItem({
         </div>
 
         <div className="flex items-center gap-1 md:gap-2">
+          {catalog.shuffle && (
+            <LuShuffle className="text-md text-[--brand] h-4 w-4 md:h-6 md:w-6 hidden md:flex" />
+          )}
           <Switch
             value={catalog.enabled ?? true}
             onValueChange={onToggleEnabled}
