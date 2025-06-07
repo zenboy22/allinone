@@ -75,6 +75,10 @@ export class AIOStreamsPreset extends Preset {
         description: 'The timeout for this addon',
         type: 'number',
         default: Env.DEFAULT_TIMEOUT,
+        constraints: {
+          min: Env.MIN_TIMEOUT,
+          max: Env.MAX_TIMEOUT,
+        },
       },
       {
         id: 'resources',

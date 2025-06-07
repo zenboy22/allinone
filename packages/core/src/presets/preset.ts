@@ -51,6 +51,10 @@ export const baseOptions = (
     type: 'number',
     required: true,
     default: timeout,
+    constraints: {
+      min: Env.MIN_TIMEOUT,
+      max: Env.MAX_TIMEOUT,
+    },
   },
   {
     id: 'resources',
