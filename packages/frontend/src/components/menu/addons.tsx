@@ -305,7 +305,10 @@ function Content() {
                 Manage your installed addons.
               </p>
             </div>
-            <SettingsCard>
+            <SettingsCard
+              title="My Addons"
+              description="Edit, remove, and reorder your installed addons. If you reorder your addons, you will have to refresh the catalogs if you have made any changes, and also reinstall the addon."
+            >
               <DndContext
                 modifiers={[restrictToVerticalAxis]}
                 onDragEnd={handleDragEnd}
@@ -378,15 +381,6 @@ function Content() {
               </DndContext>
             </SettingsCard>
 
-            {/* Catalogs - use api to fetch catalogs - will get a list of objects with id and name
-            show these in a sortable list, with the ability to enable/disable, and an edit icon.
-            pressing the edit icon opens a modal with the following fields:
-            - name (TextInput)
-            - enabled (Switch)
-            - shuffle (Switch)
-            - rpdb (Switch)
-            append object of {id, name, enabled, shuffle, rpdb} to userData.catalogModifications
-            */}
             {userData.presets.length > 0 && <CatalogSettingsCard />}
 
             {userData.presets.length > 0 && <AddonGroupCard />}
@@ -1198,7 +1192,11 @@ function CatalogSettingsCard() {
           <h3 className="font-semibold text-xl text-[--muted] transition-colors hover:text-[--brand]">
             Catalogs
           </h3>
-          <p className="text-[--muted] text-sm">Manage your catalogs</p>
+          <p className="text-[--muted] text-sm">
+            Rename, Reorder, and toggle your catalogs, and apply modifications
+            like RPDB posters and shuffling. If you reorder the addons, you need
+            to reinstall the addon
+          </p>
         </div>
         <IconButton
           size="sm"
