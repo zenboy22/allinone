@@ -199,7 +199,6 @@ export class NuvioStreamsPreset extends Preset {
       return url;
     }
 
-    // cookie=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NDkzMzQ1OTIsIm5iZiI6MTc0OTMzNDU5MiwiZXhwIjoxNzgwNDM4NjEyLCJkYXRhIjp7InVpZCI6ODExNjU4LCJ0b2tlbiI6ImM2ZDc3NGVlMzdkNGYzNzUxMzhlZTBjOThhNWQ1YzIyIn19.q1UC_4JJvCB5dWnOsSOAxhrOnTVZR4flELz9my5tlX4/region=USA7/providers=showbox,xprime,hollymoviehd,soapertv,vidzee,hianime,vidsrc/scraper_api_key=dsad
     const cookie = options.showBoxCookie;
     const providers = options.providers;
     const scraperApiKey = options.scraperApiKey;
