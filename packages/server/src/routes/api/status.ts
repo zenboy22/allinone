@@ -55,9 +55,6 @@ router.get('/', async (req: Request, res: Response) => {
           proxiedServices: Env.DEFAULT_PROXY_PROXIED_SERVICES ?? null,
         },
         timeout: Env.DEFAULT_TIMEOUT ?? null,
-        preferredRegex: Env.DEFAULT_PREFERRED_REGEX_PATTERNS ?? null,
-        requiredRegex: Env.DEFAULT_REQUIRED_REGEX_PATTERNS ?? null,
-        excludedRegex: Env.DEFAULT_EXCLUDED_REGEX_PATTERNS ?? null,
       },
       presets: PresetManager.getPresetList().map((preset) => ({
         ...preset,
