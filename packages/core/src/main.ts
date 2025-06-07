@@ -677,7 +677,7 @@ export class AIOStreams {
       return false;
     }
 
-    if (!proxyConfig.proxiedAddons) {
+    if (!proxyConfig.proxiedAddons || proxyConfig.proxiedAddons.length === 0) {
       return true;
     }
 
@@ -685,10 +685,7 @@ export class AIOStreams {
       return true;
     }
 
-    if (
-      addon.fromPresetId &&
-      proxyConfig.proxiedAddons.includes(addon.fromPresetId)
-    ) {
+    if (addon.id && proxyConfig.proxiedAddons.includes(addon.id)) {
       return true;
     }
 
@@ -1054,7 +1051,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     }
 
     const performTitleMatch = (stream: ParsedStream) => {
-      if (!this.userData.strictTitleMatching) {
+      const titleMatchingOptions = this.userData.strictTitleMatching;
+      if (!titleMatchingOptions || !titleMatchingOptions.enabled) {
         return true;
       }
       if (titles.length === 0) {
@@ -1066,6 +1064,21 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         // if a specific stream doesn't have a title, filter it out.
         return false;
       }
+
+      // now check if we need to check this stream based on the addon and request type
+      if (
+        titleMatchingOptions.requestTypes?.length &&
+        !titleMatchingOptions.requestTypes.includes(type)
+      ) {
+        return true;
+      }
+      if (
+        titleMatchingOptions.addons?.length &&
+        !titleMatchingOptions.addons.includes(stream.addon.id!)
+      ) {
+        return true;
+      }
+
       return titles.some(
         (title) =>
           title

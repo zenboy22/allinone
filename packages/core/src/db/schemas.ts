@@ -319,7 +319,13 @@ export const UserDataSchema = z.object({
   sizeFilters: SizeFilterOptions.optional(),
   hideErrors: z.boolean().optional(),
   hideErrorsForResources: z.array(ResourceSchema).optional(),
-  strictTitleMatching: z.boolean().optional(),
+  strictTitleMatching: z
+    .object({
+      enabled: z.boolean().optional(),
+      requestTypes: z.array(z.string()).optional(),
+      addons: z.array(z.string()).optional(),
+    })
+    .optional(),
   deduplicator: DeduplicatorOptions.optional(),
   precacheNextEpisode: z.boolean().optional(),
   services: ServiceList.optional(),

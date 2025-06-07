@@ -54,6 +54,7 @@ import {
   VISUAL_TAGS,
   AUDIO_TAGS,
   LANGUAGES,
+  TYPES,
   DEDUPLICATOR_KEYS,
 } from '../../../../core/src/utils/constants';
 import { PageControls } from '../shared/page-controls';
@@ -241,6 +242,10 @@ function Content() {
               <TabsTrigger value="seeders">
                 <MdPerson className="text-lg mr-3" />
                 Seeders
+              </TabsTrigger>
+              <TabsTrigger value="strict-title-matching">
+                <FaTextSlash className="text-lg mr-3" />
+                Strict Title Matching
               </TabsTrigger>
               <TabsTrigger value="keyword">
                 <FaTextSlash className="text-lg mr-3" />
@@ -829,6 +834,75 @@ function Content() {
                             max: value,
                           },
                         }));
+                      }}
+                    />
+                  </div>
+                </div>
+              </SettingsCard>
+            </PageWrapper>
+          </TabsContent>
+          <TabsContent value="strict-title-matching" className="space-y-4">
+            <PageWrapper>
+              <HeadingWithPageControls heading="Strict Title Matching" />
+              <SettingsCard
+                title="Strict Title Matching"
+                description="Configure strict title matching for specific request types and addons"
+              >
+                <Switch
+                  label="Enabled"
+                  side="right"
+                  value={userData.strictTitleMatching?.enabled}
+                  onValueChange={(value) => {
+                    setUserData({
+                      ...userData,
+                      strictTitleMatching: {
+                        ...userData.strictTitleMatching,
+                        enabled: value,
+                      },
+                    });
+                  }}
+                />
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Combobox
+                      label="Request Types"
+                      emptyMessage="There aren't any request types to choose from..."
+                      help="Request types that will use strict title matching. Leave blank to apply to all request types."
+                      options={TYPES.map((type) => ({
+                        label: type,
+                        value: type,
+                        text: type,
+                      }))}
+                      value={userData.strictTitleMatching?.requestTypes}
+                      onValueChange={(value) => {
+                        setUserData({
+                          ...userData,
+                          strictTitleMatching: {
+                            ...userData.strictTitleMatching,
+                            requestTypes: value,
+                          },
+                        });
+                      }}
+                    />
+                    <Combobox
+                      label="Addons"
+                      help="Addons that will use strict title matching. Leave blank to apply to all addons."
+                      emptyMessage="You haven't installed any addons yet..."
+                      options={userData.presets.map((preset) => ({
+                        label: preset.options.name,
+                        type: preset.options.name,
+                        value: JSON.stringify(preset),
+                      }))}
+                      value={userData.strictTitleMatching?.addons || []}
+                      onValueChange={(value) => {
+                        setUserData({
+                          ...userData,
+                          strictTitleMatching: {
+                            ...userData.strictTitleMatching,
+                            addons: value,
+                          },
+                        });
                       }}
                     />
                   </div>

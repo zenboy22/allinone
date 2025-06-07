@@ -740,8 +740,15 @@ export const MOVIE_TYPE = 'movie' as const;
 export const SERIES_TYPE = 'series' as const;
 export const CHANNEL_TYPE = 'channel' as const;
 export const TV_TYPE = 'tv' as const;
+export const ANIME_TYPE = 'anime' as const;
 
-export const TYPES = [MOVIE_TYPE, SERIES_TYPE, CHANNEL_TYPE, TV_TYPE] as const;
+export const TYPES = [
+  MOVIE_TYPE,
+  SERIES_TYPE,
+  CHANNEL_TYPE,
+  TV_TYPE,
+  ANIME_TYPE,
+] as const;
 
 const RESOURCES = [
   STREAM_RESOURCE,
