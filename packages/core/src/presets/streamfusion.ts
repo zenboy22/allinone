@@ -95,29 +95,6 @@ export class StreamFusionPreset extends Preset {
         default: undefined,
         emptyIsUndefined: true,
       },
-      {
-        id: 'useMultipleInstances',
-        name: 'Use multiple instances',
-        description:
-          'If enabled, the addon will use multiple instances of the same service. This is useful if you want to use different services for different catalogs.',
-        type: 'boolean',
-        required: false,
-        default: false,
-      },
-      {
-        id: 'debridDownloader',
-        name: 'Debrid Downloader',
-        description:
-          'The debrid downloader to use. If you have not checked the above option, select a service here that will be used for uncached links.',
-        type: 'select',
-        required: false,
-        options: supportedServices.map((service) => ({
-          value: constants.SERVICE_DETAILS[service].name,
-          label: constants.SERVICE_DETAILS[service].name,
-        })),
-        default: undefined,
-        emptyIsUndefined: true,
-      },
     ];
 
     return {
@@ -150,12 +127,6 @@ export class StreamFusionPreset extends Preset {
     if (!usableServices || usableServices.length === 0) {
       throw new Error(
         `${this.METADATA.NAME} requires at least one usable service from the list of supported services: ${this.METADATA.SUPPORTED_SERVICES.map((service) => constants.SERVICE_DETAILS[service].name).join(', ')}`
-      );
-    }
-
-    if (options.useMultipleInstances) {
-      return usableServices.map((service) =>
-        this.generateAddon(userData, options, [service.id])
       );
     }
 
@@ -267,9 +238,7 @@ export class StreamFusionPreset extends Preset {
         serviceIds.length === 0 ? true : (options.torrenting ?? false),
       debrid: serviceIds.length > 0,
       metadataProvider: 'tmdb',
-      debridDownloader: options.useMultipleInstances
-        ? constants.SERVICE_DETAILS[serviceIds[0]].name
-        : options.debridDownloader,
+      debridDownloader: constants.SERVICE_DETAILS[serviceIds[0]].name,
       stremthru: true,
       stremthruUrl: Env.DEFAULT_STREAMFUSION_STREMTHRU_URL,
     });
