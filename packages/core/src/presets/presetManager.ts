@@ -18,6 +18,8 @@ import { MarvelPreset } from './marvel';
 import { JackettioPreset } from './jackettio';
 import { OrionPreset } from './orion';
 import { StreamFusionPreset } from './streamfusion';
+import { AnimeKitsuPreset } from './animeKitsu';
+import { NuvioStreamsPreset } from './nuvio';
 
 const PRESET_LIST: string[] = [
   'torrentio',
@@ -35,7 +37,9 @@ const PRESET_LIST: string[] = [
   'streamfusion',
   'dmm-cast',
   'orion',
+  'nuvio-streams',
   'opensubtitles',
+  'anime-kitsu',
   'marvel-catalog',
   'aiostreams',
   'custom',
@@ -86,6 +90,10 @@ export class PresetManager {
         return OrionPreset;
       case 'streamfusion':
         return StreamFusionPreset;
+      case 'anime-kitsu':
+        return AnimeKitsuPreset;
+      case 'nuvio-streams':
+        return NuvioStreamsPreset;
       default:
         throw new Error(`Preset ${id} not found`);
     }

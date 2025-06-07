@@ -135,13 +135,14 @@ export abstract class Preset {
    * @returns The encoded string.
    */
   protected static urlEncodeKeyValuePairs(
-    options: Record<string, string> | string[][]
+    options: Record<string, string> | string[][],
+    separator: string = '|',
+    encode: boolean = true
   ) {
-    return encodeURIComponent(
-      (Array.isArray(options) ? options : Object.entries(options))
-        .map(([key, value]) => `${key}=${value}`)
-        .join('|')
-    );
+    const string = (Array.isArray(options) ? options : Object.entries(options))
+      .map(([key, value]) => `${key}=${value}`)
+      .join(separator);
+    return encode ? encodeURIComponent(string) : string;
   }
 
   protected static getUsableServices(

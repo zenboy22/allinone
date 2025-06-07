@@ -852,6 +852,32 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default Marvel user agent',
   }),
 
+  DEFAULT_ANIME_KITSU_URL: url({
+    default: 'https://anime-kitsu.strem.fun',
+    desc: 'Anime Kitsu URL',
+  }),
+  DEFAULT_ANIME_KITSU_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Anime Kitsu timeout',
+  }),
+  DEFAULT_ANIME_KITSU_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Anime Kitsu user agent',
+  }),
+
+  DEFAULT_NUVIOSTREAMS_URL: url({
+    default: 'https://nuviostreams.hayd.uk',
+    desc: 'NuvioStreams URL',
+  }),
+  DEFAULT_NUVIOSTREAMS_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default NuvioStreams timeout',
+  }),
+  DEFAULT_NUVIOSTREAMS_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default NuvioStreams user agent',
+  }),
+
   // Rate limiting settings
   DISABLE_RATE_LIMITS: bool({
     default: false,
