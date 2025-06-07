@@ -53,6 +53,7 @@ router.get(
             errors,
           })
         );
+        return;
       }
       next(error);
     }
