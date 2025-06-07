@@ -847,6 +847,19 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default OpenSubtitles user agent',
   }),
 
+  DEFAULT_MARVEL_CATALOG_URL: url({
+    default: 'https://addon-marvel.onrender.com',
+    desc: 'Default Marvel catalog URL',
+  }),
+  DEFAULT_MARVEL_CATALOG_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Marvel timeout',
+  }),
+  DEFAULT_MARVEL_CATALOG_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Marvel user agent',
+  }),
+
   // Rate limiting settings
   DISABLE_RATE_LIMITS: bool({
     default: false,

@@ -476,6 +476,7 @@ export class AIOStreams {
       await Promise.all(
         this.addons.map(async (addon, index) => {
           try {
+            this.validateAddon(addon);
             return [index, await new Wrapper(addon).getManifest()];
           } catch (error: any) {
             if (this.skipFailedAddons) {
@@ -815,37 +816,7 @@ export class AIOStreams {
       let summaryMsg = '';
       const start = Date.now();
       try {
-        if (addon.manifestUrl.includes(this.userData.uuid || '')) {
-          throw new Error(
-            `${addon.identifyingName} appears to be trying to scrape the current user's AIOStreams instance.`
-          );
-        } else if (
-          Env.BASE_URL &&
-          new URL(addon.manifestUrl).host === new URL(Env.BASE_URL).host &&
-          Env.DISABLE_SELF_SCRAPING === true
-        ) {
-          throw new Error(
-            `Scraping the same AIOStreams instance is disabled. Please use a different AIOStreams instance, or enable it through the environment variables.`
-          );
-        }
-        if (
-          addon.fromPresetId &&
-          FeatureControl.disabledAddons.has(addon.fromPresetId)
-        ) {
-          throw new Error(
-            `Addon ${addon.identifyingName} is disabled: ${FeatureControl.disabledAddons.get(
-              addon.fromPresetId
-            )}`
-          );
-        } else if (
-          FeatureControl.disabledHosts.has(new URL(addon.manifestUrl).host)
-        ) {
-          throw new Error(
-            `Addon ${addon.identifyingName} is using a disabled host: ${FeatureControl.disabledHosts.get(
-              new URL(addon.manifestUrl).host
-            )}`
-          );
-        }
+        this.validateAddon(addon);
         const streams = await new Wrapper(addon).getStreams(type, id);
         // filter out error type streams and put them in errors instead
         const errorStreams = streams.filter(
@@ -989,6 +960,43 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     }
 
     return { streams: parsedStreams, errors };
+  }
+
+  private validateAddon(addon: Addon) {
+    if (this.userData.uuid && addon.manifestUrl.includes(this.userData.uuid)) {
+      logger.warn(
+        `${this.userData.uuid} detected to be trying to cause infinite self scraping`
+      );
+      throw new Error(
+        `${addon.identifyingName} appears to be trying to scrape the current user's AIOStreams instance.`
+      );
+    } else if (
+      Env.BASE_URL &&
+      new URL(addon.manifestUrl).host === new URL(Env.BASE_URL).host &&
+      Env.DISABLE_SELF_SCRAPING === true
+    ) {
+      throw new Error(
+        `Scraping the same AIOStreams instance is disabled. Please use a different AIOStreams instance, or enable it through the environment variables.`
+      );
+    }
+    if (
+      addon.fromPresetId &&
+      FeatureControl.disabledAddons.has(addon.fromPresetId)
+    ) {
+      throw new Error(
+        `Addon ${addon.identifyingName} is disabled: ${FeatureControl.disabledAddons.get(
+          addon.fromPresetId
+        )}`
+      );
+    } else if (
+      FeatureControl.disabledHosts.has(new URL(addon.manifestUrl).host)
+    ) {
+      throw new Error(
+        `Addon ${addon.identifyingName} is disabled: ${FeatureControl.disabledHosts.get(
+          new URL(addon.manifestUrl).host
+        )}`
+      );
+    }
   }
 
   private async applyFilters(

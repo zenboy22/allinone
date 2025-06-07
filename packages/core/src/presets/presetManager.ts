@@ -12,6 +12,11 @@ import { StremthruTorzPreset } from './stremthruTorz';
 import { DebridioPreset } from './debridio';
 import { AIOStreamsPreset } from './aiostreams';
 import { OpenSubtitlesPreset } from './opensubtitles';
+import { PeerflixPreset } from './peerflix';
+import { DMMCastPreset } from './dmmCast';
+import { MarvelPreset } from './marvel';
+import { JackettioPreset } from './jackettio';
+import { OrionPreset } from './orion';
 
 const PRESET_LIST: string[] = [
   'torrentio',
@@ -20,12 +25,17 @@ const PRESET_LIST: string[] = [
   'stremthruTorz',
   'stremthruStore',
   'torbox',
+  'jackettio',
+  'peerflix',
   'easynews',
   'easynewsPlus',
   'easynewsPlusPlus',
   'debridio',
-  'aiostreams',
+  'dmm-cast',
+  'orion',
   'opensubtitles',
+  'marvel-catalog',
+  'aiostreams',
   'custom',
 ];
 
@@ -50,6 +60,8 @@ export class PresetManager {
         return CustomPreset;
       case 'torbox':
         return TorboxAddonPreset;
+      case 'jackettio':
+        return JackettioPreset;
       case 'easynews':
         return EasynewsPreset;
       case 'easynewsPlus':
@@ -62,6 +74,14 @@ export class PresetManager {
         return AIOStreamsPreset;
       case 'opensubtitles':
         return OpenSubtitlesPreset;
+      case 'peerflix':
+        return PeerflixPreset;
+      case 'dmm-cast':
+        return DMMCastPreset;
+      case 'marvel-catalog':
+        return MarvelPreset;
+      case 'orion':
+        return OrionPreset;
       default:
         throw new Error(`Preset ${id} not found`);
     }

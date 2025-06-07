@@ -599,7 +599,7 @@ function AddonCard({
         <div className="flex flex-col min-w-0 flex-1">
           <div className="font-bold text-lg mb-1 truncate">{preset.NAME}</div>
           <div className="text-sm text-muted-foreground mb-2 line-clamp-3 whitespace-pre-line">
-            {preset.DESCRIPTION}
+            <MarkdownLite>{preset.DESCRIPTION}</MarkdownLite>
           </div>
         </div>
       </div>

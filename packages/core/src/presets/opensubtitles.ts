@@ -16,7 +16,7 @@ export class OpenSubtitlesPreset extends Preset {
     return {
       ID: 'opensubtitles',
       NAME: 'OpenSubtitles v3',
-      LOGO: 'https://www.strem.io/images/addons/opensubtitles-logo.png',
+      LOGO: 'https://iwf1.com/scrapekod/icons/service.subtitles.opensubtitles_by_opensubtitles_dualsub.png',
       URL: Env.OPENSUBTITLES_URL,
       TIMEOUT: Env.DEFAULT_OPENSUBTITLES_TIMEOUT || Env.DEFAULT_TIMEOUT,
       USER_AGENT:
@@ -33,7 +33,7 @@ export class OpenSubtitlesPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Promise<Addon[]> {
-    if (!options.manifestUrl.endsWith('/manifest.json')) {
+    if (!options.url.endsWith('/manifest.json')) {
       throw new Error('Invalid manifest URL');
     }
     return [this.generateAddon(userData, options)];

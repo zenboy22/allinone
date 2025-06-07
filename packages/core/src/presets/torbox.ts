@@ -42,21 +42,12 @@ class TorboxStreamParser extends StreamParser {
     };
   }
 
-  protected override getFilename(
-    stream: Stream,
-    currentParsedStream: ParsedStream
-  ): string | undefined {
-    if (stream.description?.includes('Click play to start')) {
-      return undefined;
-    }
-    return super.getFilename(stream, currentParsedStream);
-  }
-
   protected override getMessage(
     stream: Stream,
     currentParsedStream: ParsedStream
   ): string | undefined {
     if (stream.description?.includes('Click play to start')) {
+      currentParsedStream.filename = undefined;
       return 'Click play to start streaming your media';
     }
     return undefined;

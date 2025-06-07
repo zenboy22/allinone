@@ -41,6 +41,8 @@ class AIOStreamsStreamParser extends StreamParser {
       parsedFile: aioStream.streamData?.parsedFile,
       keywordMatched: aioStream.streamData?.keywordMatched,
       regexMatched: aioStream.streamData?.regexMatched,
+      originalName: aioStream.name,
+      originalDescription: aioStream.description || stream.title,
     };
   }
 }

@@ -30,6 +30,13 @@ export class CustomPreset extends Preset {
         default: false,
       },
       {
+        id: 'streamPassthrough',
+        name: 'Stream Passthrough',
+        description:
+          'Whether to pass through the stream formatting. This means your formatting will not be applied and original stream formatting is retained.',
+        type: 'boolean',
+      },
+      {
         id: 'timeout',
         name: 'Timeout',
         description: 'The timeout for this addon',
@@ -83,12 +90,13 @@ export class CustomPreset extends Preset {
     return {
       name: options.name || this.METADATA.NAME,
       identifyingName: options.name || this.METADATA.NAME,
-      manifestUrl: options.manifestUrl.replace('stremio://', 'https://'),
+      manifestUrl: options.manifestUrl,
       enabled: true,
       library: options.libraryAddon ?? false,
       resources: options.resources || undefined,
       timeout: options.timeout || this.METADATA.TIMEOUT,
       fromPresetId: this.METADATA.ID,
+      streamPassthrough: options.streamPassthrough ?? false,
       headers: {
         'User-Agent': this.METADATA.USER_AGENT,
       },

@@ -109,6 +109,7 @@ const AddonSchema = z.object({
   identifyingName: z.string().min(1),
   timeout: z.number().min(1),
   library: z.boolean().optional(),
+  streamPassthrough: z.boolean().optional(),
   fromPresetId: z.string().min(1).optional(),
   headers: z.record(z.string().min(1), z.string().min(1)).optional(),
   ip: z.string().ip().optional(),
@@ -616,6 +617,8 @@ export const ParsedStreamSchema = z.object({
       description: z.string().min(1),
     })
     .optional(),
+  originalName: z.string().optional(),
+  originalDescription: z.string().optional(),
 });
 
 export type ParsedStream = z.infer<typeof ParsedStreamSchema>;

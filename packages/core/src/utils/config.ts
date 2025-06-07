@@ -296,14 +296,10 @@ export async function validateConfig(
     }
   }
 
-  try {
-    await new AIOStreams(
-      ensureDecrypted(config), // ensure all values are decrypted so that proper validation can be done.
-      skipErrorsFromAddonsOrProxies
-    ).initialise();
-  } catch (error: any) {
-    throw new Error(error.message);
-  }
+  await new AIOStreams(
+    ensureDecrypted(config),
+    skipErrorsFromAddonsOrProxies
+  ).initialise();
 
   return config;
 }

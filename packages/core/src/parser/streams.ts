@@ -1,5 +1,5 @@
 import { Stream, ParsedStream, Addon } from '../db';
-import { constants, createLogger } from '../utils';
+import { constants, createLogger, LANGUAGE_EMOJI_MAPPING } from '../utils';
 import FileParser from './file';
 const logger = createLogger('parser');
 class StreamParser {
@@ -54,13 +54,15 @@ class StreamParser {
     let parsedStream: ParsedStream = {
       addon: this.addon,
       type: 'http',
-      url: stream.url,
+      url: this.applyUrlModifications(stream.url),
       externalUrl: stream.externalUrl,
       ytId: stream.ytId,
       requestHeaders: stream.behaviorHints?.proxyHeaders?.request,
       responseHeaders: stream.behaviorHints?.proxyHeaders?.response,
       notWebReady: stream.behaviorHints?.notWebReady,
       videoHash: stream.behaviorHints?.videoHash,
+      originalName: stream.name,
+      originalDescription: stream.description || stream.title,
     };
 
     stream.description = stream.description || stream.title;
@@ -91,6 +93,12 @@ class StreamParser {
 
     if (parsedStream.filename) {
       parsedStream.parsedFile = FileParser.parse(parsedStream.filename);
+      parsedStream.parsedFile.languages = Array.from(
+        new Set([
+          ...parsedStream.parsedFile.languages,
+          ...this.getLanguages(stream, parsedStream),
+        ])
+      );
     }
 
     parsedStream.torrent = {
@@ -104,6 +112,10 @@ class StreamParser {
     };
 
     return parsedStream;
+  }
+
+  protected applyUrlModifications(url: string | undefined): string | undefined {
+    return url;
   }
 
   protected raiseErrorIfNecessary(
@@ -340,6 +352,32 @@ class StreamParser {
     }
 
     throw new Error('Invalid stream, missing a required stream property');
+  }
+
+  /**
+   * Extracts languages from the stream description using country flags.
+   * @param stream - The stream object containing the description.
+   * @param currentParsedStream - The current parsed stream object.
+   * @returns An array of language strings.
+   */
+  protected getLanguages(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string[] {
+    const countryFlagPattern = /[\u{1F1E6}-\u{1F1FF}]{2}/gu;
+    const descriptionMatches = stream.description?.match(countryFlagPattern);
+    const nameMatches = stream.name?.match(countryFlagPattern);
+    const flags = [
+      ...(descriptionMatches ? [...new Set(descriptionMatches)] : []),
+      ...(nameMatches ? [...new Set(nameMatches)] : []),
+    ];
+    const languages = flags.map((flag) => {
+      const language = Object.entries(LANGUAGE_EMOJI_MAPPING).find(
+        ([_, value]) => value === flag
+      )?.[0];
+      return language;
+    });
+    return languages.filter((language) => language !== undefined);
   }
 
   protected getInLibrary(

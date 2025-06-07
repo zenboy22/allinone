@@ -74,7 +74,12 @@ export class StremioTransformer {
 
     transformedStreams = await Promise.all(
       streams.map(async (stream: ParsedStream): Promise<AIOStream> => {
-        const { name, description } = formatter.format(stream);
+        const { name, description } = stream.addon.streamPassthrough
+          ? {
+              name: stream.originalName,
+              description: stream.originalDescription,
+            }
+          : formatter.format(stream);
         const identifyingAttributes = [
           stream.parsedFile?.resolution,
           stream.parsedFile?.quality,

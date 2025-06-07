@@ -4,36 +4,36 @@ import { Env } from '../utils';
 import { constants, ServiceId } from '../utils';
 import { StreamParser } from '../parser';
 
-class CometStreamParser extends StreamParser {
+class JackettioStreamParser extends StreamParser {
   override applyUrlModifications(url: string | undefined): string | undefined {
     if (!url) {
       return url;
     }
     if (
-      Env.FORCE_COMET_HOSTNAME !== undefined ||
-      Env.FORCE_COMET_PORT !== undefined ||
-      Env.FORCE_COMET_PROTOCOL !== undefined
+      Env.FORCE_JACKETTIO_HOSTNAME !== undefined ||
+      Env.FORCE_JACKETTIO_PORT !== undefined ||
+      Env.FORCE_JACKETTIO_PROTOCOL !== undefined
     ) {
       // modify the URL according to settings, needed when using a local URL for requests but a public stream URL is needed.
       const urlObj = new URL(url);
 
-      if (Env.FORCE_COMET_PROTOCOL !== undefined) {
-        urlObj.protocol = Env.FORCE_COMET_PROTOCOL;
+      if (Env.FORCE_JACKETTIO_PROTOCOL !== undefined) {
+        urlObj.protocol = Env.FORCE_JACKETTIO_PROTOCOL;
       }
-      if (Env.FORCE_COMET_PORT !== undefined) {
-        urlObj.port = Env.FORCE_COMET_PORT.toString();
+      if (Env.FORCE_JACKETTIO_PORT !== undefined) {
+        urlObj.port = Env.FORCE_JACKETTIO_PORT.toString();
       }
-      if (Env.FORCE_COMET_HOSTNAME !== undefined) {
-        urlObj.hostname = Env.FORCE_COMET_HOSTNAME;
+      if (Env.FORCE_JACKETTIO_HOSTNAME !== undefined) {
+        urlObj.hostname = Env.FORCE_JACKETTIO_HOSTNAME;
       }
       return urlObj.toString();
     }
   }
 }
 
-export class CometPreset extends Preset {
+export class JackettioPreset extends Preset {
   static override getParser(): typeof StreamParser {
-    return CometStreamParser;
+    return JackettioStreamParser;
   }
 
   static override get METADATA() {
@@ -51,22 +51,11 @@ export class CometPreset extends Preset {
     const supportedResources = [constants.STREAM_RESOURCE];
 
     const options: Option[] = [
-      ...baseOptions('Comet', supportedResources, Env.DEFAULT_COMET_TIMEOUT),
-      {
-        id: 'includeP2P',
-        name: 'Include P2P',
-        description: 'Include P2P results, even if a debrid service is enabled',
-        type: 'boolean',
-        default: false,
-      },
-      {
-        id: 'removeTrash',
-        name: 'Remove Trash',
-        description:
-          'Remove all trash from results (Adult Content, CAM, Clean Audio, PDTV, R5, Screener, Size, Telecine and Telesync)',
-        type: 'boolean',
-        default: true,
-      },
+      ...baseOptions(
+        'Jackettio',
+        supportedResources,
+        Env.DEFAULT_JACKETTIO_TIMEOUT
+      ),
       {
         id: 'services',
         name: 'Services',
@@ -84,19 +73,17 @@ export class CometPreset extends Preset {
     ];
 
     return {
-      ID: 'comet',
-      NAME: 'Comet',
-      LOGO: 'https://i.imgur.com/jmVoVMu.jpeg',
-      URL: Env.COMET_URL,
-      TIMEOUT: Env.DEFAULT_COMET_TIMEOUT || Env.DEFAULT_TIMEOUT,
-      USER_AGENT: Env.DEFAULT_COMET_USER_AGENT || Env.DEFAULT_USER_AGENT,
+      ID: 'jackettio',
+      NAME: 'Jackettio',
+      LOGO: 'https://raw.githubusercontent.com/Jackett/Jackett/bbea5febd623f6e536e11aa1fa8d6674d8d4043f/src/Jackett.Common/Content/jacket_medium.png',
+      URL: Env.JACKETTIO_URL,
+      TIMEOUT: Env.DEFAULT_JACKETTIO_TIMEOUT || Env.DEFAULT_TIMEOUT,
+      USER_AGENT: Env.DEFAULT_JACKETTIO_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: supportedServices,
-      DESCRIPTION: "Stremio's fastest Torrent/Debrid addon",
+      DESCRIPTION:
+        'Stremio addon that resolves streams using Jackett and Debrid',
       OPTIONS: options,
-      SUPPORTED_STREAM_TYPES: [
-        constants.P2P_STREAM_TYPE,
-        constants.DEBRID_STREAM_TYPE,
-      ],
+      SUPPORTED_STREAM_TYPES: [constants.DEBRID_STREAM_TYPE],
       SUPPORTED_RESOURCES: supportedResources,
     };
   }
@@ -105,25 +92,20 @@ export class CometPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Promise<Addon[]> {
-    // url can either be something like https://torrentio.com/ or it can be a custom manifest url.
-    // if it is a custom manifest url, return a single addon with the custom manifest url.
     if (options?.url?.endsWith('/manifest.json')) {
       return [this.generateAddon(userData, options, undefined)];
     }
 
     const usableServices = this.getUsableServices(userData, options.services);
-    // if no services are usable, use p2p
     if (!usableServices || usableServices.length === 0) {
-      return [this.generateAddon(userData, options, undefined)];
+      throw new Error(
+        `${this.METADATA.NAME} requires at least one usable service from the list of supported services: ${this.METADATA.SUPPORTED_SERVICES.map((service) => constants.SERVICE_DETAILS[service].name).join(', ')}`
+      );
     }
 
     let addons = usableServices.map((service) =>
       this.generateAddon(userData, options, service.id)
     );
-
-    if (options.includeP2P) {
-      addons.push(this.generateAddon(userData, options, undefined));
-    }
 
     return addons;
   }
@@ -158,30 +140,41 @@ export class CometPreset extends Preset {
     if (url.endsWith('/manifest.json')) {
       return url;
     }
+    if (!serviceId) {
+      throw new Error(
+        `${this.METADATA.NAME} requires at least one usable service from the list of supported services: ${this.METADATA.SUPPORTED_SERVICES.map((service) => constants.SERVICE_DETAILS[service].name).join(', ')}`
+      );
+    }
     url = url.replace(/\/$/, '');
     const configString = this.base64EncodeJSON({
-      maxResultsPerResolution: 0,
-      maxSize: 0,
-      cachedOnly: false,
-      removeTrash: options.removeTrash ?? true,
-      resultFormat: ['all'],
-      debridService: serviceId || 'torrent',
-      debridApiKey: serviceId
-        ? this.getServiceCredential(serviceId, userData, {
-            [constants.OFFCLOUD_SERVICE]: (credentials: any) =>
-              `${credentials.email}:${credentials.password}`,
-            [constants.PIKPAK_SERVICE]: (credentials: any) =>
-              `${credentials.email}:${credentials.password}`,
-          })
-        : '',
-      debridStreamProxyPassword: '',
-      languages: { required: [], exclude: [], preferred: [] },
-      resolutions: {},
-      options: {
-        remove_ranks_under: -10000000000,
-        allow_english_in_languages: false,
-        remove_unknown_languages: false,
-      },
+      maxTorrents: 30,
+      priotizePackTorrents: 2,
+      excludeKeywords: [],
+      debridId: serviceId,
+      debridApiKey: this.getServiceCredential(serviceId, userData, {
+        [constants.OFFCLOUD_SERVICE]: (credentials: any) =>
+          `${credentials.email}:${credentials.password}`,
+        [constants.PIKPAK_SERVICE]: (credentials: any) =>
+          `${credentials.email}:${credentials.password}`,
+      }),
+      hideUncached: false,
+      sortCached: [
+        ['quality', true],
+        ['size', true],
+      ],
+      sortUncached: [['seeders', true]],
+      forceCacheNextEpisode: false,
+      priotizeLanguages: [],
+      indexerTimeoutSec: 60,
+      metaLanguage: '',
+      enableMediaFlow: false,
+      mediaflowProxyUrl: '',
+      mediaflowApiPassword: '',
+      mediaflowPublicIp: '',
+      useStremThru: true,
+      stremthruUrl: Env.DEFAULT_JACKETTIO_STREMTHRU_URL,
+      qualities: [0, 360, 480, 720, 1080, 2160],
+      indexers: Env.DEFAULT_JACKETTIO_INDEXERS,
     });
 
     return `${url}${configString ? '/' + configString : ''}/manifest.json`;

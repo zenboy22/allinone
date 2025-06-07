@@ -55,10 +55,12 @@ type ResourceParams = {
 export class Wrapper {
   private readonly baseUrl: string;
   private readonly addon: Addon;
+  private readonly manifestUrl: string;
 
   constructor(addon: Addon) {
     this.addon = addon;
-    this.baseUrl = this.addon.manifestUrl.split('/').slice(0, -1).join('/');
+    this.manifestUrl = this.addon.manifestUrl.replace('stremio://', 'https://');
+    this.baseUrl = this.manifestUrl.split('/').slice(0, -1).join('/');
   }
 
   /**
@@ -107,21 +109,16 @@ export class Wrapper {
     return await manifestCache.wrap(
       async () => {
         logger.debug(
-          `Fetching manifest for ${this.addon.identifyingName} (${makeUrlLogSafe(this.addon.manifestUrl)})`
+          `Fetching manifest for ${this.addon.identifyingName} (${makeUrlLogSafe(this.manifestUrl)})`
         );
         try {
           const res = await makeRequest(
-            this.addon.manifestUrl,
+            this.manifestUrl,
             this.addon.timeout,
             this.addon.headers
           );
           if (!res.ok) {
-            logger.error(
-              `Failed to fetch manifest for ${this.addon.identifyingName}: ${res.status} - ${res.statusText}`
-            );
-            throw new Error(
-              `Failed to fetch manifest for ${this.addon.identifyingName}`
-            );
+            throw new Error(`${res.status} - ${res.statusText}`);
           }
           const data = await res.json();
           const manifest = ManifestSchema.safeParse(data);
@@ -143,7 +140,7 @@ export class Wrapper {
           );
         }
       },
-      this.addon.manifestUrl,
+      this.manifestUrl,
       MANIFEST_TTL
     );
   }

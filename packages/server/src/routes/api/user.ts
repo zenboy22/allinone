@@ -151,6 +151,7 @@ router.post('/', async (req, res, next) => {
   }
 
   try {
+    config.uuid = uuid;
     const updatedUser = await UserRepository.updateUser(uuid, password, config);
     res.status(200).json(
       createResponse({
