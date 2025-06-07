@@ -57,6 +57,12 @@ const formatApiRateLimiter = createRateLimiter(
   'format-api'
 );
 
+const catalogApiRateLimiter = createRateLimiter(
+  Env.CATALOG_API_RATE_LIMIT_WINDOW * 1000,
+  Env.CATALOG_API_RATE_LIMIT_MAX_REQUESTS,
+  'catalog-api'
+);
+
 const stremioStreamRateLimiter = createRateLimiter(
   Env.STREMIO_STREAM_RATE_LIMIT_WINDOW * 1000,
   Env.STREMIO_STREAM_RATE_LIMIT_MAX_REQUESTS,
@@ -79,6 +85,7 @@ export {
   userApiRateLimiter,
   streamApiRateLimiter,
   formatApiRateLimiter,
+  catalogApiRateLimiter,
   stremioStreamRateLimiter,
   stremioCatalogRateLimiter,
   staticRateLimiter,

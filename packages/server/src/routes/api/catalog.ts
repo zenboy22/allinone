@@ -9,9 +9,11 @@ import {
   APIError,
   constants,
 } from '@aiostreams/core';
+import { catalogApiRateLimiter } from '../../middlewares/ratelimit';
 const router = Router();
 
 const logger = createLogger('server');
+router.use(catalogApiRateLimiter);
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   const { userData } = req.body;

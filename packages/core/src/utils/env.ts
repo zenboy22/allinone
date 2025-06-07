@@ -317,13 +317,10 @@ export const Env = cleanEnv(process.env, {
     default: 15,
     desc: 'Max number of addons',
   }),
+  // TODO
   MAX_KEYWORD_FILTERS: num({
     default: 30,
     desc: 'Max number of keyword filters',
-  }),
-  MAX_REGEX_SORT_PATTERNS: num({
-    default: 30,
-    desc: 'Max number of regex sort patterns',
   }),
 
   MAX_MOVIE_SIZE: num({
@@ -346,19 +343,6 @@ export const Env = cleanEnv(process.env, {
   DEFAULT_TIMEOUT: num({
     default: 15000,
     desc: 'Default timeout for the addon',
-  }),
-
-  DEFAULT_REQUIRED_REGEX_PATTERNS: regexes({
-    default: [],
-    desc: 'Default regex exclude pattern',
-  }),
-  DEFAULT_EXCLUDED_REGEX_PATTERNS: regexes({
-    default: [],
-    desc: 'Default regex include pattern',
-  }),
-  DEFAULT_PREFERRED_REGEX_PATTERNS: namedRegexes({
-    default: [],
-    desc: 'Default regex sort patterns',
   }),
 
   FORCE_PROXY_ENABLED: bool({
@@ -646,30 +630,30 @@ export const Env = cleanEnv(process.env, {
   }),
 
   // Stremio Jackett settings
-  STREMIO_JACKETT_URL: url({
-    default: 'https://stremio-jackett.elfhosted.com',
-    desc: 'Stremio Jackett URL',
-  }),
-  DEFAULT_STREMIO_JACKETT_JACKETT_URL: url({
-    default: undefined,
-    desc: 'Default Stremio Jackett Jackett URL',
-  }),
-  DEFAULT_STREMIO_JACKETT_JACKETT_API_KEY: str({
-    default: undefined,
-    desc: 'Default Stremio Jackett Jackett API key',
-  }),
-  DEFAULT_STREMIO_JACKETT_TMDB_API_KEY: str({
-    default: undefined,
-    desc: 'Default Stremio Jackett TMDB API key',
-  }),
-  DEFAULT_STREMIO_JACKETT_TIMEOUT: num({
-    default: undefined,
-    desc: 'Default Stremio Jackett timeout',
-  }),
-  DEFAULT_STREMIO_JACKETT_USER_AGENT: userAgent({
-    default: undefined,
-    desc: 'Default Stremio Jackett user agent',
-  }),
+  // STREMIO_JACKETT_URL: url({
+  //   default: 'https://stremio-jackett.elfhosted.com',
+  //   desc: 'Stremio Jackett URL',
+  // }),
+  // DEFAULT_STREMIO_JACKETT_JACKETT_URL: url({
+  //   default: undefined,
+  //   desc: 'Default Stremio Jackett Jackett URL',
+  // }),
+  // DEFAULT_STREMIO_JACKETT_JACKETT_API_KEY: str({
+  //   default: undefined,
+  //   desc: 'Default Stremio Jackett Jackett API key',
+  // }),
+  // DEFAULT_STREMIO_JACKETT_TMDB_API_KEY: str({
+  //   default: undefined,
+  //   desc: 'Default Stremio Jackett TMDB API key',
+  // }),
+  // DEFAULT_STREMIO_JACKETT_TIMEOUT: num({
+  //   default: undefined,
+  //   desc: 'Default Stremio Jackett timeout',
+  // }),
+  // DEFAULT_STREMIO_JACKETT_USER_AGENT: userAgent({
+  //   default: undefined,
+  //   desc: 'Default Stremio Jackett user agent',
+  // }),
 
   // Torrentio settings
   TORRENTIO_URL: url({
@@ -824,15 +808,6 @@ export const Env = cleanEnv(process.env, {
     default: undefined,
     desc: 'Default DMM Cast user agent',
   }),
-  // GDrive settings
-  DEFAULT_GDRIVE_TIMEOUT: num({
-    default: undefined,
-    desc: 'Default GDrive timeout',
-  }),
-  DEFAULT_GDRIVE_USER_AGENT: userAgent({
-    default: undefined,
-    desc: 'Default GDrive user agent',
-  }),
 
   OPENSUBTITLES_URL: url({
     default: 'https://opensubtitles-v3.strem.io',
@@ -865,14 +840,7 @@ export const Env = cleanEnv(process.env, {
     default: false,
     desc: 'Disable rate limiting',
   }),
-  // RATE_LIMIT_WINDOW: num({
-  //   default: 60, // 1 minute
-  //   desc: 'Time window for rate limiting in seconds',
-  // }),
-  // RATE_LIMIT_MAX_REQUESTS: num({
-  //   default: 20, // allow 100 requests per IP per minute
-  //   desc: 'Maximum number of requests allowed per IP within the time window',
-  // })
+
   STATIC_RATE_LIMIT_WINDOW: num({
     default: 5, // 1 minute
     desc: 'Time window for static file serving rate limiting in seconds',
@@ -900,7 +868,14 @@ export const Env = cleanEnv(process.env, {
     desc: 'Time window for format API rate limiting in seconds',
   }),
   FORMAT_API_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 10, // allow 50 requests per IP per 10 seconds
+    default: 15, // allow 50 requests per IP per 10 seconds
+  }),
+  CATALOG_API_RATE_LIMIT_WINDOW: num({
+    default: 5, // 1 minute
+    desc: 'Time window for catalog API rate limiting in seconds',
+  }),
+  CATALOG_API_RATE_LIMIT_MAX_REQUESTS: num({
+    default: 5, // allow 100 requests per IP per minute
   }),
   STREMIO_STREAM_RATE_LIMIT_WINDOW: num({
     default: 5, // 1 minute
