@@ -78,12 +78,9 @@ stremioAuthRouter.use('/addon_catalog', addonCatalog);
 app.use('/stremio', stremioRouter); // For public routes
 app.use('/stremio/:uuid/:encryptedPassword', stremioAuthRouter); // For authenticated routes
 
-app.get(
-  ['/_next/*', '/assets/*', '/icon.ico', '/favicon.ico', '/logo.png'],
-  (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/out', req.path));
-  }
-);
+app.get(['/_next/*', '/assets/*', '/favicon.ico', '/logo.png'], (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/out', req.path));
+});
 
 app.get('/', (req, res) => {
   res.redirect('/stremio/configure');
