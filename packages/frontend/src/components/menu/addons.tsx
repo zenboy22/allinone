@@ -40,6 +40,7 @@ import {
   LuChevronsDown,
   LuShuffle,
 } from 'react-icons/lu';
+import { TbSmartHomeOff } from 'react-icons/tb';
 import { AnimatePresence } from 'framer-motion';
 import { PageControls } from '../shared/page-controls';
 import Image from 'next/image';
@@ -61,6 +62,7 @@ interface CatalogModification {
   enabled?: boolean;
   shuffle?: boolean;
   rpdb?: boolean;
+  onlyOnDiscover?: boolean;
 }
 
 export function AddonsMenu() {
@@ -1084,6 +1086,7 @@ function CatalogSettingsCard() {
     name?: string;
     shuffle: boolean;
     rpdb: boolean;
+    onlyOnDiscover: boolean;
   } | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -1249,6 +1252,7 @@ function CatalogSettingsCard() {
                           name: catalog.name,
                           shuffle: catalog.shuffle ?? false,
                           rpdb: catalog.rpdb ?? false,
+                          onlyOnDiscover: catalog.onlyOnDiscover ?? false,
                         });
                         setModalOpen(true);
                       }}
@@ -1297,6 +1301,7 @@ function CatalogSettingsCard() {
                       name: editingCatalog.name,
                       shuffle: editingCatalog.shuffle,
                       rpdb: editingCatalog.rpdb,
+                      onlyOnDiscover: editingCatalog.onlyOnDiscover,
                     }
                   : c
               ),
@@ -1333,6 +1338,19 @@ function CatalogSettingsCard() {
               value={editingCatalog?.rpdb ?? false}
               onValueChange={(rpdb) => {
                 setEditingCatalog((prev) => (prev ? { ...prev, rpdb } : null));
+              }}
+            />
+
+            <Switch
+              label="Only Show this catalog on the discover page."
+              moreHelp="This only works if the catalog supports selecting a 'genre'"
+              side="right"
+              className="ml-2"
+              value={editingCatalog?.onlyOnDiscover ?? false}
+              onValueChange={(onlyOnDiscover) => {
+                setEditingCatalog((prev) =>
+                  prev ? { ...prev, onlyOnDiscover } : null
+                );
               }}
             />
           </div>
@@ -1422,6 +1440,9 @@ function SortableCatalogItem({
         <div className="flex items-center gap-1 md:gap-2">
           {catalog.shuffle && (
             <LuShuffle className="text-md text-[--brand] h-4 w-4 md:h-6 md:w-6 hidden md:flex" />
+          )}
+          {catalog.onlyOnDiscover && (
+            <TbSmartHomeOff className="text-md text-[--brand] h-4 w-4 md:h-6 md:w-6 hidden md:flex" />
           )}
           <Switch
             value={catalog.enabled ?? true}

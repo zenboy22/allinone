@@ -213,6 +213,7 @@ const CatalogModification = z.object({
   type: z.string().min(1), // the type of catalog modification
   name: z.string().min(1).optional(), // override the name of the catalog
   shuffle: z.boolean().optional(), // shuffle the catalog
+  onlyOnDiscover: z.boolean().optional(), // only show the catalog on the discover page
   enabled: z.boolean().optional(), // enable or disable the catalog
   rpdb: z.boolean().optional(), // use rpdb for posters if supported
 });

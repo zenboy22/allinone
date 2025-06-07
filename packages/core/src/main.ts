@@ -640,14 +640,22 @@ export class AIOStreams {
           );
           return modification?.enabled !== false; // only if explicity disabled i.e. enabled is true or undefined
         })
-        // rename any catalogs if necessary
+        // rename any catalogs if necessary and apply the onlyOnDiscover modification
         .map((catalog) => {
           const modification = this.userData.catalogModifications!.find(
             (mod) => mod.id === catalog.id && mod.type === catalog.type
           );
-          return modification?.name
-            ? { ...catalog, name: modification.name }
-            : catalog;
+          if (modification?.name) {
+            catalog.name = modification.name;
+          }
+          if (modification?.onlyOnDiscover) {
+            // look in the extra list for a extra with name 'genre', and set 'isRequired' to true
+            const genreExtra = catalog.extra?.find((e) => e.name === 'genre');
+            if (genreExtra) {
+              genreExtra.isRequired = true;
+            }
+          }
+          return catalog;
         });
     }
   }
