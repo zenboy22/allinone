@@ -105,7 +105,7 @@ export const userDataMiddleware = async (
         if (constants.RESOURCES.includes(resource as Resource)) {
           res.status(200).json(
             StremioTransformer.createDynamicError(resource as Resource, {
-              errorDescription: 'Invalid configuration',
+              errorDescription: error.message,
             })
           );
           return;

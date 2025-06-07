@@ -306,19 +306,19 @@ export class StremioTransformer {
     options: ErrorOptions = {}
   ): any {
     if (resource === 'meta') {
-      return StremioTransformer.createErrorMeta(options);
+      return { meta: StremioTransformer.createErrorMeta(options) };
     }
     if (resource === 'addon_catalog') {
-      return StremioTransformer.createErrorAddonCatalog(options);
+      return { addons: [StremioTransformer.createErrorAddonCatalog(options)] };
     }
     if (resource === 'catalog') {
-      return StremioTransformer.createErrorMeta(options);
+      return { metas: [StremioTransformer.createErrorMeta(options)] };
     }
     if (resource === 'stream') {
-      return StremioTransformer.createErrorStream(options);
+      return { streams: [StremioTransformer.createErrorStream(options)] };
     }
     if (resource === 'subtitles') {
-      return StremioTransformer.createErrorSubtitle(options);
+      return { subtitles: [StremioTransformer.createErrorSubtitle(options)] };
     }
     return null;
   }

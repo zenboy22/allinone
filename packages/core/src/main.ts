@@ -471,6 +471,12 @@ export class AIOStreams {
         }))
       );
     }
+
+    if (this.addons.length > Env.MAX_ADDONS) {
+      throw new Error(
+        `Your current configuration requires ${this.addons.length} addons, but the maximum allowed is ${Env.MAX_ADDONS}. Please reduce the number of addons, or increase it in the environment variables.`
+      );
+    }
   }
 
   private async fetchManifests() {
