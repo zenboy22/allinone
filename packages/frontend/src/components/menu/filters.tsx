@@ -846,19 +846,48 @@ function Content() {
               <HeadingWithPageControls heading="Strict Title Matching" />
               <SettingsCard
                 title="Strict Title Matching"
-                description="Configure strict title matching for specific request types and addons"
+                description="Any streams which don't specifically match the requested title will be filtered out. You can optionally choose to only apply it to specific request types and addons"
               >
                 <Switch
                   label="Enabled"
                   side="right"
-                  value={userData.strictTitleMatching?.enabled}
+                  value={userData.strictTitleMatch?.enabled}
                   onValueChange={(value) => {
                     setUserData({
                       ...userData,
-                      strictTitleMatching: {
-                        ...userData.strictTitleMatching,
+                      strictTitleMatch: {
+                        ...userData.strictTitleMatch,
                         enabled: value,
                       },
+                    });
+                  }}
+                />
+
+                <TextInput
+                  label="TMDB Access Token"
+                  help={
+                    <>
+                      <p>
+                        A TMDB access token is required to fetch titles from the
+                        TMDB API. You can get it from your{' '}
+                        <a
+                          href="https://www.themoviedb.org/settings/api"
+                          target="_blank"
+                          className="text-[--brand] hover:underline"
+                          rel="noopener noreferrer"
+                        >
+                          TMDB Account Settings
+                        </a>
+                      </p>
+                      <p></p>
+                    </>
+                  }
+                  required={!status?.settings.tmdbApiAvailable}
+                  value={userData.tmdbAccessToken}
+                  onValueChange={(value) => {
+                    setUserData({
+                      ...userData,
+                      tmdbAccessToken: value,
                     });
                   }}
                 />
@@ -874,12 +903,12 @@ function Content() {
                         value: type,
                         text: type,
                       }))}
-                      value={userData.strictTitleMatching?.requestTypes}
+                      value={userData.strictTitleMatch?.requestTypes}
                       onValueChange={(value) => {
                         setUserData({
                           ...userData,
-                          strictTitleMatching: {
-                            ...userData.strictTitleMatching,
+                          strictTitleMatch: {
+                            ...userData.strictTitleMatch,
                             requestTypes: value,
                           },
                         });
@@ -894,12 +923,12 @@ function Content() {
                         type: preset.options.name,
                         value: JSON.stringify(preset),
                       }))}
-                      value={userData.strictTitleMatching?.addons || []}
+                      value={userData.strictTitleMatch?.addons || []}
                       onValueChange={(value) => {
                         setUserData({
                           ...userData,
-                          strictTitleMatching: {
-                            ...userData.strictTitleMatching,
+                          strictTitleMatch: {
+                            ...userData.strictTitleMatch,
                             addons: value,
                           },
                         });

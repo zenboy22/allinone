@@ -320,7 +320,8 @@ export const UserDataSchema = z.object({
   sizeFilters: SizeFilterOptions.optional(),
   hideErrors: z.boolean().optional(),
   hideErrorsForResources: z.array(ResourceSchema).optional(),
-  strictTitleMatching: z
+  tmdbAccessToken: z.string().optional(),
+  strictTitleMatch: z
     .object({
       enabled: z.boolean().optional(),
       requestTypes: z.array(z.string()).optional(),
@@ -716,6 +717,7 @@ const StatusResponseSchema = z.object({
     customHtml: z.string().optional(),
     protected: z.boolean(),
     regexFilterAccess: z.enum(['none', 'trusted', 'all']),
+    tmdbApiAvailable: z.boolean(),
     forced: z.object({
       proxy: z.object({
         enabled: z.boolean().or(z.null()),

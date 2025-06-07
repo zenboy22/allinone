@@ -1,7 +1,7 @@
 import { Env } from './env';
 import { Cache } from './cache';
+import { TYPES } from './constants';
 
-export type MediaType = 'movie' | 'series';
 export type ExternalIdType = 'imdb' | 'tmdb' | 'tvdb';
 
 interface ExternalId {
@@ -58,7 +58,7 @@ export class TMDBMetadata {
 
   private async convertToTmdbId(
     id: ExternalId,
-    type: MediaType
+    type: (typeof TYPES)[number]
   ): Promise<string> {
     if (id.type === 'tmdb') {
       return id.value;
@@ -96,7 +96,14 @@ export class TMDBMetadata {
     return tmdbId;
   }
 
-  public async getTitles(id: string, type: MediaType): Promise<string[]> {
+  public async getTitles(
+    id: string,
+    type: (typeof TYPES)[number]
+  ): Promise<string[]> {
+    if (!['movie', 'series', 'anime'].includes(type)) {
+      return [];
+    }
+
     const externalId = this.parseExternalId(id);
     if (!externalId) {
       throw new Error(

@@ -24,6 +24,7 @@ router.get('/', async (req: Request, res: Response) => {
       addonName: Env.ADDON_NAME,
       customHtml: Env.CUSTOM_HTML,
       protected: !!Env.ADDON_PASSWORD,
+      tmdbApiAvailable: !!Env.TMDB_ACCESS_TOKEN,
       regexFilterAccess: Env.REGEX_FILTER_ACCESS,
       forced: {
         proxy: {

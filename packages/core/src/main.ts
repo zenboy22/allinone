@@ -13,6 +13,7 @@ import {
   getSimpleTextHash,
   getTimeTakenSincePoint,
   StreamType,
+  TYPES,
   VISUAL_TAGS,
 } from './utils';
 import { Wrapper } from './wrapper';
@@ -37,7 +38,7 @@ import { isMatch } from 'super-regex';
 import { ConditionParser } from './parser/conditions';
 import { RPDB } from './utils/rpdb';
 import { FeatureControl } from './utils/feature';
-import { MediaType, TMDBMetadata } from './utils/metadata';
+import { TMDBMetadata } from './utils/metadata';
 const logger = createLogger('core');
 
 export interface AIOStreamsError {
@@ -1046,12 +1047,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     const isRegexAllowed = FeatureControl.isRegexAllowed(this.userData);
 
     let titles: string[] = [];
-    if (
-      this.userData.strictTitleMatching &&
-      ['movie', 'series'].includes(type)
-    ) {
+    if (this.userData.strictTitleMatch && TYPES.includes(type as any)) {
       try {
-        titles = await new TMDBMetadata().getTitles(id, type as MediaType);
+        titles = await new TMDBMetadata().getTitles(id, type as any);
         logger.info(`Found ${titles.length} titles for ${id}`, { titles });
       } catch (error) {
         logger.error(`Error fetching titles for ${id}: ${error}`);
@@ -1059,7 +1057,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     }
 
     const performTitleMatch = (stream: ParsedStream) => {
-      const titleMatchingOptions = this.userData.strictTitleMatching;
+      const titleMatchingOptions = this.userData.strictTitleMatch;
       if (!titleMatchingOptions || !titleMatchingOptions.enabled) {
         return true;
       }
