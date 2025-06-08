@@ -203,6 +203,9 @@ class StreamParser {
     if (currentParsedStream.filename && description) {
       description = description.replace(currentParsedStream.filename, '');
     }
+    if (currentParsedStream.folderName && description) {
+      description = description.replace(currentParsedStream.folderName, '');
+    }
     let size =
       stream.behaviorHints?.videoSize ||
       (stream as any).size ||

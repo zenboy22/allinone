@@ -68,22 +68,24 @@ const ResultLimitOptions = z.object({
 // });
 const SizeFilter = z.object({
   movies: z
-    .object({
-      min: z.number().min(1).optional(),
-      max: z.number().min(1).optional(),
-    })
+    .tuple([z.number().min(1), z.number().min(1)])
+    // .object({
+    //   min: z.number().min(1).optional(),
+    //   max: z.number().min(1).optional(),
+    // })
     .optional(),
   series: z
-    .object({
-      min: z.number().min(1).optional(),
-      max: z.number().min(1).optional(),
-    })
+    .tuple([z.number().min(1), z.number().min(1)])
+    // .object({
+    //   min: z.number().min(1).optional(),
+    //   max: z.number().min(1).optional(),
+    // })
     .optional(),
 });
 
 const SizeFilterOptions = z.object({
   global: SizeFilter,
-  resolution: z.tuple([Resolutions, SizeFilter]).optional(),
+  resolution: z.record(Resolutions, SizeFilter).optional(),
 });
 
 const ServiceSchema = z.object({
@@ -323,7 +325,7 @@ export const UserDataSchema = z.object({
   formatter: Formatter,
   proxy: StreamProxyConfig.optional(),
   resultLimits: ResultLimitOptions.optional(),
-  sizeFilters: SizeFilterOptions.optional(),
+  size: SizeFilterOptions.optional(),
   hideErrors: z.boolean().optional(),
   hideErrorsForResources: z.array(ResourceSchema).optional(),
   tmdbAccessToken: z.string().optional(),

@@ -1106,6 +1106,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       requiredKeywords: { total: 0, details: {} },
       requiredSeeders: { total: 0, details: {} },
       excludedSeeders: { total: 0, details: {} },
+      size: { total: 0, details: {} },
     };
 
     const start = Date.now();
@@ -1725,7 +1726,60 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return false;
       }
 
-      // TODO: size filters
+      const useMinMax = (
+        minMax: [number, number] | undefined,
+        defaults: { min: number; max: number }
+      ): [number | undefined, number | undefined] | undefined => {
+        if (!minMax) return undefined;
+        const [min, max] = minMax;
+        const normMin = min === defaults.min ? undefined : min;
+        const normMax = max === defaults.max ? undefined : max;
+        return normMin === undefined && normMax === undefined
+          ? undefined
+          : [normMin, normMax];
+      };
+
+      const global = this.userData.size?.global;
+      const resolution = stream.parsedFile?.resolution
+        ? this.userData.size?.resolution?.[
+            stream.parsedFile
+              .resolution as keyof typeof this.userData.size.resolution
+          ]
+        : undefined;
+
+      let minMax: [number | undefined, number | undefined] | undefined;
+      if (type === 'movie') {
+        minMax =
+          useMinMax(resolution?.movies, {
+            min: constants.MIN_SIZE,
+            max: constants.MAX_SIZE,
+          }) ||
+          useMinMax(global?.movies, {
+            min: constants.MIN_SIZE,
+            max: constants.MAX_SIZE,
+          });
+      } else {
+        minMax =
+          useMinMax(resolution?.series, {
+            min: constants.MIN_SIZE,
+            max: constants.MAX_SIZE,
+          }) ||
+          useMinMax(global?.series, {
+            min: constants.MIN_SIZE,
+            max: constants.MAX_SIZE,
+          });
+      }
+
+      if (minMax) {
+        if (stream.size && minMax[0] && stream.size < minMax[0]) {
+          skipReasons.size.total++;
+          return false;
+        }
+        if (stream.size && minMax[1] && stream.size > minMax[1]) {
+          skipReasons.size.total++;
+          return false;
+        }
+      }
 
       return true;
     };

@@ -70,6 +70,7 @@ import { Alert } from '../ui/alert';
 import { Modal } from '../ui/modal';
 import { useDisclosure } from '@/hooks/disclosure';
 import { toast } from 'sonner';
+import { Slider } from '../ui/slider/slider';
 
 type Resolution = (typeof RESOLUTIONS)[number];
 type Quality = (typeof QUALITIES)[number];
@@ -79,6 +80,9 @@ type VisualTag = (typeof VISUAL_TAGS)[number];
 type AudioTag = (typeof AUDIO_TAGS)[number];
 type AudioChannel = (typeof AUDIO_CHANNELS)[number];
 type Language = (typeof LANGUAGES)[number];
+
+const MIN_SIZE = 0;
+const MAX_SIZE = 100 * 1000 * 1000 * 1000; // 100GB
 
 const defaultPreferredResolutions: Resolution[] = [
   '2160p',
@@ -130,6 +134,19 @@ const tabsListClass = cn(
   'w-full flex flex-wrap lg:flex-nowrap h-fit xl:h-10',
   'lg:block'
 );
+
+interface SizeFilterOptions {
+  global?: {
+    series?: [number, number];
+    movies?: [number, number];
+  };
+  resolution?: {
+    [key: string]: {
+      movies?: [number, number];
+      series?: [number, number];
+    };
+  };
+}
 
 export function FiltersMenu() {
   return (
@@ -1240,6 +1257,107 @@ function Content() {
           <TabsContent value="size" className="space-y-4">
             <PageWrapper>
               <HeadingWithPageControls heading="Size" />
+              <div className="mb-4">
+                <p className="text-sm text-[--muted]">
+                  Set minimum and maximum size limits for movies and series. You
+                  can set a global limit, and also choose to set specific limits
+                  for each resolution. For a given stream, only one set of size
+                  filters would be used. A resolution specific limit takes
+                  priority.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <SettingsCard
+                  title="Global"
+                  description="Apply size filters for movies and series"
+                >
+                  <SizeRangeSlider
+                    label="Global Size Limits"
+                    help="Set the minimum and maximum size limits for all results"
+                    moviesValue={
+                      userData.size?.global?.movies || [MIN_SIZE, MAX_SIZE]
+                    }
+                    seriesValue={
+                      userData.size?.global?.series || [MIN_SIZE, MAX_SIZE]
+                    }
+                    onMoviesChange={(value) => {
+                      setUserData((prev: any) => ({
+                        ...prev,
+                        size: {
+                          ...prev.size,
+                          global: { ...prev.size?.global, movies: value },
+                        },
+                      }));
+                    }}
+                    onSeriesChange={(value) => {
+                      setUserData((prev: any) => ({
+                        ...prev,
+                        size: {
+                          ...prev.size,
+                          global: { ...prev.size?.global, series: value },
+                        },
+                      }));
+                    }}
+                  />
+                </SettingsCard>
+
+                <SettingsCard
+                  title="Resolution-Specific"
+                  description="Set size limits for specific resolutions"
+                >
+                  <div className="space-y-8">
+                    {RESOLUTIONS.map((resolution) => (
+                      <SizeRangeSlider
+                        key={resolution}
+                        label={resolution}
+                        help={`Set the minimum and maximum size for ${resolution} results`}
+                        moviesValue={
+                          userData.size?.resolution?.[resolution]?.movies || [
+                            MIN_SIZE,
+                            MAX_SIZE,
+                          ]
+                        }
+                        seriesValue={
+                          userData.size?.resolution?.[resolution]?.series || [
+                            MIN_SIZE,
+                            MAX_SIZE,
+                          ]
+                        }
+                        onMoviesChange={(value) => {
+                          setUserData((prev: any) => ({
+                            ...prev,
+                            size: {
+                              ...prev.size,
+                              resolution: {
+                                ...prev.size?.resolution,
+                                [resolution]: {
+                                  ...prev.size?.resolution?.[resolution],
+                                  movies: value,
+                                },
+                              },
+                            },
+                          }));
+                        }}
+                        onSeriesChange={(value) => {
+                          setUserData((prev: any) => ({
+                            ...prev,
+                            size: {
+                              ...prev.size,
+                              resolution: {
+                                ...prev.size?.resolution,
+                                [resolution]: {
+                                  ...prev.size?.resolution?.[resolution],
+                                  series: value,
+                                },
+                              },
+                            },
+                          }));
+                        }}
+                      />
+                    ))}
+                  </div>
+                </SettingsCard>
+              </div>
             </PageWrapper>
           </TabsContent>
           <TabsContent value="limit" className="space-y-4">
@@ -2172,5 +2290,147 @@ function ImportModal({
         </div>
       </Modal>
     </>
+  );
+}
+
+interface SizeRangeSliderProps {
+  label: string;
+  help?: string;
+  moviesValue: [number, number];
+  seriesValue: [number, number];
+  onMoviesChange: (value: [number, number]) => void;
+  onSeriesChange: (value: [number, number]) => void;
+  min?: number;
+  max?: number;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1000;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+}
+
+function SizeRangeSlider({
+  label,
+  help,
+  moviesValue,
+  seriesValue,
+  onMoviesChange,
+  onSeriesChange,
+  min = MIN_SIZE,
+  max = MAX_SIZE,
+}: SizeRangeSliderProps) {
+  return (
+    <div className="space-y-6">
+      <h4 className="text-base font-medium">{label}</h4>
+
+      {/* Movies Slider */}
+      <div className="space-y-2">
+        <h5 className="text-sm font-medium text-[--muted]">Movies</h5>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 min-w-0">
+            <Slider
+              min={min}
+              max={max}
+              defaultValue={[min, max]}
+              step={max / 1000}
+              value={moviesValue}
+              onValueChange={(newValue) =>
+                newValue !== undefined &&
+                newValue?.[0] !== undefined &&
+                newValue?.[1] !== undefined &&
+                onMoviesChange([newValue[0], newValue[1]])
+              }
+              minStepsBetweenThumbs={1}
+              label="Movies Size Range"
+              help={help}
+            />
+            <div className="flex justify-between mt-1 text-xs text-[--muted]">
+              <span>{formatBytes(moviesValue[0])}</span>
+              <span>{formatBytes(moviesValue[1])}</span>
+            </div>
+          </div>
+          <div className="flex gap-2 md:w-[240px] shrink-0">
+            <NumberInput
+              label="Min"
+              step={max / 1000}
+              value={moviesValue[0]}
+              min={min}
+              max={moviesValue[1]}
+              onValueChange={(newValue) =>
+                newValue !== undefined &&
+                onMoviesChange([newValue, moviesValue[1]])
+              }
+            />
+            <NumberInput
+              label="Max"
+              step={max / 1000}
+              value={moviesValue[1]}
+              min={moviesValue[0]}
+              max={max}
+              onValueChange={(newValue) =>
+                newValue !== undefined &&
+                onMoviesChange([moviesValue[0], newValue])
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Series Slider */}
+      <div className="space-y-2">
+        <h5 className="text-sm font-medium text-[--muted]">Series</h5>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 min-w-0">
+            <Slider
+              min={min}
+              max={max}
+              step={max / 1000}
+              defaultValue={[min, max]}
+              value={seriesValue}
+              onValueChange={(newValue) =>
+                newValue !== undefined &&
+                newValue?.[0] !== undefined &&
+                newValue?.[1] !== undefined &&
+                onSeriesChange([newValue[0], newValue[1]])
+              }
+              minStepsBetweenThumbs={1}
+              label="Series Size Range"
+              help={help}
+            />
+            <div className="flex justify-between mt-1 text-xs text-[--muted]">
+              <span>{formatBytes(seriesValue[0])}</span>
+              <span>{formatBytes(seriesValue[1])}</span>
+            </div>
+          </div>
+          <div className="flex gap-2 md:w-[240px] shrink-0">
+            <NumberInput
+              label="Min"
+              step={max / 1000}
+              value={seriesValue[0]}
+              min={min}
+              max={seriesValue[1]}
+              onValueChange={(newValue) =>
+                newValue !== undefined &&
+                onSeriesChange([newValue, seriesValue[1]])
+              }
+            />
+            <NumberInput
+              label="Max"
+              step={max / 1000}
+              value={seriesValue[1]}
+              min={seriesValue[0]}
+              max={max}
+              onValueChange={(newValue) =>
+                newValue !== undefined &&
+                onSeriesChange([seriesValue[0], newValue])
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

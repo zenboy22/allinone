@@ -64,7 +64,7 @@ export class PeerflixPreset extends Preset {
     return {
       ID: 'peerflix',
       NAME: 'Peerflix',
-      LOGO: `https://peerflix.mov/static/logo.png`,
+      LOGO: `https://i.ibb.co/9s1GqHn/logo512.png`,
       URL: Env.PEERFLIX_URL,
       TIMEOUT: Env.DEFAULT_PEERFLIX_TIMEOUT || Env.DEFAULT_TIMEOUT,
       USER_AGENT: Env.DEFAULT_PEERFLIX_USER_AGENT || Env.DEFAULT_USER_AGENT,

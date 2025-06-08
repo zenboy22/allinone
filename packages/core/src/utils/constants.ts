@@ -578,6 +578,9 @@ const SORT_CRITERIA = [
   'keyword',
 ] as const;
 
+export const MIN_SIZE = 0;
+export const MAX_SIZE = 100 * 1000 * 1000 * 1000; // 100GB
+
 export const SORT_CRITERIA_DETAILS = {
   quality: {
     name: 'Quality',
