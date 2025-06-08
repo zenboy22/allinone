@@ -12,6 +12,7 @@ import {
   Env,
   getSimpleTextHash,
   getTimeTakenSincePoint,
+  makeRequest,
   StreamType,
   TYPES,
   VISUAL_TAGS,
@@ -94,7 +95,8 @@ export class AIOStreams {
 
   public async getStreams(
     id: string,
-    type: string
+    type: string,
+    preCaching: boolean = false
   ): Promise<AIOStreamsResponse<ParsedStream[]>> {
     logger.info(`Handling stream request`, { type, id });
 
@@ -155,6 +157,17 @@ export class AIOStreams {
     // step 8
     // if this.userData.precacheNextEpisode is true, start a new thread to request the next episode, check if
     // all provider streams are uncached, and only if so, then send a request to the first uncached stream in the list.
+    if (this.userData.precacheNextEpisode && !preCaching) {
+      setImmediate(() => {
+        this.precacheNextEpisode(type, id).catch((error) => {
+          logger.error('Error during precaching:', {
+            error: error instanceof Error ? error.message : String(error),
+            type,
+            id,
+          });
+        });
+      });
+    }
 
     // step 9
     // return the final list of streams, followed by the error streams.
@@ -164,11 +177,57 @@ export class AIOStreams {
     return {
       success: true,
       data: proxifiedStreams,
-      errors: errors.map((error) => ({
-        title: error.title,
-        description: error.description,
-      })),
+      errors: errors,
     };
+  }
+
+  private async precacheNextEpisode(type: string, id: string) {
+    const seasonEpisodeRegex = /:(\d+):(\d+)$/;
+    const match = id.match(seasonEpisodeRegex);
+    if (!match) {
+      return;
+    }
+    const season = match[1];
+    const episode = match[2];
+    const titleId = id.replace(seasonEpisodeRegex, '');
+    const nextEpisodeId = `${titleId}:${season}:${Number(episode) + 1}`;
+    logger.info(`Pre-caching next episode of ${titleId}`, {
+      season,
+      episode,
+      nextEpisode: Number(episode) + 1,
+      nextEpisodeId,
+    });
+    const nextStreamsResponse = await this.getStreams(
+      nextEpisodeId,
+      type,
+      true
+    );
+    if (nextStreamsResponse.success) {
+      const nextStreams = nextStreamsResponse.data;
+      const serviceStreams = nextStreams.filter((stream) => stream.service);
+      if (serviceStreams.every((stream) => stream.service?.cached === false)) {
+        const firstUncachedStream = serviceStreams.find(
+          (stream) => stream.service?.cached === false
+        );
+        if (firstUncachedStream && firstUncachedStream.url) {
+          try {
+            const wrapper = new Wrapper(firstUncachedStream.addon);
+            logger.debug(
+              `The following stream was selected for precaching:\n${firstUncachedStream.originalDescription}`
+            );
+            const response = await wrapper.makeRequest(firstUncachedStream.url);
+            if (!response.ok) {
+              throw new Error(`${response.status} ${response.statusText}`);
+            }
+            logger.debug(`Response: ${response.status} ${response.statusText}`);
+          } catch (error) {
+            logger.error(`Error pinging url of first uncached stream`, {
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+      }
+    }
   }
 
   public async getCatalog(

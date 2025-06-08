@@ -232,6 +232,15 @@ export class Wrapper {
     );
   }
 
+  async makeRequest(url: string) {
+    return await makeRequest(
+      url,
+      this.addon.timeout,
+      this.addon.headers,
+      this.addon.ip
+    );
+  }
+
   private async makeResourceRequest<T>(
     resource: Resource,
     params: ResourceParams,

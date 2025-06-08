@@ -64,6 +64,22 @@ function Content() {
             }}
           />
         </SettingsCard>
+        <SettingsCard
+          title="Pre-cache Next Episode"
+          description="When requesting streams for series, AIOStreams will automatically request the next episode and if all streams are uncached, it will ping the URL of the first uncached stream according to your sort settings."
+        >
+          <Switch
+            label="Enabled"
+            side="right"
+            value={userData.precacheNextEpisode}
+            onValueChange={(value) => {
+              setUserData({
+                ...userData,
+                precacheNextEpisode: value,
+              });
+            }}
+          />
+        </SettingsCard>
       </div>
     </>
   );
