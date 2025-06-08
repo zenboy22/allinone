@@ -168,30 +168,32 @@ export class UserRepository {
       //     )
       //   );
       // }
-      const {
-        success,
-        data: validatedConfig,
-        error,
-      } = UserDataSchema.safeParse(decryptedConfig);
-      if (!success) {
-        return Promise.reject(
-          new APIError(
-            constants.ErrorCode.USER_INVALID_CONFIG,
-            undefined,
-            formatZodError(error)
-          )
-        );
-      }
-      validatedConfig.trusted =
+      // const {
+      //   success,
+      //   data: validatedConfig,
+      //   error,
+      // } = UserDataSchema.safeParse(decryptedConfig);
+      // if (!success) {
+      //   return Promise.reject(
+      //     new APIError(
+      //       constants.ErrorCode.USER_INVALID_CONFIG,
+      //       undefined,
+      //       formatZodError(error)
+      //     )
+      //   );
+      // }
+      decryptedConfig.trusted =
         Env.TRUSTED_UUIDS?.split(',').some((u) => new RegExp(u).test(uuid)) ??
         false;
       logger.info(`Retrieved configuration for user ${uuid}`);
-      return validatedConfig;
+      return decryptedConfig;
     } catch (error) {
       logger.error(
         `Error retrieving user ${uuid}: ${error instanceof Error ? error.message : String(error)}`
       );
-      return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
+      return Promise.reject(
+        new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR)
+      );
     }
   }
 
@@ -359,7 +361,7 @@ export class UserRepository {
       return Promise.reject(new APIError(constants.ErrorCode.USER_ERROR));
     }
 
-    return UserDataSchema.parse(JSON.parse(decryptedString));
+    return JSON.parse(decryptedString);
   }
 
   private static async generateUUID(count: number = 1): Promise<string> {
