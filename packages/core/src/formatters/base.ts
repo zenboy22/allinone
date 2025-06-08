@@ -60,6 +60,7 @@ export interface ParseValue {
     releaseGroup: string | null;
     regexMatched: string | null;
     encode: string | null;
+    audioChannels: string[] | null;
     indexer: string | null;
     year: string | null;
     title: string | null;
@@ -132,6 +133,7 @@ export abstract class BaseFormatter {
         releaseGroup: stream.parsedFile?.releaseGroup || null,
         regexMatched: stream.regexMatched?.name || null,
         encode: stream.parsedFile?.encode || null,
+        audioChannels: stream.parsedFile?.audioChannels || null,
         indexer: stream.indexer || null,
         seeders: stream.torrent?.seeders ?? null,
         year: stream.parsedFile?.year || null,

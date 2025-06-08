@@ -1274,7 +1274,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       if (
         this.userData.includedVisualTags?.some((tag) =>
-          file?.visualTags.includes(tag)
+          (file?.visualTags.length ? file.visualTags : ['Unknown']).includes(
+            tag
+          )
         )
       ) {
         return true;
@@ -1282,7 +1284,18 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       if (
         this.userData.includedAudioTags?.some((tag) =>
-          file?.audioTags.includes(tag)
+          (file?.audioTags.length ? file.audioTags : ['Unknown']).includes(tag)
+        )
+      ) {
+        return true;
+      }
+
+      if (
+        this.userData.includedAudioChannels?.some((channel) =>
+          (file?.audioChannels.length
+            ? file.audioChannels
+            : ['Unknown']
+          ).includes(channel)
         )
       ) {
         return true;
@@ -1290,14 +1303,16 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       if (
         this.userData.includedLanguages?.some((lang) =>
-          (file?.languages || ['Unknown']).includes(lang)
+          (file?.languages.length ? file.languages : ['Unknown']).includes(lang)
         )
       ) {
         return true;
       }
 
       if (
-        this.userData.includedEncodes?.some((encode) => file?.encode === encode)
+        this.userData.includedEncodes?.some(
+          (encode) => (file?.encode || 'Unknown') === encode
+        )
       ) {
         return true;
       }
@@ -1452,11 +1467,15 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       if (
         this.userData.excludedVisualTags?.some((tag) =>
-          file?.visualTags?.includes(tag)
+          (file?.visualTags.length ? file.visualTags : ['Unknown']).includes(
+            tag
+          )
         )
       ) {
         const tag = this.userData.excludedVisualTags.find((tag) =>
-          file?.visualTags?.includes(tag)
+          (file?.visualTags.length ? file.visualTags : ['Unknown']).includes(
+            tag
+          )
         );
         skipReasons.excludedVisualTag.total++;
         skipReasons.excludedVisualTag.details[tag!] =
@@ -1468,11 +1487,15 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         this.userData.requiredVisualTags &&
         this.userData.requiredVisualTags.length > 0 &&
         !this.userData.requiredVisualTags.some((tag) =>
-          file?.visualTags?.includes(tag)
+          (file?.visualTags.length ? file.visualTags : ['Unknown']).includes(
+            tag
+          )
         )
       ) {
         const tag = this.userData.requiredVisualTags.find((tag) =>
-          file?.visualTags?.includes(tag)
+          (file?.visualTags.length ? file.visualTags : ['Unknown']).includes(
+            tag
+          )
         );
         skipReasons.requiredVisualTag.total++;
         skipReasons.requiredVisualTag.details[tag!] =
@@ -1482,11 +1505,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       if (
         this.userData.excludedAudioTags?.some((tag) =>
-          file?.audioTags.includes(tag)
+          (file?.audioTags.length ? file.audioTags : ['Unknown']).includes(tag)
         )
       ) {
         const tag = this.userData.excludedAudioTags.find((tag) =>
-          file?.audioTags.includes(tag)
+          (file?.audioTags.length ? file.audioTags : ['Unknown']).includes(tag)
         );
         skipReasons.excludedAudioTag.total++;
         skipReasons.excludedAudioTag.details[tag!] =
@@ -1498,11 +1521,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         this.userData.requiredAudioTags &&
         this.userData.requiredAudioTags.length > 0 &&
         !this.userData.requiredAudioTags.some((tag) =>
-          file?.audioTags.includes(tag)
+          (file?.audioTags.length ? file.audioTags : ['Unknown']).includes(tag)
         )
       ) {
         const tag = this.userData.requiredAudioTags.find((tag) =>
-          file?.audioTags.includes(tag)
+          (file?.audioTags.length ? file.audioTags : ['Unknown']).includes(tag)
         );
         skipReasons.requiredAudioTag.total++;
         skipReasons.requiredAudioTag.details[tag!] =
@@ -1510,14 +1533,56 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return false;
       }
 
+      if (
+        this.userData.excludedAudioChannels?.some((channel) =>
+          (file?.audioChannels.length
+            ? file.audioChannels
+            : ['Unknown']
+          ).includes(channel)
+        )
+      ) {
+        const channel = this.userData.excludedAudioChannels.find((channel) =>
+          (file?.audioChannels.length
+            ? file.audioChannels
+            : ['Unknown']
+          ).includes(channel)
+        );
+        skipReasons.excludedAudioChannel.total++;
+        skipReasons.excludedAudioChannel.details[channel!] =
+          (skipReasons.excludedAudioChannel.details[channel!] || 0) + 1;
+        return false;
+      }
+
+      if (
+        this.userData.requiredAudioChannels &&
+        this.userData.requiredAudioChannels.length > 0 &&
+        !this.userData.requiredAudioChannels.some((channel) =>
+          (file?.audioChannels.length
+            ? file.audioChannels
+            : ['Unknown']
+          ).includes(channel)
+        )
+      ) {
+        const channel = this.userData.requiredAudioChannels.find((channel) =>
+          (file?.audioChannels.length
+            ? file.audioChannels
+            : ['Unknown']
+          ).includes(channel)
+        );
+        skipReasons.requiredAudioChannel.total++;
+        skipReasons.requiredAudioChannel.details[channel!] =
+          (skipReasons.requiredAudioChannel.details[channel!] || 0) + 1;
+        return false;
+      }
+
       // languages
       if (
         this.userData.excludedLanguages?.some((lang) =>
-          file?.languages.includes(lang)
+          (file?.languages.length ? file.languages : ['Unknown']).includes(lang)
         )
       ) {
         const lang = this.userData.excludedLanguages.find((lang) =>
-          file?.languages.includes(lang)
+          (file?.languages.length ? file.languages : ['Unknown']).includes(lang)
         );
         skipReasons.excludedLanguage.total++;
         skipReasons.excludedLanguage.details[lang!] =
@@ -1529,11 +1594,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         this.userData.requiredLanguages &&
         this.userData.requiredLanguages.length > 0 &&
         !this.userData.requiredLanguages.some((lang) =>
-          (file?.languages || ['Unknown']).includes(lang)
+          (file?.languages.length ? file.languages : ['Unknown']).includes(lang)
         )
       ) {
         const lang = this.userData.requiredLanguages.find((lang) =>
-          (file?.languages || ['Unknown']).includes(lang)
+          (file?.languages.length ? file.languages : ['Unknown']).includes(lang)
         );
         skipReasons.requiredLanguage.total++;
         skipReasons.requiredLanguage.details[lang!] =

@@ -63,16 +63,24 @@ export const PARSE_REGEX = {
     ),
     'DTS-HD MA': createRegex('dts[ .\\-_]?hd[ .\\-_]?ma'),
     'DTS-HD': createRegex('dts[ .\\-_]?hd(?![ .\\-_]?ma)'),
-    DTS: createRegex('dts(?![ .\\-_]?hd[ .\\-_]?ma|[ .\\-_]?hd)'),
+    'DTS-ES': createRegex('dts[ .\\-_]?es'),
+    DTS: createRegex('dts(?![ .\\-_]?hd[ .\\-_]?ma|[ .\\-_]?hd|[ .\\-_]?es)'),
     TrueHD: createRegex('true[ .\\-_]?hd'),
-    5.1: createRegex(
-      '(d(olby)?[ .\\-_]?d(igital)?[ .\\-_]?(p(lus)?|\\+)?)?5[ .\\-_]?1(ch)?'
-    ),
-    7.1: createRegex(
-      '(d(olby)?[ .\\-_]?d(igital)?[ .\\-_]?(p(lus)?|\\+)?)?7[ .\\-_]?1(ch)?'
-    ),
+    OPUS: createRegex('opus'),
     AAC: createRegex('q?aac(?:[ .\\-_]?2)?'),
     FLAC: createRegex('flac(?:[ .\\-_]?(lossless|2\\.0|x[2-4]))?'),
+  },
+  audioChannels: {
+    '2.0': createRegex('(2[ .\\-_]?0)(ch)?'),
+    '5.1': createRegex(
+      '(d(olby)?[ .\\-_]?d(igital)?[ .\\-_]?(p(lus)?|\\+)?)?5[ .\\-_]?1(ch)?'
+    ),
+    '6.1': createRegex(
+      '(d(olby)?[ .\\-_]?d(igital)?[ .\\-_]?(p(lus)?|\\+)?)?6[ .\\-_]?1(ch)?'
+    ),
+    '7.1': createRegex(
+      '(d(olby)?[ .\\-_]?d(igital)?[ .\\-_]?(p(lus)?|\\+)?)?7[ .\\-_]?1(ch)?'
+    ),
   },
   encodes: {
     HEVC: createRegex('hevc[ .\\-_]?(10)?|[xh][ .\\-_]?265'),

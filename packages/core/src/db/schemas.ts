@@ -11,6 +11,8 @@ const VisualTags = z.enum(constants.VISUAL_TAGS);
 
 const AudioTags = z.enum(constants.AUDIO_TAGS);
 
+const AudioChannels = z.enum(constants.AUDIO_CHANNELS);
+
 const Encodes = z.enum(constants.ENCODES);
 
 // const SortCriteria = z.enum(constants.SORT_CRITERIA);
@@ -247,6 +249,10 @@ export const UserDataSchema = z.object({
   includedAudioTags: z.array(AudioTags).optional(),
   requiredAudioTags: z.array(AudioTags).optional(),
   preferredAudioTags: z.array(AudioTags).optional(),
+  excludedAudioChannels: z.array(AudioChannels).optional(),
+  includedAudioChannels: z.array(AudioChannels).optional(),
+  requiredAudioChannels: z.array(AudioChannels).optional(),
+  preferredAudioChannels: z.array(AudioChannels).optional(),
   excludedStreamTypes: z.array(StreamTypes).optional(),
   includedStreamTypes: z.array(StreamTypes).optional(),
   requiredStreamTypes: z.array(StreamTypes).optional(),
@@ -559,6 +565,7 @@ const ParsedFileSchema = z.object({
   resolution: z.string().optional(),
   quality: z.string().optional(),
   encode: z.string().optional(),
+  audioChannels: z.array(z.string()),
   visualTags: z.array(z.string()),
   audioTags: z.array(z.string()),
   languages: z.array(z.string()),

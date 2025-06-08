@@ -541,12 +541,12 @@ const AUDIO_TAGS = [
   'DTS-HD MA',
   'DTS',
   'TrueHD',
-  '5.1',
-  '7.1',
   'FLAC',
   'AAC',
   'Unknown',
 ] as const;
+
+const AUDIO_CHANNELS = ['2.0', '5.1', '6.1', '7.1', 'Unknown'] as const;
 
 const ENCODES = [
   'AV1',
@@ -565,6 +565,7 @@ const SORT_CRITERIA = [
   'language',
   'visualTag',
   'audioTag',
+  'audioChannel',
   'streamType',
   'encode',
   'size',
@@ -622,6 +623,15 @@ export const SORT_CRITERIA_DETAILS = {
       'Streams that are not in your preferred audio tag list are preferred',
     descendingDescription:
       'Streams that are in your preferred audio tag list are preferred',
+  },
+  audioChannel: {
+    name: 'Audio Channel',
+    description: 'Sort by the audio channels of the stream',
+    defaultDirection: 'desc',
+    ascendingDescription:
+      'Streams that are not in your preferred audio channel list are preferred',
+    descendingDescription:
+      'Streams that are in your preferred audio channel list are preferred',
   },
   streamType: {
     name: 'Stream Type',
@@ -1009,6 +1019,7 @@ export {
   QUALITIES,
   VISUAL_TAGS,
   AUDIO_TAGS,
+  AUDIO_CHANNELS,
   ENCODES,
   SORT_CRITERIA,
   SORT_DIRECTIONS,

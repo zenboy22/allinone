@@ -22,6 +22,7 @@ import {
   MdHdrOn,
   MdMovieFilter,
   MdPerson,
+  MdSurroundSound,
   MdVideoLibrary,
 } from 'react-icons/md';
 import { BiSolidCameraMovie } from 'react-icons/bi';
@@ -56,6 +57,7 @@ import {
   LANGUAGES,
   TYPES,
   DEDUPLICATOR_KEYS,
+  AUDIO_CHANNELS,
 } from '../../../../core/src/utils/constants';
 import { PageControls } from '../shared/page-controls';
 import { Switch } from '../ui/switch';
@@ -75,6 +77,7 @@ type Encode = (typeof ENCODES)[number];
 type StreamType = (typeof STREAM_TYPES)[number];
 type VisualTag = (typeof VISUAL_TAGS)[number];
 type AudioTag = (typeof AUDIO_TAGS)[number];
+type AudioChannel = (typeof AUDIO_CHANNELS)[number];
 type Language = (typeof LANGUAGES)[number];
 
 const defaultPreferredResolutions: Resolution[] = [
@@ -234,6 +237,10 @@ function Content() {
               <TabsTrigger value="audio-tag">
                 <BsSpeakerFill className="text-lg mr-3" />
                 Audio Tag
+              </TabsTrigger>
+              <TabsTrigger value="audio-channel">
+                <MdSurroundSound className="text-lg mr-3" />
+                Audio Channel
               </TabsTrigger>
               <TabsTrigger value="language">
                 <FaLanguage className="text-lg mr-3" />
@@ -686,6 +693,46 @@ function Content() {
                 options={AUDIO_TAGS.map((audioTag) => ({
                   name: audioTag,
                   value: audioTag,
+                }))}
+              />
+            </PageWrapper>
+          </TabsContent>
+          <TabsContent value="audio-channel" className="space-y-4">
+            <PageWrapper>
+              <HeadingWithPageControls heading="Audio Channel" />
+              <FilterSettings<AudioChannel>
+                filterName="Audio Channels"
+                preferredOptions={userData.preferredAudioChannels || []}
+                requiredOptions={userData.requiredAudioChannels || []}
+                excludedOptions={userData.excludedAudioChannels || []}
+                includedOptions={userData.includedAudioChannels || []}
+                onPreferredChange={(preferred) => {
+                  setUserData({
+                    ...userData,
+                    preferredAudioChannels: preferred,
+                  });
+                }}
+                onRequiredChange={(required) => {
+                  setUserData({
+                    ...userData,
+                    requiredAudioChannels: required,
+                  });
+                }}
+                onExcludedChange={(excluded) => {
+                  setUserData({
+                    ...userData,
+                    excludedAudioChannels: excluded,
+                  });
+                }}
+                onIncludedChange={(included) => {
+                  setUserData({
+                    ...userData,
+                    includedAudioChannels: included,
+                  });
+                }}
+                options={AUDIO_CHANNELS.map((audioChannel) => ({
+                  name: audioChannel,
+                  value: audioChannel,
                 }))}
               />
             </PageWrapper>

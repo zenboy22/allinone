@@ -26,6 +26,10 @@ class FileParser {
     const resolution = matchPattern(filename, PARSE_REGEX.resolutions);
     const quality = matchPattern(filename, PARSE_REGEX.qualities);
     const encode = matchPattern(filename, PARSE_REGEX.encodes);
+    const audioChannels = matchMultiplePatterns(
+      filename,
+      PARSE_REGEX.audioChannels
+    );
     const visualTags = matchMultiplePatterns(filename, PARSE_REGEX.visualTags);
     const audioTags = matchMultiplePatterns(filename, PARSE_REGEX.audioTags);
     const languages = matchMultiplePatterns(filename, PARSE_REGEX.languages);
@@ -64,6 +68,7 @@ class FileParser {
       quality,
       languages,
       encode,
+      audioChannels,
       audioTags,
       visualTags,
       releaseGroup,
