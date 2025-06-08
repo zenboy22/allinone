@@ -292,10 +292,12 @@ export const UserDataSchema = z.object({
   excludeCached: z.boolean().optional(),
   excludeCachedFromAddons: z.array(z.string().min(1)).optional(),
   excludeCachedFromServices: z.array(z.string().min(1)).optional(),
+  excludeCachedFromStreamTypes: z.array(StreamTypes).optional(),
   excludeCachedMode: z.enum(['or', 'and']).optional(),
   excludeUncached: z.boolean().optional(),
   excludeUncachedFromAddons: z.array(z.string().min(1)).optional(),
   excludeUncachedFromServices: z.array(z.string().min(1)).optional(),
+  excludeUncachedFromStreamTypes: z.array(StreamTypes).optional(),
   excludeUncachedMode: z.enum(['or', 'and']).optional(),
   groups: z
     .array(

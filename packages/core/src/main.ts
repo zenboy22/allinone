@@ -1229,6 +1229,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       mode: 'and' | 'or',
       addonIds: string[] | undefined,
       serviceIds: string[] | undefined,
+      streamTypes: StreamType[] | undefined,
       cached: boolean
     ) => {
       const isAddonFilteredOut =
@@ -1241,11 +1242,24 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         serviceIds.length > 0 &&
         serviceIds.some((serviceId) => stream.service?.id === serviceId) &&
         stream.service?.cached === cached;
+      const isStreamTypeFilteredOut =
+        streamTypes &&
+        streamTypes.length > 0 &&
+        streamTypes.includes(stream.type) &&
+        stream.service?.cached === cached;
 
       if (mode === 'and') {
-        return !(isAddonFilteredOut && isServiceFilteredOut);
+        return !(
+          isAddonFilteredOut &&
+          isServiceFilteredOut &&
+          isStreamTypeFilteredOut
+        );
       } else {
-        return !(isAddonFilteredOut || isServiceFilteredOut);
+        return !(
+          isAddonFilteredOut ||
+          isServiceFilteredOut ||
+          isStreamTypeFilteredOut
+        );
       }
     };
 
@@ -1619,17 +1633,13 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return false;
       }
 
-      // uncached/cached from services/addons
-      // have to respect the excludeCachedMode/excludeUncachedMode
-
-      // create a common function to handle this
-
       if (
         filterBasedOnCacheStatus(
           stream,
           this.userData.excludeCachedMode || 'or',
           this.userData.excludeCachedFromAddons,
           this.userData.excludeCachedFromServices,
+          this.userData.excludeCachedFromStreamTypes,
           true
         ) === false
       ) {
@@ -1643,6 +1653,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           this.userData.excludeUncachedMode || 'or',
           this.userData.excludeUncachedFromAddons,
           this.userData.excludeUncachedFromServices,
+          this.userData.excludeUncachedFromStreamTypes,
           false
         ) === false
       ) {

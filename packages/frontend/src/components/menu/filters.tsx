@@ -340,23 +340,6 @@ function Content() {
                       multiple
                       disabled={userData.excludeCached === true}
                     />
-                    <Select
-                      label="Apply mode"
-                      disabled={userData.excludeCached === true}
-                      help="How these two options (from addons and services) are applied. AND means a result must match both, OR means a result only needs to match one"
-                      value={userData.excludeCachedMode ?? 'or'}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          excludeCachedMode: value as 'or' | 'and',
-                        }));
-                      }}
-                      options={[
-                        { label: 'OR', value: 'or' },
-                        { label: 'AND', value: 'and' },
-                      ]}
-                    />
-
                     <Combobox
                       help="Services selected here will have their cached results excluded"
                       label="Exclude Cached From Services"
@@ -378,6 +361,45 @@ function Content() {
                       emptyMessage="This is odd... there aren't any services to choose from..."
                       multiple
                       disabled={userData.excludeCached === true}
+                    />
+                    <Combobox
+                      help="Stream types selected here will have their cached results excluded"
+                      label="Exclude Cached From Stream Types"
+                      value={userData.excludeCachedFromStreamTypes ?? []}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludeCachedFromStreamTypes: value as StreamType[],
+                        }));
+                      }}
+                      options={STREAM_TYPES.filter(
+                        (streamType) =>
+                          ['debrid', 'usenet'].includes(streamType) // only these 2 stream types can have a service
+                      ).map((streamType) => ({
+                        label: streamType,
+                        value: streamType,
+                        textValue: streamType,
+                      }))}
+                      emptyMessage="This is odd... there aren't any stream types to choose from..."
+                      placeholder="Select stream types..."
+                      multiple
+                      disabled={userData.excludeCached === true}
+                    />
+                    <Select
+                      label="Apply mode"
+                      disabled={userData.excludeCached === true}
+                      help="How these three options (from addons, services and stream types) are applied. AND means a result must match all, OR means a result only needs to match one"
+                      value={userData.excludeCachedMode ?? 'or'}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludeCachedMode: value as 'or' | 'and',
+                        }));
+                      }}
+                      options={[
+                        { label: 'OR', value: 'or' },
+                        { label: 'AND', value: 'and' },
+                      ]}
                     />
                   </div>
                 </SettingsCard>
@@ -420,22 +442,7 @@ function Content() {
                       multiple
                       disabled={userData.excludeUncached === true}
                     />
-                    <Select
-                      label="Apply mode"
-                      disabled={userData.excludeUncached === true}
-                      help="How these two options (from addons and services) are applied. AND means a result must match both, OR means a result only needs to match one"
-                      value={userData.excludeUncachedMode ?? 'or'}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          excludeUncachedMode: value as 'or' | 'and',
-                        }));
-                      }}
-                      options={[
-                        { label: 'OR', value: 'or' },
-                        { label: 'AND', value: 'and' },
-                      ]}
-                    />
+
                     <Combobox
                       help="Services selected here will have their uncached results excluded"
                       label="Exclude Uncached From Services"
@@ -457,6 +464,46 @@ function Content() {
                       emptyMessage="This is odd... there aren't any services to choose from..."
                       multiple
                       disabled={userData.excludeUncached === true}
+                    />
+                    <Combobox
+                      help="Stream types selected here will have their uncached results excluded"
+                      label="Exclude Uncached From Stream Types"
+                      value={userData.excludeUncachedFromStreamTypes ?? []}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludeUncachedFromStreamTypes: value as StreamType[],
+                        }));
+                      }}
+                      options={STREAM_TYPES.filter(
+                        (streamType) =>
+                          ['debrid', 'usenet'].includes(streamType) // only these 2 stream types can have a service
+                      ).map((streamType) => ({
+                        label: streamType,
+                        value: streamType,
+                        textValue: streamType,
+                      }))}
+                      emptyMessage="This is odd... there aren't any stream types to choose from..."
+                      placeholder="Select stream types..."
+                      multiple
+                      disabled={userData.excludeUncached === true}
+                    />
+
+                    <Select
+                      label="Apply mode"
+                      disabled={userData.excludeUncached === true}
+                      help="How these three options (from addons, services and stream types) are applied. AND means a result must match all, OR means a result only needs to match one"
+                      value={userData.excludeUncachedMode ?? 'or'}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludeUncachedMode: value as 'or' | 'and',
+                        }));
+                      }}
+                      options={[
+                        { label: 'OR', value: 'or' },
+                        { label: 'AND', value: 'and' },
+                      ]}
                     />
                   </div>
                 </SettingsCard>
