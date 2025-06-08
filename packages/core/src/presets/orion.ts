@@ -5,17 +5,13 @@ import { constants, ServiceId } from '../utils';
 import { StreamParser } from '../parser';
 
 class OrionStreamParser extends StreamParser {
-  protected override getError(
+  protected override raiseErrorIfNecessary(
     stream: Stream,
     currentParsedStream: ParsedStream
-  ): ParsedStream['error'] | undefined {
+  ): void {
     if (stream.title?.includes('ERROR')) {
-      return {
-        title: stream.title,
-        description: stream.title,
-      };
+      throw new Error(stream.title);
     }
-    return undefined;
   }
 }
 
