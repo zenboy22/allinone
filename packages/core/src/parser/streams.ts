@@ -293,7 +293,9 @@ class StreamParser {
     stream: Stream,
     currentParsedStream: ParsedStream
   ): string | undefined {
-    return undefined;
+    return stream.url
+      ? stream.url.match(/(?<=[-/[(;:&])[a-fA-F0-9]{40}(?=[-\]\)/:;&])/)?.[0]
+      : undefined;
   }
 
   protected getDuration(
