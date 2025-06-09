@@ -114,10 +114,11 @@ export function decryptString(data: string, secretKey?: Buffer): Response {
     secretKey = Buffer.from(Env.SECRET_KEY, 'hex');
   }
   try {
+    data = decodeURIComponent(data);
     if (!isEncrypted(data)) {
       throw new Error('The data was not in an expected encrypted format');
     }
-    const [_, ivHex, encryptedHex] = decodeURIComponent(data).split(':');
+    const [_, ivHex, encryptedHex] = data.split(':');
     const iv = Buffer.from(ivHex, 'base64');
     const encrypted = Buffer.from(encryptedHex, 'base64');
     const decrypted = decryptData(secretKey, encrypted, iv);
