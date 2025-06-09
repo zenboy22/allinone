@@ -1,6 +1,6 @@
-import { FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import { Button } from '../ui/button';
 import { useMenu } from '@/context/menu';
+import { FaArrowLeft, FaArrowRight } from 'react-icons/fa6';
 
 export function PageControls() {
   const {
@@ -15,9 +15,10 @@ export function PageControls() {
   return (
     <div className="flex flex-1 gap-4">
       <Button
-        leftIcon={<FiArrowLeft />}
+        leftIcon={<FaArrowLeft />}
         intent="white"
         size="md"
+        hideTextOnSmallScreen
         rounded
         className="min-w-[60px] md:min-w-[120px]"
         onClick={() => {
@@ -40,12 +41,13 @@ export function PageControls() {
         }}
         disabled={selectedMenu === firstMenu}
       >
-        <div className="hidden md:block">Previous</div>
+        Previous
       </Button>
       <Button
-        rightIcon={<FiArrowRight />}
+        rightIcon={<FaArrowRight />}
         intent="white"
         size="md"
+        hideTextOnSmallScreen
         rounded
         className="min-w-[60px] md:min-w-[120px]"
         onClick={() => {
@@ -67,7 +69,7 @@ export function PageControls() {
         }}
         disabled={selectedMenu === lastMenu}
       >
-        <div className="hidden md:block">Next</div>
+        Next
       </Button>
     </div>
   );
