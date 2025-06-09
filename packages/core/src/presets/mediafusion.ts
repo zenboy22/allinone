@@ -70,6 +70,24 @@ class MediaFusionStreamParser extends StreamParser {
     }
     return indexer;
   }
+
+  protected override getLanguages(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string[] {
+    const languages = super.getLanguages(stream, currentParsedStream);
+    const regex = this.getRegexForTextAfterEmojis(['🌐']);
+    const languagesString = stream.description?.match(regex)?.[1];
+    if (languagesString) {
+      return languages.concat(
+        languagesString
+          .split('+')
+          .map((language) => language.trim())
+          .filter((language) => constants.LANGUAGES.includes(language as any))
+      );
+    }
+    return languages;
+  }
 }
 
 export class MediaFusionPreset extends Preset {
