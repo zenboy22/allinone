@@ -29,7 +29,7 @@ function parseConnectionURI(uri: string): ConnectionURI {
   let dialect: DBDialect;
 
   switch (url.protocol) {
-    case 'sqlite:':
+    case 'sqlite:': {
       driverName = 'sqlite3';
       dialect = 'sqlite';
       let filename = url.pathname;
@@ -49,7 +49,8 @@ function parseConnectionURI(uri: string): ConnectionURI {
         filename: filename,
         dialect,
       };
-    case 'postgres:':
+    }
+    case 'postgres:': {
       driverName = 'pg';
       dialect = 'postgres';
       return {
@@ -58,6 +59,7 @@ function parseConnectionURI(uri: string): ConnectionURI {
         driverName,
         dialect,
       };
+    }
     default:
       throw new Error('Unsupported scheme: ' + url.protocol);
   }
