@@ -238,7 +238,10 @@ export class StreamFusionPreset extends Preset {
         serviceIds.length === 0 ? true : (options.torrenting ?? false),
       debrid: serviceIds.length > 0,
       metadataProvider: 'tmdb',
-      debridDownloader: constants.SERVICE_DETAILS[serviceIds[0]].name,
+      debridDownloader:
+        serviceIds.length > 0
+          ? constants.SERVICE_DETAILS[serviceIds[0]].name
+          : '',
       stremthru: true,
       stremthruUrl: Env.DEFAULT_STREAMFUSION_STREMTHRU_URL,
     });
