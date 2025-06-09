@@ -111,15 +111,15 @@ export class OrionPreset extends Preset {
     }
 
     const showP2P = options.showP2P ?? false;
-    options.showP2P = false;
+    const addonOptions = { ...options, showP2P: false };
 
     let addons = usableServices.map((service) =>
-      this.generateAddon(userData, options, [service.id])
+      this.generateAddon(userData, addonOptions, [service.id])
     );
 
     if (showP2P) {
       // we only want to push a single p2p addon, rather than a p2p addon for each service.
-      addons.push(this.generateAddon(userData, options, []));
+      addons.push(this.generateAddon(userData, addonOptions, []));
     }
 
     return addons;
