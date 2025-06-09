@@ -221,6 +221,7 @@ export const Env = cleanEnv(process.env, {
   }),
   SECRET_KEY: secretKey({
     desc: 'Secret key for the addon, used for encryption and must be 64 characters of hex',
+    example: 'Generate using: openssl rand -hex 32',
   }),
   ADDON_PASSWORD: str({
     default: undefined,
