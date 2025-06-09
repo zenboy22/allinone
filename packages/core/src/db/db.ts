@@ -139,7 +139,10 @@ export class DB {
         params
       );
     } else if (this.uri.dialect === 'sqlite') {
-      return (this.db as Database<any>).run(query, params);
+      return (this.db as Database<any>).run(
+        adaptQuery(query, this.uri.dialect),
+        params
+      );
     }
     throw new Error('Unsupported dialect');
   }
