@@ -160,10 +160,6 @@ export class NuvioStreamsPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Promise<Addon[]> {
-    if (options?.url?.endsWith('/manifest.json')) {
-      return [this.generateAddon(userData, options)];
-    }
-
     return [this.generateAddon(userData, options)];
   }
 
