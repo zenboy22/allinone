@@ -49,10 +49,8 @@ function Content() {
   const version = status?.tag || 'Unknown';
   const githubUrl = 'https://github.com/Viren070/AIOStreams';
   const releasesUrl = 'https://github.com/Viren070/AIOStreams/releases';
-  const stremioGuideUrl =
-    'https://github.com/Viren070/AIOStreams/wiki/Stremio-Guide';
-  const configGuideUrl =
-    'https://github.com/Viren070/AIOStreams/wiki/Configuration-Guide';
+  const stremioGuideUrl = 'https://guides.viren070.me/stremio/';
+  const configGuideUrl = 'https://guides.viren070.me/stremio/addons/aiostreams';
   const discordUrl = 'https://discord.viren070.me';
   const donationModal = useDisclosure(false);
   const customizeModal = useDisclosure(false);
@@ -134,46 +132,107 @@ function Content() {
           </SettingsCard>
         )}
 
-        {/* Main content: Quick Start & Guides and Changelog */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 h-full min-h-[220px]">
-          <SettingsCard
-            title="Quick Start & Guides"
-            description="How to use AIOStreams and helpful links"
-          >
-            <div className="space-y-2">
-              <div className="text-base text-muted-foreground">
-                <b>Welcome to AIOStreams!</b> <br />
-                <br />
-                <span>
-                  To get started, use the sidebar to configure each section to
-                  your preferences. When you're ready, visit the Install menu to
-                  create your personal configuration, protected by a password.
-                  You can then install the addon in Stremio or compatible apps.
-                </span>
-                <br />
-                <br />
-                <span>
-                  To update your configuration, click configure within your app,
-                  and you'll be prompted for the password you entered when
-                  creating your configuration. You can then update your settings
-                  at any time, and in most cases - you won't need to reinstall
-                  AIOStreams!
-                </span>
-                <div className="flex items-center justify-center my-4">
-                  <Button
-                    intent="white"
-                    size="md"
-                    rounded
-                    onClick={() => {
-                      nextMenu();
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                </div>
-              </div>
+        {/* Main content: Getting Started */}
+        <SettingsCard
+          title="Get Started"
+          description="Everything you need to know about AIOStreams"
+          className="mt-4"
+        >
+          <div className="space-y-6">
+            {/* Welcome section */}
+            <div className="text-base text-muted-foreground">
+              <b>Welcome to AIOStreams!</b> <br />
+              <br />
+              <span>
+                Click the Configure button below to start customizing AIOStreams
+                to your preferences. You'll be guided through each section where
+                you can set up your configuration. Once complete, you'll create
+                a password-protected configuration that you can install in
+                Stremio or other compatible apps.
+              </span>
+              <br />
+              <br />
+              <span>
+                Need to make changes later? Simply click configure within your
+                app and enter your password. You can update your settings at any
+                time, and in most cases - you won't need to reinstall
+                AIOStreams!
+              </span>
             </div>
-          </SettingsCard>
+
+            <div className="flex items-center justify-center mb-6">
+              <Button
+                intent="white"
+                size="lg"
+                rounded
+                // className="px-8 py-2.5 font-semibold shadow-lg hover:scale-105 transition-transform duration-200"
+                onClick={() => {
+                  nextMenu();
+                }}
+              >
+                Configure
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gray-700/50 to-transparent" />
+            </div>
+
+            {/* Quick links grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
+              <a
+                href={configGuideUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex flex-col gap-2 p-4 rounded-lg bg-gray-900/40 hover:bg-gray-900/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <div className="flex items-center gap-2 text-md group-hover:text-[--brand]">
+                  <BookOpenIcon className="w-5 h-5" />
+                  <span className="font-semibold">Configuration Guide</span>
+                </div>
+                <p className="text-sm text-muted-foreground group-hover:text-gray-300 transition-colors">
+                  Learn how to configure AIOStreams to get the most out of your
+                  streaming experience
+                </p>
+              </a>
+
+              <a
+                href="https://github.com/Viren070/AIOStreams/wiki"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex flex-col gap-2 p-4 rounded-lg bg-gray-900/40 hover:bg-gray-900/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <div className="flex items-center gap-2 text-md group-hover:text-[--brand]">
+                  <BookOpenIcon className="w-5 h-5" />
+                  <span className="font-semibold">Wiki</span>
+                </div>
+                <p className="text-sm text-muted-foreground group-hover:text-gray-300 transition-colors">
+                  Browse our comprehensive documentation for advanced features
+                  like the Custom Formatter and Group conditions.
+                </p>
+              </a>
+
+              <a
+                href={stremioGuideUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex flex-col gap-2 p-4 rounded-lg bg-gray-900/40 hover:bg-gray-900/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <div className="flex items-center gap-2 text-md group-hover:text-[--brand]">
+                  <InfoIcon className="w-5 h-5" />
+                  <span className="font-semibold">Stremio Guide</span>
+                </div>
+                <p className="text-sm text-muted-foreground group-hover:text-gray-300 transition-colors">
+                  New to Stremio and its addons? Go through my Stremio guide to
+                  get started!
+                </p>
+              </a>
+            </div>
+          </div>
+        </SettingsCard>
+
+        {/* What's New section in its own row */}
+        <div className="mt-4">
           <ChangelogBox version={version} />
         </div>
 
