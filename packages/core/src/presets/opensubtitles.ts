@@ -33,9 +33,6 @@ export class OpenSubtitlesPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Promise<Addon[]> {
-    if (!options.url.endsWith('/manifest.json')) {
-      throw new Error('Invalid manifest URL');
-    }
     return [this.generateAddon(userData, options)];
   }
 
