@@ -232,8 +232,8 @@ export class StreamFusionPreset extends Preset {
       zilean: false, //true,
       yggflix: false, //true,
       sharewood: false, //true,
-      yggtorrentCtg: options.catalogs.includes('yggtorrent'),
-      yggflixCtg: options.catalogs.includes('yggflix'),
+      yggtorrentCtg: options.catalogs?.includes('yggtorrent') ?? false,
+      yggflixCtg: options.catalogs?.includes('yggflix') ?? false,
       torrenting:
         serviceIds.length === 0 ? true : (options.torrenting ?? false),
       debrid: serviceIds.length > 0,
