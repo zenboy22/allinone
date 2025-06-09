@@ -173,8 +173,6 @@ export class DB {
         commit: async () => {
           try {
             await client.query('COMMIT');
-          } catch (error) {
-            throw error;
           } finally {
             finalise();
           }
@@ -182,8 +180,6 @@ export class DB {
         rollback: async () => {
           try {
             await client.query('ROLLBACK');
-          } catch (error) {
-            throw error;
           } finally {
             finalise();
           }
