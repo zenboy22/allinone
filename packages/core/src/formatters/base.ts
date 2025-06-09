@@ -574,31 +574,6 @@ export abstract class BaseFormatter {
     return `{unknown_modifier(${mod})}`;
   }
 
-  private handleComparison(mod: string, value: unknown): boolean {
-    const operator = mod.match(/^[<>=]+/)?.[0];
-    const compareValue = mod.slice(operator?.length || 0);
-
-    if (!operator) return false;
-
-    const numValue = Number(value);
-    const numCompare = Number(compareValue);
-
-    switch (operator) {
-      case '<':
-        return numValue < numCompare;
-      case '<=':
-        return numValue <= numCompare;
-      case '>':
-        return numValue > numCompare;
-      case '>=':
-        return numValue >= numCompare;
-      case '=':
-        return numValue === numCompare;
-      default:
-        return false;
-    }
-  }
-
   protected replaceCharsFromString(
     str: string,
     replace: string,
