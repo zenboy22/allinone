@@ -279,13 +279,14 @@ export abstract class BaseFormatter {
       switch (true) {
         case mod === 'join':
           return value.join(', ');
-        case mod.startsWith('join(') && mod.endsWith(')'):
+        case mod.startsWith('join(') && mod.endsWith(')'): {
           // Extract the separator from join(separator)
           // e.g. join(' - ')
           const separator = mod
             .substring(5, mod.length - 1)
             .replace(/^['"]|['"]$/g, '');
           return value.join(separator);
+        }
         case mod == 'length':
           return value.length.toString();
         case mod == 'first':
