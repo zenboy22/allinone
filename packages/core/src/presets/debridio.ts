@@ -51,11 +51,7 @@ export class DebridioPreset extends Preset {
       DESCRIPTION: 'Torrent streaming using Debrid providers.',
       OPTIONS: options,
       SUPPORTED_STREAM_TYPES: [constants.DEBRID_STREAM_TYPE],
-      SUPPORTED_RESOURCES: [
-        constants.STREAM_RESOURCE,
-        constants.META_RESOURCE,
-        constants.CATALOG_RESOURCE,
-      ],
+      SUPPORTED_RESOURCES: supportedResources,
     };
   }
 
