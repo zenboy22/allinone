@@ -300,6 +300,22 @@ export abstract class BaseFormatter {
           return [...value].sort().join(', ');
         case mod == 'reverse':
           return [...value].reverse().join(', ');
+        case mod.startsWith('~'):
+          if (typeof check_true !== 'string' || typeof check_false !== 'string')
+            return `{unknown_array_modifier(${mod})}`;
+
+          const check = mod.replace('~', '').replace('_', ' ');
+
+          if (_value) {
+            return value.some((item) => item.toLowerCase().includes(check))
+              ? this.parseString(check_true, _value) || check_true
+              : this.parseString(check_false, _value) || check_false;
+          }
+
+          return value.some((item) => item.toLowerCase().includes(check))
+            ? check_true
+            : check_false;
+
         case mod == 'exists': {
           if (typeof check_true !== 'string' || typeof check_false !== 'string')
             return `{unknown_array_modifier(${mod})}`;
