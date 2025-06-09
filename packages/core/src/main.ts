@@ -16,6 +16,7 @@ import {
   StreamType,
   TYPES,
   VISUAL_TAGS,
+  TMDBMetadata,
 } from './utils';
 import { Wrapper } from './wrapper';
 import { PresetManager } from './presets';
@@ -39,7 +40,6 @@ import { isMatch } from 'super-regex';
 import { ConditionParser } from './parser/conditions';
 import { RPDB } from './utils/rpdb';
 import { FeatureControl } from './utils/feature';
-import { TMDBMetadata } from './utils/metadata';
 const logger = createLogger('core');
 
 export interface AIOStreamsError {

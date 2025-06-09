@@ -6,6 +6,6 @@ export * from './resources';
 export * from './feature';
 export * from './crypto';
 export * from './http';
-// export * from './metadata';
+export * from './metadata';
 export * as constants from './constants';
 export * from './config';
