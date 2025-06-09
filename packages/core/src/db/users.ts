@@ -271,6 +271,7 @@ export class UserRepository {
   static async deleteUser(uuid: string): Promise<void> {
     return txQueue.enqueue(async () => {
       let tx;
+      let commited = false;
       try {
         tx = await db.begin();
         const result = await tx.execute('DELETE FROM users WHERE uuid = ?', [
@@ -282,6 +283,7 @@ export class UserRepository {
         }
 
         await tx.commit();
+        commited = true;
         logger.info(`Deleted user ${uuid}`);
       } catch (error) {
         logger.error(
@@ -292,7 +294,7 @@ export class UserRepository {
         }
         throw new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR);
       } finally {
-        if (tx) {
+        if (tx && !commited) {
           await tx.rollback();
         }
       }
