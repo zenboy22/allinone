@@ -9,6 +9,7 @@ import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
 import { URL } from 'url';
 import path from 'path';
+import fs from 'fs';
 
 type QueryResultRow = Record<string, any>;
 
@@ -102,7 +103,6 @@ export class DB {
       if (!parentDir) {
         throw new Error('Invalid SQLite path');
       }
-      const fs = require('fs');
       if (!fs.existsSync(parentDir)) {
         fs.mkdirSync(parentDir, { recursive: true });
       }
