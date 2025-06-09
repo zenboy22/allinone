@@ -1934,7 +1934,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         }
 
         switch (mode) {
-          case 'single_result':
+          case 'single_result': {
             // Keep one result with highest priority service and addon
             let selectedStream = typeStreams.sort((a, b) => {
               // so a specific type may either have both streams not have a service, or both streams have a service
@@ -1999,8 +1999,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             })[0];
             processedStreams.add(selectedStream);
             break;
-
-          case 'per_service':
+          }
+          case 'per_service': {
             // Keep one result from each service (highest priority available addon for that service)
             // first, ensure that all streams have a service, otherwise we can't use this mode
             if (typeStreams.some((stream) => !stream.service)) {
@@ -2055,8 +2055,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
               processedStreams.add(stream);
             }
             break;
-
-          case 'per_addon':
+          }
+          case 'per_addon': {
             if (typeStreams.some((stream) => !stream.addon)) {
               throw new Error(
                 'per_addon mode requires all streams to have an addon'
@@ -2096,6 +2096,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
               processedStreams.add(stream);
             }
             break;
+          }
         }
       }
     }
@@ -2318,7 +2319,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             )
           );
 
-        case 'visualTag':
+        case 'visualTag': {
           let minIndex = userData.preferredVisualTags?.length;
           if (minIndex === undefined) {
             return 0;
@@ -2335,8 +2336,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             }
           }
           return multiplier * -minIndex;
-
-        case 'audioTag':
+        }
+        case 'audioTag': {
           let minAudioIndex = userData.preferredAudioTags?.length;
           if (minAudioIndex === undefined) {
             return 0;
@@ -2353,7 +2354,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             }
           }
           return multiplier * -minAudioIndex;
-
+        }
         case 'streamType':
           return (
             multiplier *
@@ -2364,7 +2365,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             )
           );
 
-        case 'language':
+        case 'language': {
           let minLanguageIndex = userData.preferredLanguages?.length;
           if (minLanguageIndex === undefined) {
             return 0;
@@ -2376,7 +2377,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             }
           }
           return multiplier * -minLanguageIndex;
-
+        }
         case 'regexPatterns':
           // each stream will have a property to denote the lowest index of the regex patterns that it matched
           // and we would just need to return that (multiplied by the multiplier)
