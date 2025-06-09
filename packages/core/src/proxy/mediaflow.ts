@@ -8,11 +8,14 @@ export class MediaFlowProxy extends BaseProxy {
   protected generateProxyUrl(endpoint: string): URL {
     const proxyUrl = new URL(this.config.url.replace(/\/$/, ''));
     proxyUrl.pathname = `${proxyUrl.pathname === '/' ? '' : proxyUrl.pathname}${endpoint}`;
+    if (endpoint === '/proxy/ip') {
+      proxyUrl.searchParams.set('api_password', this.config.credentials);
+    }
     return proxyUrl;
   }
 
   protected getPublicIpEndpoint(): string {
-    return '/proxy/ip?api_password=' + this.config.credentials;
+    return '/proxy/ip';
   }
 
   protected getPublicIpFromResponse(data: any): string | null {
