@@ -68,14 +68,14 @@ const ResultLimitOptions = z.object({
 // });
 const SizeFilter = z.object({
   movies: z
-    .tuple([z.number().min(1), z.number().min(1)])
+    .tuple([z.number().min(0), z.number().min(0)])
     // .object({
     //   min: z.number().min(1).optional(),
     //   max: z.number().min(1).optional(),
     // })
     .optional(),
   series: z
-    .tuple([z.number().min(1), z.number().min(1)])
+    .tuple([z.number().min(0), z.number().min(0)])
     // .object({
     //   min: z.number().min(1).optional(),
     //   max: z.number().min(1).optional(),
