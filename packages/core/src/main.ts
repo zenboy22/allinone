@@ -1860,55 +1860,12 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
       external: deduplicator.external || 'disabled',
     };
 
-    // Initialize statistics tracking
-    const stats = {
-      total: streams.length,
-      detectionMethods: {
-        infoHash: 0,
-        filename: 0,
-        smartDetect: 0,
-      },
-      modeDetails: {
-        cached: { streams: 0, mode: deduplicator.cached },
-        uncached: { streams: 0, mode: deduplicator.uncached },
-        p2p: { streams: 0, mode: deduplicator.p2p },
-      },
-      // Track which streams are deduplicated and by which method (first match wins)
-      deduplicatedStreamsByMethod: new Map<string, string>(), // streamId -> detection method
-    };
-
     // Group streams by their deduplication keys
-    const streamGroups = new Map<
-      string,
-      (ParsedStream & { _streamId: string })[]
-    >();
+    const streamGroups = new Map<string, ParsedStream[]>();
 
     for (const stream of streams) {
-      // Create a unique stream identifier
-      const streamId = `${stream.addon.id}_${stream.filename}_${stream.torrent?.infoHash || 'no-hash'}_${Math.random()}`;
-
-      // Track stream type for mode details
-      let streamType = stream.type as string;
-      if (
-        (streamType === 'debrid' || streamType === 'usenet') &&
-        stream.service
-      ) {
-        streamType = stream.service.cached ? 'cached' : 'uncached';
-      }
-      if (stats.modeDetails[streamType as keyof typeof stats.modeDetails]) {
-        stats.modeDetails[streamType as keyof typeof stats.modeDetails]
-          .streams++;
-      }
-
       // Create a unique key based on the selected deduplication methods
       const keys: string[] = [];
-      let firstDetectionMethod: string | null = null;
-
-      if (deduplicator.keys?.includes('infoHash') && stream.torrent?.infoHash) {
-        const key = `infoHash:${stream.torrent.infoHash}`;
-        keys.push(key);
-        if (!firstDetectionMethod) firstDetectionMethod = 'infoHash';
-      }
 
       if (deduplicationKeys.includes('filename') && stream.filename) {
         let normalisedFilename = stream.filename
@@ -1919,10 +1876,11 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
           .replace(/[^\p{L}\p{N}+]/gu, '')
           .replace(/\s+/g, '')
           .toLowerCase();
+        keys.push(`filename:${normalisedFilename}`);
+      }
 
-        const key = `filename:${normalisedFilename}`;
-        keys.push(key);
-        if (!firstDetectionMethod) firstDetectionMethod = 'filename';
+      if (deduplicationKeys.includes('infoHash') && stream.torrent?.infoHash) {
+        keys.push(`infoHash:${stream.torrent.infoHash}`);
       }
 
       if (deduplicationKeys.includes('smartDetect')) {
@@ -1934,42 +1892,29 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
         const hash = getSimpleTextHash(
           `${roundedSize}${stream.parsedFile?.resolution}${stream.parsedFile?.quality}${stream.parsedFile?.visualTags}${stream.parsedFile?.audioTags}${stream.parsedFile?.languages}${stream.parsedFile?.encode}`
         );
-
-        const key = `smartDetect:${hash}`;
-        keys.push(key);
-        if (!firstDetectionMethod) firstDetectionMethod = 'smartDetect';
-      }
-
-      // Store which detection method will be credited if this stream gets deduplicated
-      if (firstDetectionMethod) {
-        stats.deduplicatedStreamsByMethod.set(streamId, firstDetectionMethod);
+        keys.push(`smartDetect:${hash}`);
       }
 
       // If no keys match, keep the stream
       if (keys.length === 0) {
-        streamGroups.set(`unique_${Math.random()}`, [
-          { ...stream, _streamId: streamId },
-        ]);
+        streamGroups.set(`unique_${Math.random()}`, [stream]);
         continue;
       }
 
       // Add stream to all matching key groups
       for (const key of keys) {
         const group = streamGroups.get(key) || [];
-        group.push({ ...stream, _streamId: streamId });
+        group.push(stream);
         streamGroups.set(key, group);
       }
     }
 
     // Process each group based on stream types and deduplication modes
-    const processedStreams = new Set<ParsedStream & { _streamId: string }>();
+    const processedStreams = new Set<ParsedStream>();
 
     for (const group of streamGroups.values()) {
       // Group streams by type
-      const streamsByType = new Map<
-        string,
-        (ParsedStream & { _streamId: string })[]
-      >();
+      const streamsByType = new Map<string, ParsedStream[]>();
       for (const stream of group) {
         let type = stream.type as string;
         if ((type === 'debrid' || type === 'usenet') && stream.service) {
@@ -2070,7 +2015,7 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
                   acc[stream.service!.id].push(stream);
                   return acc;
                 },
-                {} as Record<string, (ParsedStream & { _streamId: string })[]>
+                {} as Record<string, ParsedStream[]>
               )
             ).map((serviceStreams) => {
               return serviceStreams.sort((a, b) => {
@@ -2124,7 +2069,7 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
                   acc[stream.addon.id!].push(stream);
                   return acc;
                 },
-                {} as Record<string, (ParsedStream & { _streamId: string })[]>
+                {} as Record<string, ParsedStream[]>
               )
             ).map((addonStreams) => {
               return addonStreams.sort((a, b) => {
@@ -2156,93 +2101,10 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
     }
 
     let deduplicatedStreams = Array.from(processedStreams);
-
-    // Clean up the _streamId property before returning and calculate final stats
-    const cleanedStreams = deduplicatedStreams.map((stream) => {
-      const { _streamId, ...cleanStream } = stream;
-      return cleanStream as ParsedStream;
-    });
-
-    // After processing, count the actual deduplication stats
-    const keptStreamIds = new Set(deduplicatedStreams.map((s) => s._streamId));
-    const deduplicatedStreamIds = new Set<string>();
-
-    // Find all streams that were actually deduplicated
-    for (const streamId of stats.deduplicatedStreamsByMethod.keys()) {
-      if (!keptStreamIds.has(streamId)) {
-        deduplicatedStreamIds.add(streamId);
-      }
-    }
-
-    // Count deduplication by method (only count each stream once, for its first detection method)
-    for (const streamId of deduplicatedStreamIds) {
-      const method = stats.deduplicatedStreamsByMethod.get(streamId);
-      if (
-        method &&
-        stats.detectionMethods[
-          method as keyof typeof stats.detectionMethods
-        ] !== undefined
-      ) {
-        stats.detectionMethods[method as keyof typeof stats.detectionMethods]++;
-      }
-    }
-
-    // Calculate final statistics
-    const kept = cleanedStreams.length;
-    const deduplicated = stats.total - kept;
-    const totalDetectionMethods =
-      stats.detectionMethods.infoHash +
-      stats.detectionMethods.filename +
-      stats.detectionMethods.smartDetect;
-
-    // Generate the summary report
-    const border = '━'.repeat(40);
-    let report = `\n${border}\n`;
-    report += `  🔄 Deduplication Summary\n`;
-    report += `${border}\n`;
-    report += `  📊 Total Streams    : ${stats.total}\n`;
-    report += `  ✔️ Kept            : ${kept}\n`;
-    report += `  🗑️ Deduplicated    : ${deduplicated}\n\n`;
-    report += `  🕛 Time taken      : ${getTimeTakenSincePoint(start)}\n`;
-
-    if (totalDetectionMethods > 0) {
-      report += `  🎯 Detection Methods:\n`;
-      if (stats.detectionMethods.infoHash > 0) {
-        const percentage = Math.round(
-          (stats.detectionMethods.infoHash / totalDetectionMethods) * 100
-        );
-        report += `    • Info Hash     : ${stats.detectionMethods.infoHash} duplicates   (${percentage}%)\n`;
-      }
-      if (stats.detectionMethods.filename > 0) {
-        const percentage = Math.round(
-          (stats.detectionMethods.filename / totalDetectionMethods) * 100
-        );
-        report += `    • Filename      : ${stats.detectionMethods.filename} duplicates   (${percentage}%)\n`;
-      }
-      if (stats.detectionMethods.smartDetect > 0) {
-        const percentage = Math.round(
-          (stats.detectionMethods.smartDetect / totalDetectionMethods) * 100
-        );
-        report += `    • Smart Detect  : ${stats.detectionMethods.smartDetect} duplicates   (${percentage}%)\n`;
-      }
-      report += `\n`;
-    }
-
-    report += `  🔎 Mode Details:\n`;
-    if (stats.modeDetails.cached.streams > 0) {
-      report += `    • cached (${stats.modeDetails.cached.mode}): ${stats.modeDetails.cached.streams} streams\n`;
-    }
-    if (stats.modeDetails.uncached.streams > 0) {
-      report += `    • uncached (${stats.modeDetails.uncached.mode}): ${stats.modeDetails.uncached.streams} streams\n`;
-    }
-    if (stats.modeDetails.p2p.streams > 0) {
-      report += `    • p2p (${stats.modeDetails.p2p.mode}): ${stats.modeDetails.p2p.streams} streams\n`;
-    }
-    report += `${border}\n`;
-
-    logger.info(report);
-
-    return cleanedStreams;
+    logger.info(
+      `Filtered out ${streams.length - deduplicatedStreams.length} duplicate streams to ${deduplicatedStreams.length} streams in ${getTimeTakenSincePoint(start)}`
+    );
+    return deduplicatedStreams;
   }
 
   private async precomputeSortRegexes(streams: ParsedStream[]) {
