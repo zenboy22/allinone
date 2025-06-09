@@ -7,12 +7,22 @@ import {
   AIOStream,
 } from '../db';
 import { Preset, baseOptions } from './preset';
-import { Env, RESOURCES } from '../utils';
+import { Env, formatZodError, RESOURCES } from '../utils';
 import { StreamParser } from '../parser';
+import { createLogger } from '../utils';
+
+const logger = createLogger('parser');
 
 class AIOStreamsStreamParser extends StreamParser {
   override parse(stream: Stream): ParsedStream {
     const aioStream = stream as AIOStream;
+    const parsed = AIOStream.safeParse(aioStream);
+    if (!parsed.success) {
+      logger.error(
+        `Stream from AIOStream was not detected as a valid stream: ${formatZodError(parsed.error)}`
+      );
+      throw new Error('Invalid stream');
+    }
     return {
       addon: {
         ...this.addon,

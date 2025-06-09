@@ -641,7 +641,7 @@ export const ParsedStreamSchema = z.object({
 
 export type ParsedStream = z.infer<typeof ParsedStreamSchema>;
 
-const AIOStreamSchema = StreamSchema.extend({
+export const AIOStream = StreamSchema.extend({
   streamData: z.object({
     error: z
       .object({
@@ -687,10 +687,10 @@ const AIOStreamSchema = StreamSchema.extend({
   }),
 });
 
-export type AIOStream = z.infer<typeof AIOStreamSchema>;
+export type AIOStream = z.infer<typeof AIOStream>;
 
 const AIOStreamResponseSchema = z.object({
-  streams: z.array(AIOStreamSchema),
+  streams: z.array(AIOStream),
 });
 export type AIOStreamResponse = z.infer<typeof AIOStreamResponseSchema>;
 
