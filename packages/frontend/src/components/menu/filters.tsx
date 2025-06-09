@@ -995,6 +995,8 @@ function Content() {
                   }
                   required={!status?.settings.tmdbApiAvailable}
                   value={userData.tmdbAccessToken}
+                  type="password"
+                  placeholder="Enter your TMDB access token"
                   onValueChange={(value) => {
                     setUserData({
                       ...userData,
