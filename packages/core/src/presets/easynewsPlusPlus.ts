@@ -1,4 +1,4 @@
-import { PresetMetadata } from '../db';
+import { ParsedStream, PresetMetadata, Stream } from '../db';
 import { EasynewsPreset, EasynewsParser } from './easynews';
 import { constants, Env } from '../utils';
 import { baseOptions } from './preset';
@@ -7,6 +7,24 @@ import { StreamParser } from '../parser';
 class EasynewsPlusPlusParser extends EasynewsParser {
   protected override get ageRegex(): RegExp {
     return /📅\s*(\d+[a-zA-Z])/;
+  }
+
+  protected get indexerRegex(): RegExp | undefined {
+    return undefined;
+  }
+
+  protected override getLanguages(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string[] {
+    const regex = this.getRegexForTextAfterEmojis(['🌐']);
+    const langs = stream.description?.match(regex)?.[1];
+    return (
+      langs
+        ?.split(',')
+        .map((lang) => this.convertISO6392ToLanguage(lang))
+        .filter((lang) => lang !== undefined) || []
+    );
   }
 }
 

@@ -389,6 +389,15 @@ class StreamParser {
     return languages.filter((language) => language !== undefined);
   }
 
+  protected convertISO6392ToLanguage(code: string): string | undefined {
+    const language = Object.entries(constants.ISO_639_2_LANGUAGE_MAPPING).find(
+      ([_, value]) => value === code
+    )?.[0];
+    return language
+      ? language.charAt(0).toUpperCase() + language.slice(1)
+      : undefined;
+  }
+
   protected getInLibrary(
     stream: Stream,
     currentParsedStream: ParsedStream
