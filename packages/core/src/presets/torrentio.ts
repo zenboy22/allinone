@@ -1,4 +1,4 @@
-import { Addon, Option, UserData, Resource, Stream } from '../db';
+import { Addon, Option, UserData, Resource, Stream, ParsedStream } from '../db';
 import { Preset, baseOptions } from './preset';
 import { Env, SERVICE_DETAILS } from '../utils';
 import { constants, ServiceId } from '../utils';
@@ -12,6 +12,16 @@ export class TorrentioParser extends StreamParser {
     }
     const folderName = description.split('\n')[0];
     return folderName;
+  }
+
+  protected override getLanguages(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): string[] {
+    if (stream.description?.includes('Multi Subs')) {
+      return [];
+    }
+    return super.getLanguages(stream, currentParsedStream);
   }
 }
 
