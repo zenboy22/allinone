@@ -76,6 +76,7 @@ export class TMDBMetadata {
 
     const response = await fetch(url, {
       headers: this.getHeaders(),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
@@ -129,6 +130,7 @@ export class TMDBMetadata {
 
     const detailsResponse = await fetch(detailsUrl, {
       headers: this.getHeaders(),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!detailsResponse.ok) {
@@ -149,6 +151,7 @@ export class TMDBMetadata {
 
     const altTitlesResponse = await fetch(altTitlesUrl, {
       headers: this.getHeaders(),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!altTitlesResponse.ok) {
