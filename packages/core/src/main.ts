@@ -1167,8 +1167,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     const excludedRegexPatterns =
       isRegexAllowed && this.userData.excludedRegexPatterns
         ? await Promise.all(
-            this.userData.excludedRegexPatterns.map(async (pattern) =>
-              compileRegex(pattern)
+            this.userData.excludedRegexPatterns.map(
+              async (pattern) => await compileRegex(pattern)
             )
           )
         : undefined;
@@ -1176,8 +1176,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     const requiredRegexPatterns =
       isRegexAllowed && this.userData.requiredRegexPatterns
         ? await Promise.all(
-            this.userData.requiredRegexPatterns.map(async (pattern) =>
-              compileRegex(pattern)
+            this.userData.requiredRegexPatterns.map(
+              async (pattern) => await compileRegex(pattern)
             )
           )
         : undefined;
@@ -1185,8 +1185,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     const includedRegexPatterns =
       isRegexAllowed && this.userData.includedRegexPatterns
         ? await Promise.all(
-            this.userData.includedRegexPatterns.map(async (pattern) =>
-              compileRegex(pattern)
+            this.userData.includedRegexPatterns.map(
+              async (pattern) => await compileRegex(pattern)
             )
           )
         : undefined;
