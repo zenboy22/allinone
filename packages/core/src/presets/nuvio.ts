@@ -152,11 +152,7 @@ export class NuvioStreamsPreset extends Preset {
       DESCRIPTION: 'Free high quality streaming using multiple providers. ',
       OPTIONS: options,
       SUPPORTED_STREAM_TYPES: [constants.HTTP_STREAM_TYPE],
-      SUPPORTED_RESOURCES: [
-        constants.STREAM_RESOURCE,
-        constants.META_RESOURCE,
-        constants.CATALOG_RESOURCE,
-      ],
+      SUPPORTED_RESOURCES: supportedResources,
     };
   }
 
