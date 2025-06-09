@@ -120,6 +120,7 @@ export type ButtonProps = React.ComponentPropsWithoutRef<'button'> &
     rightIcon?: React.ReactNode;
     iconSpacing?: React.CSSProperties['marginInline'];
     hideTextOnSmallScreen?: boolean;
+    hideTextOnLargeScreen?: boolean;
   };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -138,6 +139,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       iconClass,
       disabled,
       hideTextOnSmallScreen,
+      hideTextOnLargeScreen,
       ...rest
     } = props;
 
@@ -195,7 +197,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                     leftIcon && 'pl-[0.5rem]',
                     rightIcon && 'pr-[0.5rem]'
                   ),
-                'md:inline-block'
+                hideTextOnLargeScreen
+                  ? 'inline-block lg:hidden'
+                  : 'md:inline-block'
               )}
             >
               {children}

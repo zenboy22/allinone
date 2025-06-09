@@ -4,6 +4,7 @@ import React from 'react';
 import { AppSidebar, useAppSidebarContext } from '@/components/ui/app-layout';
 import { cn } from '@/components/ui/core/styling';
 import { VerticalMenu, VerticalMenuItem } from '@/components/ui/vertical-menu';
+import { Button } from '@/components/ui/button';
 import { useStatus } from '@/context/status';
 import { useMenu, MenuId, VALID_MENUS } from '@/context/menu';
 import { useUserData } from '@/context/userData';
@@ -30,6 +31,7 @@ import {
 import { Modal } from '@/components/ui/modal';
 import { TextInput } from '@/components/ui/text-input';
 import { toast } from 'sonner';
+import { Tooltip } from '@/components/ui/tooltip';
 
 type MenuItem = VerticalMenuItem & {
   id: MenuId;
@@ -229,25 +231,41 @@ export function MainSidebar() {
           />
         </div>
 
-        <div className="flex w-full gap-2 flex-col px-4">
-          <div>
-            <VerticalMenu
-              collapsed={isCollapsed}
-              itemClass="relative"
-              onMouseEnter={() => {}}
-              onMouseLeave={() => {}}
-              onItemSelect={(item) => {
-                const menuItem = item as MenuItem;
-                if (menuItem.onClick) {
-                  menuItem.onClick();
-                } else {
-                  setSelectedMenu(menuItem.id);
-                  ctx.setOpen(false);
+        <div className="p-4">
+          <Tooltip
+            side="right"
+            trigger={
+              <Button
+                intent="primary-subtle"
+                size="md"
+                rounded
+                iconSpacing="0"
+                className="w-full"
+                iconClass="text-3xl"
+                leftIcon={
+                  user.uuid && user.password ? (
+                    <BiLogOutCircle />
+                  ) : (
+                    <BiLogInCircle />
+                  )
                 }
-              }}
-              items={bottomMenuItems}
-            />
-          </div>
+                hideTextOnLargeScreen
+                onClick={() => {
+                  if (user.uuid && user.password) {
+                    confirmClearConfig.open();
+                  } else {
+                    signInModal.open();
+                  }
+                }}
+              >
+                <div className="flex items-center gap-2 ml-2">
+                  {user.uuid && user.password ? 'Log Out' : 'Log In'}
+                </div>
+              </Button>
+            }
+          >
+            {user.uuid && user.password ? 'Log Out' : 'Log In'}
+          </Tooltip>
         </div>
       </AppSidebar>
 
