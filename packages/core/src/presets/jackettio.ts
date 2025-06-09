@@ -28,6 +28,7 @@ class JackettioStreamParser extends StreamParser {
       }
       return urlObj.toString();
     }
+    return url;
   }
 }
 
