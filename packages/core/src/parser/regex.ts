@@ -98,7 +98,7 @@ export const PARSE_REGEX = {
     ),
     Dubbed: createLanguageRegex('dub(bed)?'),
     English: createLanguageRegex('english|eng'),
-    Japanese: createLanguageRegex('japanese|jap'),
+    Japanese: createLanguageRegex('japanese|jap|jpn'),
     Chinese: createLanguageRegex('chinese|chi'),
     Russian: createLanguageRegex('russian|rus'),
     Arabic: createLanguageRegex('arabic|ara'),
