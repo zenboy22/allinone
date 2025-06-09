@@ -178,8 +178,10 @@ class StreamParser {
     if (!filename) {
       filename = description.split('\n')[0];
     }
-
-    return filename?.replace(/\p{Emoji}/gu, '').trim();
+    return filename
+      ?.trim()
+      ?.replace(/^\p{Emoji_Presentation}+/gu, '')
+      ?.replace(/^[^:]+:\s*/g, '');
   }
 
   protected getFolder(
