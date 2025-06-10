@@ -19,7 +19,16 @@ import { JackettioPreset } from './jackettio';
 import { OrionPreset } from './orion';
 import { StreamFusionPreset } from './streamfusion';
 import { AnimeKitsuPreset } from './animeKitsu';
-import { NuvioStreamsPreset } from './nuvio';
+import { NuvioStreamsPreset } from './nuviostreams';
+import { RpdbCatalogsPreset } from './rpdbCatalogs';
+import { TmdbCollectionsPreset } from './tmdbCollections';
+import { DebridioWatchtowerPreset } from './debridioWatchtower';
+import { DebridioTmdbPreset } from './debridioTmdb';
+import { StarWarsUniversePreset } from './starWarsUniverse';
+import { DebridioTvdbPreset } from './debridioTvdb';
+import { DcUniversePreset } from './dcUniverse';
+import { DebridioTvPreset } from './debridioTv';
+import { TorrentCatalogsPreset } from './torrentCatalogs';
 
 const PRESET_LIST: string[] = [
   'torrentio',
@@ -33,14 +42,23 @@ const PRESET_LIST: string[] = [
   'easynews',
   'easynewsPlus',
   'easynewsPlusPlus',
+  'nuvio-streams',
   'debridio',
+  'debridio-tv',
+  'debridio-watchtower',
   'streamfusion',
   'dmm-cast',
   'orion',
-  'nuvio-streams',
   'opensubtitles',
+  'debridio-tmdb',
+  'debridio-tvdb',
+  'torrent-catalogs',
+  'rpdb-catalogs',
+  'tmdb-collections',
   'anime-kitsu',
-  'marvel-catalog',
+  'marvel-universe',
+  'star-wars-universe',
+  'dc-universe',
   'aiostreams',
   'custom',
 ];
@@ -76,6 +94,14 @@ export class PresetManager {
         return EasynewsPlusPlusPreset;
       case 'debridio':
         return DebridioPreset;
+      case 'debridio-watchtower':
+        return DebridioWatchtowerPreset;
+      case 'debridio-tv':
+        return DebridioTvPreset;
+      case 'debridio-tmdb':
+        return DebridioTmdbPreset;
+      case 'debridio-tvdb':
+        return DebridioTvdbPreset;
       case 'aiostreams':
         return AIOStreamsPreset;
       case 'opensubtitles':
@@ -84,7 +110,7 @@ export class PresetManager {
         return PeerflixPreset;
       case 'dmm-cast':
         return DMMCastPreset;
-      case 'marvel-catalog':
+      case 'marvel-universe':
         return MarvelPreset;
       case 'orion':
         return OrionPreset;
@@ -94,6 +120,16 @@ export class PresetManager {
         return AnimeKitsuPreset;
       case 'nuvio-streams':
         return NuvioStreamsPreset;
+      case 'torrent-catalogs':
+        return TorrentCatalogsPreset;
+      case 'rpdb-catalogs':
+        return RpdbCatalogsPreset;
+      case 'tmdb-collections':
+        return TmdbCollectionsPreset;
+      case 'star-wars-universe':
+        return StarWarsUniversePreset;
+      case 'dc-universe':
+        return DcUniversePreset;
       default:
         throw new Error(`Preset ${id} not found`);
     }

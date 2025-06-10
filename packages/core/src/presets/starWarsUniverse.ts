@@ -2,31 +2,59 @@ import { Addon, Option, UserData } from '../db';
 import { Preset, baseOptions } from './preset';
 import { constants, Env } from '../utils';
 
-export class MarvelPreset extends Preset {
+export class StarWarsUniversePreset extends Preset {
   private static catalogs = [
     {
-      label: 'MCU Chronological Order',
-      value: 'marvel-mcu',
+      label: 'Movies & Series Chronological',
+      value: 'sw-movies-series-chronological',
     },
     {
-      label: 'MCU Release Order',
-      value: 'release-order',
+      label: 'Movies & Series Release',
+      value: 'sw-movies-series-release',
     },
     {
-      label: 'X-Men Chronological Order',
-      value: 'xmen',
+      label: 'Skywalker Saga',
+      value: 'sw-skywalker-saga',
     },
     {
-      label: 'Marvel Movies',
-      value: 'movies',
+      label: 'Anthology Films',
+      value: 'sw-anthology-films',
     },
     {
-      label: 'Marvel TV Shows',
-      value: 'series',
+      label: 'Live-Action Series',
+      value: 'sw-live-action-series',
     },
     {
-      label: 'Marvel Animated Series',
-      value: 'animations',
+      label: 'Animated Series',
+      value: 'sw-animated-series',
+    },
+    {
+      label: 'Micro-Series & Shorts',
+      value: 'sw-micro-series-shorts',
+    },
+    {
+      label: 'High Republic Era',
+      value: 'sw-high-republic-era',
+    },
+    {
+      label: 'Empire Era',
+      value: 'sw-empire-era',
+    },
+    {
+      label: 'New Republic Era',
+      value: 'sw-new-republic-era',
+    },
+    {
+      label: 'Bounty Hunters & Underworld',
+      value: 'sw-bounty-hunters-underworld',
+    },
+    {
+      label: 'Jedi & Sith Lore',
+      value: 'sw-jedi-sith-lore',
+    },
+    {
+      label: 'Droids & Creatures',
+      value: 'sw-droids-creatures',
     },
   ];
   static override get METADATA() {
@@ -37,11 +65,10 @@ export class MarvelPreset extends Preset {
 
     const options: Option[] = [
       ...baseOptions(
-        'Marvel Universe',
+        'Star Wars Universe',
         supportedResources,
-        Env.DEFAULT_MARVEL_CATALOG_TIMEOUT
+        Env.DEFAULT_STAR_WARS_UNIVERSE_TIMEOUT
       ).filter((option) => option.id !== 'url'),
-      // series movies animations xmen release-order marvel-mcu
       {
         id: 'catalogs',
         name: 'Catalogs',
@@ -54,15 +81,16 @@ export class MarvelPreset extends Preset {
     ];
 
     return {
-      ID: 'marvel-universe',
-      NAME: 'Marvel Universe',
-      LOGO: 'https://upload.wikimedia.org/wikipedia/commons/b/b9/Marvel_Logo.svg',
-      URL: Env.MARVEL_UNIVERSE_URL,
-      TIMEOUT: Env.DEFAULT_MARVEL_CATALOG_TIMEOUT || Env.DEFAULT_TIMEOUT,
+      ID: 'star-wars-universe',
+      NAME: 'Star Wars Universe',
+      LOGO: 'https://www.freeiconspng.com/uploads/logo-star-wars-png-4.png',
+      URL: Env.DEFAULT_STAR_WARS_UNIVERSE_URL,
+      TIMEOUT: Env.DEFAULT_STAR_WARS_UNIVERSE_TIMEOUT || Env.DEFAULT_TIMEOUT,
       USER_AGENT:
-        Env.DEFAULT_MARVEL_CATALOG_USER_AGENT || Env.DEFAULT_USER_AGENT,
+        Env.DEFAULT_STAR_WARS_UNIVERSE_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: [],
-      DESCRIPTION: 'Catalogs for the Marvel Universe',
+      DESCRIPTION:
+        'Explore the Star Wars Universe by sagas, series, eras, and more!',
       OPTIONS: options,
       SUPPORTED_STREAM_TYPES: [],
       SUPPORTED_RESOURCES: supportedResources,
@@ -87,7 +115,7 @@ export class MarvelPreset extends Preset {
     return {
       name: options.name || this.METADATA.NAME,
       identifyingName: options.name || this.METADATA.NAME,
-      manifestUrl: `${Env.MARVEL_UNIVERSE_URL}/${config ? 'catalog/' + config + '/' : ''}manifest.json`,
+      manifestUrl: `${Env.DEFAULT_STAR_WARS_UNIVERSE_URL}/${config ? 'catalog/' + config + '/' : ''}manifest.json`,
       enabled: true,
       library: false,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

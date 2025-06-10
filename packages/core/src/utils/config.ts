@@ -378,7 +378,8 @@ function validatePreset(preset: PresetObject) {
   for (const [optionId, optionValue] of Object.entries(preset.options)) {
     const optionMeta = optionMetas.find((option) => option.id === optionId);
     if (!optionMeta) {
-      throw new Error(`Option ${optionId} not found in preset ${preset.id}`);
+      continue;
+      // throw new Error(`Option ${optionId} not found in preset ${preset.id}`);
     }
     try {
       preset.options[optionId] = validateOption(optionMeta, optionValue);

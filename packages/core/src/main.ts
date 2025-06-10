@@ -1018,7 +1018,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             previousGroupStreams = groupResult.streams;
             previousGroupTimeTaken = groupResult.totalTime;
           } else {
-            logger.info(`Condition not met for group ${i}, skipping`);
+            logger.info(
+              `Condition not met for group ${i + 1}, skipping remaining groups`
+            );
+            // if we meet a group whose condition is not met, we do not need to fetch from any subsequent groups
+            break;
           }
         } catch (error) {
           logger.error(`Error evaluating condition for group ${i}:`, error);

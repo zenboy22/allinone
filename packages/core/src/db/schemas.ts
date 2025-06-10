@@ -404,7 +404,7 @@ export const ManifestSchema = z.object({
   catalogs: z.array(ManifestCatalogSchema),
   addonCatalogs: z.array(AddonCatalogDefinitionSchema).optional(),
   background: z.string().min(1).optional(),
-  logo: z.string().min(1).optional(),
+  logo: z.string().optional(),
   contactEmail: z.string().min(1).optional(),
   behaviorHints: z
     .object({
@@ -491,15 +491,15 @@ const MetaLinkSchema = z.object({
 
 const MetaVideoSchema = z.object({
   id: z.string().min(1),
-  title: z.string().min(1),
+  title: z.string().optional(),
   released: z.string().datetime().optional(),
-  thumbnail: z.string().url().optional(),
+  thumbnail: z.string().url().or(z.null()).optional(),
   streams: z.array(StreamSchema).optional(),
   available: z.boolean().optional(),
   episode: z.number().optional(),
   season: z.number().optional(),
   trailers: z.array(TrailerSchema).optional(),
-  overview: z.string().min(1).optional(),
+  overview: z.string().optional(),
 });
 
 export const MetaPreviewSchema = z.object({
@@ -507,7 +507,7 @@ export const MetaPreviewSchema = z.object({
   type: z.string().min(1),
   name: z.string().optional(),
   poster: z.string().optional(),
-  posterShape: z.enum(['square', 'poster', 'landscape']).optional(),
+  posterShape: z.enum(['square', 'poster', 'landscape', 'regular']).optional(),
   // discover sidebar
   //@deprecated use links instead
   genres: z.array(z.string()).optional(),
@@ -528,16 +528,16 @@ export const MetaPreviewSchema = z.object({
 export const MetaSchema = MetaPreviewSchema.extend({
   poster: z.string().min(1).optional(),
   background: z.string().min(1).optional(),
-  logo: z.string().min(1).optional(),
+  logo: z.string().optional(),
   videos: z.array(MetaVideoSchema).optional(),
   runtime: z.string().optional(),
   language: z.string().min(1).optional(),
-  country: z.string().length(3).optional(),
+  country: z.string().optional(),
   awards: z.string().min(1).optional(),
   website: z.string().url().optional(),
   behaviorHints: z
     .object({
-      defaultVideoId: z.string().min(1).optional(),
+      defaultVideoId: z.string().or(z.null()).optional(),
     })
     .optional(),
 });

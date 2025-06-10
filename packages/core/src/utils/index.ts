@@ -9,3 +9,4 @@ export * from './http';
 export * from './metadata';
 export * as constants from './constants';
 export * from './config';
+export * from './languages';

@@ -2,44 +2,29 @@ import { Addon, Option, UserData } from '../db';
 import { Preset, baseOptions } from './preset';
 import { constants, Env } from '../utils';
 
-export class MarvelPreset extends Preset {
+export class RpdbCatalogsPreset extends Preset {
   private static catalogs = [
     {
-      label: 'MCU Chronological Order',
-      value: 'marvel-mcu',
-    },
-    {
-      label: 'MCU Release Order',
-      value: 'release-order',
-    },
-    {
-      label: 'X-Men Chronological Order',
-      value: 'xmen',
-    },
-    {
-      label: 'Marvel Movies',
+      label: 'Movies',
       value: 'movies',
     },
     {
-      label: 'Marvel TV Shows',
+      label: 'Series',
       value: 'series',
     },
     {
-      label: 'Marvel Animated Series',
-      value: 'animations',
+      label: 'Other (News / Talk-Shows / Reality TV etc.)',
+      value: 'other',
     },
   ];
   static override get METADATA() {
-    const supportedResources = [
-      constants.CATALOG_RESOURCE,
-      constants.META_RESOURCE,
-    ];
+    const supportedResources = [constants.CATALOG_RESOURCE];
 
     const options: Option[] = [
       ...baseOptions(
-        'Marvel Universe',
+        'RPDB Catalogs',
         supportedResources,
-        Env.DEFAULT_MARVEL_CATALOG_TIMEOUT
+        Env.DEFAULT_RPDB_CATALOGS_TIMEOUT
       ).filter((option) => option.id !== 'url'),
       // series movies animations xmen release-order marvel-mcu
       {
@@ -54,15 +39,15 @@ export class MarvelPreset extends Preset {
     ];
 
     return {
-      ID: 'marvel-universe',
-      NAME: 'Marvel Universe',
-      LOGO: 'https://upload.wikimedia.org/wikipedia/commons/b/b9/Marvel_Logo.svg',
-      URL: Env.MARVEL_UNIVERSE_URL,
-      TIMEOUT: Env.DEFAULT_MARVEL_CATALOG_TIMEOUT || Env.DEFAULT_TIMEOUT,
+      ID: 'rpdb-catalogs',
+      NAME: 'RPDB Catalogs',
+      LOGO: `${Env.RPDB_CATALOGS_URL}/addon-logo.png`,
+      URL: Env.RPDB_CATALOGS_URL,
+      TIMEOUT: Env.DEFAULT_RPDB_CATALOGS_TIMEOUT || Env.DEFAULT_TIMEOUT,
       USER_AGENT:
-        Env.DEFAULT_MARVEL_CATALOG_USER_AGENT || Env.DEFAULT_USER_AGENT,
+        Env.DEFAULT_RPDB_CATALOGS_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: [],
-      DESCRIPTION: 'Catalogs for the Marvel Universe',
+      DESCRIPTION: 'Catalogs to accurately track new / popular / best release!',
       OPTIONS: options,
       SUPPORTED_STREAM_TYPES: [],
       SUPPORTED_RESOURCES: supportedResources,
@@ -73,6 +58,11 @@ export class MarvelPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Promise<Addon[]> {
+    if (!userData.rpdbApiKey) {
+      throw new Error(
+        `${this.METADATA.NAME} requires an RPDB API Key. Please provide one in the services section`
+      );
+    }
     return [this.generateAddon(userData, options)];
   }
 
@@ -80,14 +70,10 @@ export class MarvelPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Addon {
-    const config =
-      options.catalogs.length !== this.catalogs.length
-        ? options.catalogs.join('%2C')
-        : '';
     return {
       name: options.name || this.METADATA.NAME,
       identifyingName: options.name || this.METADATA.NAME,
-      manifestUrl: `${Env.MARVEL_UNIVERSE_URL}/${config ? 'catalog/' + config + '/' : ''}manifest.json`,
+      manifestUrl: `${Env.RPDB_CATALOGS_URL}/${userData.rpdbApiKey}/poster-default/${options.catalogs.join('_')}/manifest.json`,
       enabled: true,
       library: false,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

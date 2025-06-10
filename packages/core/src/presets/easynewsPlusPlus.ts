@@ -22,7 +22,7 @@ class EasynewsPlusPlusParser extends EasynewsParser {
     return (
       langs
         ?.split(',')
-        .map((lang) => this.convertISO6392ToLanguage(lang))
+        ?.map((lang) => this.convertISO6392ToLanguage(lang.trim()))
         .filter((lang) => lang !== undefined) || []
     );
   }

@@ -1,5 +1,5 @@
 import { Stream, ParsedStream, Addon } from '../db';
-import { constants, createLogger, LANGUAGE_EMOJI_MAPPING } from '../utils';
+import { constants, createLogger, FULL_LANGUAGE_MAPPING } from '../utils';
 import FileParser from './file';
 const logger = createLogger('parser');
 class StreamParser {
@@ -378,24 +378,31 @@ class StreamParser {
       ...(descriptionMatches ? [...new Set(descriptionMatches)] : []),
       ...(nameMatches ? [...new Set(nameMatches)] : []),
     ];
-    const languages = flags.map((flag) => {
-      const language = Object.entries(LANGUAGE_EMOJI_MAPPING).find(
-        ([_, value]) => value === flag
-      )?.[0];
-      return language
-        ? language.charAt(0).toUpperCase() + language.slice(1)
-        : undefined;
-    });
-    return languages.filter((language) => language !== undefined);
+    const languages = flags
+      .map((flag) => {
+        const possibleLanguages = FULL_LANGUAGE_MAPPING.filter(
+          (language) => language.flag === flag
+        );
+
+        const language = (
+          possibleLanguages.find((l) => l.flag_priority) || possibleLanguages[0]
+        ).english_name
+          ?.split('(')?.[0]
+          ?.trim();
+        if (language && constants.LANGUAGES.includes(language as any)) {
+          return language;
+        }
+        return undefined;
+      })
+      .filter((language) => language !== undefined);
+    return languages;
   }
 
   protected convertISO6392ToLanguage(code: string): string | undefined {
-    const language = Object.entries(constants.ISO_639_2_LANGUAGE_MAPPING).find(
-      ([_, value]) => value === code
-    )?.[0];
-    return language
-      ? language.charAt(0).toUpperCase() + language.slice(1)
-      : undefined;
+    const lang = FULL_LANGUAGE_MAPPING.find(
+      (language) => language.iso_639_2 === code
+    );
+    return lang?.english_name?.split('(')?.[0]?.trim();
   }
 
   protected getInLibrary(

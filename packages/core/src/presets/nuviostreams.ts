@@ -145,7 +145,7 @@ export class NuvioStreamsPreset extends Preset {
       ID: 'nuvio-streams',
       NAME: 'Nuvio Streams',
       LOGO: 'https://raw.githubusercontent.com/tapframe/NuvioStreaming/main/assets/titlelogo.png',
-      URL: Env.DEFAULT_NUVIOSTREAMS_URL,
+      URL: Env.NUVIOSTREAMS_URL,
       TIMEOUT: Env.DEFAULT_NUVIOSTREAMS_TIMEOUT || Env.DEFAULT_TIMEOUT,
       USER_AGENT: Env.DEFAULT_NUVIOSTREAMS_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: [],

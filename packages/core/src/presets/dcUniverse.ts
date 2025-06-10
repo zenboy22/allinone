@@ -2,31 +2,55 @@ import { Addon, Option, UserData } from '../db';
 import { Preset, baseOptions } from './preset';
 import { constants, Env } from '../utils';
 
-export class MarvelPreset extends Preset {
+export class DcUniversePreset extends Preset {
+  // dc-batman-animations%2C
+  // dc-superman-animations%2C
+  // dc-batman%2C
+  // dc-superman
   private static catalogs = [
     {
-      label: 'MCU Chronological Order',
-      value: 'marvel-mcu',
+      label: 'DC Chronological Order',
+      value: 'dc-chronological',
     },
     {
-      label: 'MCU Release Order',
-      value: 'release-order',
+      label: 'DC Release Order',
+      value: 'dc-release',
     },
     {
-      label: 'X-Men Chronological Order',
-      value: 'xmen',
+      label: 'Movies',
+      value: 'dc-movies',
     },
     {
-      label: 'Marvel Movies',
-      value: 'movies',
+      label: 'DCEU Movies',
+      value: 'dceu_movies',
     },
     {
-      label: 'Marvel TV Shows',
-      value: 'series',
+      label: 'Series',
+      value: 'dc-series',
     },
     {
-      label: 'Marvel Animated Series',
-      value: 'animations',
+      label: 'DC Modern Series',
+      value: 'dc_modern_series',
+    },
+    {
+      label: 'Animations',
+      value: 'dc-animations',
+    },
+    {
+      label: 'Batman Animations',
+      value: 'dc-batman-animations',
+    },
+    {
+      label: 'Superman Animations',
+      value: 'dc-superman-animations',
+    },
+    {
+      label: 'Batman Collection',
+      value: 'dc-batman',
+    },
+    {
+      label: 'Superman Collection',
+      value: 'dc-superman',
     },
   ];
   static override get METADATA() {
@@ -37,9 +61,9 @@ export class MarvelPreset extends Preset {
 
     const options: Option[] = [
       ...baseOptions(
-        'Marvel Universe',
+        'DC Universe',
         supportedResources,
-        Env.DEFAULT_MARVEL_CATALOG_TIMEOUT
+        Env.DEFAULT_DC_UNIVERSE_TIMEOUT
       ).filter((option) => option.id !== 'url'),
       // series movies animations xmen release-order marvel-mcu
       {
@@ -54,15 +78,15 @@ export class MarvelPreset extends Preset {
     ];
 
     return {
-      ID: 'marvel-universe',
-      NAME: 'Marvel Universe',
-      LOGO: 'https://upload.wikimedia.org/wikipedia/commons/b/b9/Marvel_Logo.svg',
-      URL: Env.MARVEL_UNIVERSE_URL,
-      TIMEOUT: Env.DEFAULT_MARVEL_CATALOG_TIMEOUT || Env.DEFAULT_TIMEOUT,
-      USER_AGENT:
-        Env.DEFAULT_MARVEL_CATALOG_USER_AGENT || Env.DEFAULT_USER_AGENT,
+      ID: 'dc-universe',
+      NAME: 'DC Universe',
+      LOGO: 'https://raw.githubusercontent.com/tapframe/addon-dc/refs/heads/main/assets/icon.png',
+      URL: Env.DC_UNIVERSE_URL,
+      TIMEOUT: Env.DEFAULT_DC_UNIVERSE_TIMEOUT || Env.DEFAULT_TIMEOUT,
+      USER_AGENT: Env.DEFAULT_DC_UNIVERSE_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: [],
-      DESCRIPTION: 'Catalogs for the Marvel Universe',
+      DESCRIPTION:
+        'Explore the DC Universe by release date, movies, series, and animations!',
       OPTIONS: options,
       SUPPORTED_STREAM_TYPES: [],
       SUPPORTED_RESOURCES: supportedResources,
@@ -87,7 +111,7 @@ export class MarvelPreset extends Preset {
     return {
       name: options.name || this.METADATA.NAME,
       identifyingName: options.name || this.METADATA.NAME,
-      manifestUrl: `${Env.MARVEL_UNIVERSE_URL}/${config ? 'catalog/' + config + '/' : ''}manifest.json`,
+      manifestUrl: `${Env.DC_UNIVERSE_URL}/${config ? 'catalog/' + config + '/' : ''}manifest.json`,
       enabled: true,
       library: false,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

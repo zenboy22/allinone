@@ -186,7 +186,7 @@ function Content() {
                 rel="noopener noreferrer"
                 className="group flex flex-col gap-2 p-4 rounded-lg bg-gray-900/40 hover:bg-gray-900/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
               >
-                <div className="flex items-center gap-2 text-md group-hover:text-[--brand]">
+                <div className="flex items-center gap-2 text-[--brand] group-hover:underline">
                   <BookOpenIcon className="w-5 h-5" />
                   <span className="font-semibold">Configuration Guide</span>
                 </div>
@@ -202,7 +202,7 @@ function Content() {
                 rel="noopener noreferrer"
                 className="group flex flex-col gap-2 p-4 rounded-lg bg-gray-900/40 hover:bg-gray-900/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
               >
-                <div className="flex items-center gap-2 text-md group-hover:text-[--brand]">
+                <div className="flex items-center gap-2 text-[--brand] group-hover:underline">
                   <BookOpenIcon className="w-5 h-5" />
                   <span className="font-semibold">Wiki</span>
                 </div>
@@ -218,7 +218,7 @@ function Content() {
                 rel="noopener noreferrer"
                 className="group flex flex-col gap-2 p-4 rounded-lg bg-gray-900/40 hover:bg-gray-900/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
               >
-                <div className="flex items-center gap-2 text-md group-hover:text-[--brand]">
+                <div className="flex items-center gap-2 text-[--brand] group-hover:underline">
                   <InfoIcon className="w-5 h-5" />
                   <span className="font-semibold">Stremio Guide</span>
                 </div>

@@ -2,30 +2,29 @@ import { Addon, Option, UserData } from '../db';
 import { Preset, baseOptions } from './preset';
 import { constants, Env } from '../utils';
 
-export class AnimeKitsuPreset extends Preset {
+export class TorrentCatalogsPreset extends Preset {
   static override get METADATA() {
-    const supportedResources = [
-      constants.CATALOG_RESOURCE,
-      constants.META_RESOURCE,
-    ];
+    const supportedResources = [constants.CATALOG_RESOURCE];
 
     const options: Option[] = [
       ...baseOptions(
-        'Anime Kitsu',
+        'Torrent Catalogs',
         supportedResources,
-        Env.DEFAULT_ANIME_KITSU_TIMEOUT
-      ),
+        Env.DEFAULT_TORRENT_CATALOGS_TIMEOUT
+      ).filter((option) => option.id !== 'url'),
     ];
 
     return {
-      ID: 'anime-kitsu',
-      NAME: 'Anime Kitsu',
-      LOGO: 'https://i.imgur.com/7N6XGoO.png',
-      URL: Env.ANIME_KITSU_URL,
-      TIMEOUT: Env.DEFAULT_ANIME_KITSU_TIMEOUT || Env.DEFAULT_TIMEOUT,
-      USER_AGENT: Env.DEFAULT_ANIME_KITSU_USER_AGENT || Env.DEFAULT_USER_AGENT,
+      ID: 'torrent-catalogs',
+      NAME: 'Torrent Catalogs',
+      LOGO: 'https://i.ibb.co/w4BnkC9/GwxAcDV.png',
+      URL: Env.TORRENT_CATALOGS_URL,
+      TIMEOUT: Env.DEFAULT_TORRENT_CATALOGS_TIMEOUT || Env.DEFAULT_TIMEOUT,
+      USER_AGENT:
+        Env.DEFAULT_TORRENT_CATALOGS_USER_AGENT || Env.DEFAULT_USER_AGENT,
       SUPPORTED_SERVICES: [],
-      DESCRIPTION: 'Anime catalog using Kitsu',
+      DESCRIPTION:
+        'Provides catalogs for movies/series/anime based on top seeded torrents. Requires Kitsu addon for anime.',
       OPTIONS: options,
       SUPPORTED_STREAM_TYPES: [],
       SUPPORTED_RESOURCES: supportedResources,
@@ -43,13 +42,10 @@ export class AnimeKitsuPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Addon {
-    const baseUrl = options.url
-      ? new URL(options.url).origin
-      : Env.ANIME_KITSU_URL;
     return {
       name: options.name || this.METADATA.NAME,
       identifyingName: options.name || this.METADATA.NAME,
-      manifestUrl: `${baseUrl}/manifest.json`,
+      manifestUrl: `${Env.TORRENT_CATALOGS_URL}/manifest.json`,
       enabled: true,
       library: false,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

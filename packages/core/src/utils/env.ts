@@ -772,6 +772,58 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default Debridio user agent',
   }),
 
+  DEBRIDIO_TVDB_URL: url({
+    default: 'https://tvdb-addon.debridio.com',
+    desc: 'Debridio TVDB URL',
+  }),
+  DEFAULT_DEBRIDIO_TVDB_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Debridio TVDB timeout',
+  }),
+  DEFAULT_DEBRIDIO_TVDB_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Debridio TVDB user agent',
+  }),
+
+  DEBRIDIO_TMDB_URL: url({
+    default: 'https://tmdb-addon.debridio.com',
+    desc: 'Debridio TMDB URL',
+  }),
+  DEFAULT_DEBRIDIO_TMDB_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Debridio TMDB timeout',
+  }),
+  DEFAULT_DEBRIDIO_TMDB_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Debridio TMDB user agent',
+  }),
+
+  DEBRIDIO_TV_URL: url({
+    default: 'https://tv-addon.debridio.com',
+    desc: 'Debridio TV URL',
+  }),
+  DEFAULT_DEBRIDIO_TV_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Debridio TV timeout',
+  }),
+  DEFAULT_DEBRIDIO_TV_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Debridio TV user agent',
+  }),
+
+  DEBRIDIO_WATCHTOWER_URL: url({
+    default: 'https://wt-addon.debridio.com',
+    desc: 'Debridio Watchtower URL',
+  }),
+  DEFAULT_DEBRIDIO_WATCHTOWER_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Debridio Watchtower timeout',
+  }),
+  DEFAULT_DEBRIDIO_WATCHTOWER_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Debridio Watchtower user agent',
+  }),
+
   // StremThru Store settings
   STREMTHRU_STORE_URL: url({
     default: 'https://stremthru.elfhosted.com/stremio/store',
@@ -840,7 +892,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default OpenSubtitles user agent',
   }),
 
-  DEFAULT_MARVEL_CATALOG_URL: url({
+  MARVEL_UNIVERSE_URL: url({
     default: 'https://addon-marvel.onrender.com',
     desc: 'Default Marvel catalog URL',
   }),
@@ -853,7 +905,33 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default Marvel user agent',
   }),
 
-  DEFAULT_ANIME_KITSU_URL: url({
+  DC_UNIVERSE_URL: url({
+    default: 'https://addon-dc-cq85.onrender.com',
+    desc: 'Default DC Universe catalog URL',
+  }),
+  DEFAULT_DC_UNIVERSE_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default DC Universe timeout',
+  }),
+  DEFAULT_DC_UNIVERSE_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default DC Universe user agent',
+  }),
+
+  DEFAULT_STAR_WARS_UNIVERSE_URL: url({
+    default: 'https://addon-star-wars-u9e3.onrender.com',
+    desc: 'Default Star Wars Universe catalog URL',
+  }),
+  DEFAULT_STAR_WARS_UNIVERSE_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Star Wars Universe timeout',
+  }),
+  DEFAULT_STAR_WARS_UNIVERSE_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Star Wars Universe user agent',
+  }),
+
+  ANIME_KITSU_URL: url({
     default: 'https://anime-kitsu.strem.fun',
     desc: 'Anime Kitsu URL',
   }),
@@ -866,7 +944,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default Anime Kitsu user agent',
   }),
 
-  DEFAULT_NUVIOSTREAMS_URL: url({
+  NUVIOSTREAMS_URL: url({
     default: 'https://nuviostreams.hayd.uk',
     desc: 'NuvioStreams URL',
   }),
@@ -877,6 +955,45 @@ export const Env = cleanEnv(process.env, {
   DEFAULT_NUVIOSTREAMS_USER_AGENT: userAgent({
     default: undefined,
     desc: 'Default NuvioStreams user agent',
+  }),
+
+  TORRENT_CATALOGS_URL: url({
+    default: 'https://torrent-catalogs.strem.fun',
+    desc: 'Default Torrent Catalogs URL',
+  }),
+  DEFAULT_TORRENT_CATALOGS_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Torrent Catalogs timeout',
+  }),
+  DEFAULT_TORRENT_CATALOGS_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Torrent Catalogs user agent',
+  }),
+
+  TMDB_COLLECTIONS_URL: url({
+    default: 'https://61ab9c85a149-tmdb-collections.baby-beamup.club',
+    desc: 'Default TMDB Collections URL',
+  }),
+  DEFAULT_TMDB_COLLECTIONS_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default TMDB Collections timeout',
+  }),
+  DEFAULT_TMDB_COLLECTIONS_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default TMDB Collections user agent',
+  }),
+
+  RPDB_CATALOGS_URL: url({
+    default: 'https://1fe84bc728af-rpdb.baby-beamup.club',
+    desc: 'Default RPDB Catalogs URL',
+  }),
+  DEFAULT_RPDB_CATALOGS_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default RPDB Catalogs timeout',
+  }),
+  DEFAULT_RPDB_CATALOGS_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default RPDB Catalogs user agent',
   }),
 
   // Rate limiting settings
@@ -934,7 +1051,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Time window for Stremio catalog rate limiting in seconds',
   }),
   STREMIO_CATALOG_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 10, // allow 100 requests per IP per minute
+    default: 20, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
 });
