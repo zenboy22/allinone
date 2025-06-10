@@ -24,6 +24,7 @@ import {
   userDataMiddleware,
   errorMiddleware,
   corsMiddleware,
+  staticRateLimiter,
 } from './middlewares';
 
 import { constants, createLogger, Env } from '@aiostreams/core';
@@ -32,6 +33,8 @@ import { createResponse } from './utils/responses';
 import path from 'path';
 const app = express();
 const logger = createLogger('server');
+
+export const frontendRoot = path.join(__dirname, '../../frontend/out');
 
 app.use(ipMiddleware);
 app.use(loggerMiddleware);
@@ -55,7 +58,7 @@ stremioRouter.use('/manifest.json', manifest);
 stremioRouter.use('/stream', stream);
 stremioRouter.use('/configure', configure);
 stremioRouter.use('/configure.txt', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/out/index.txt'));
+  res.sendFile(path.join(frontendRoot, 'index.txt'));
 });
 
 stremioRouter.use('/u', alias);
@@ -67,8 +70,8 @@ stremioAuthRouter.use(userDataMiddleware);
 stremioAuthRouter.use('/manifest.json', manifest);
 stremioAuthRouter.use('/stream', stream);
 stremioAuthRouter.use('/configure', configure);
-stremioAuthRouter.use('/configure.txt', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/out/index.txt'));
+stremioAuthRouter.use('/configure.txt', staticRateLimiter, (req, res) => {
+  res.sendFile(path.join(frontendRoot, 'index.txt'));
 });
 stremioAuthRouter.use('/meta', meta);
 stremioAuthRouter.use('/catalog', catalog);
@@ -78,9 +81,18 @@ stremioAuthRouter.use('/addon_catalog', addonCatalog);
 app.use('/stremio', stremioRouter); // For public routes
 app.use('/stremio/:uuid/:encryptedPassword', stremioAuthRouter); // For authenticated routes
 
-app.get(['/_next/*', '/assets/*', '/favicon.ico', '/logo.png'], (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/out', req.path));
-});
+app.get(
+  ['/_next/*', '/assets/*', '/favicon.ico', '/logo.png'],
+  staticRateLimiter,
+  (req, res, next) => {
+    const filePath = path.resolve(frontendRoot, req.path.replace(/^\//, ''));
+    if (filePath.startsWith(frontendRoot)) {
+      res.sendFile(filePath);
+      return;
+    }
+    next();
+  }
+);
 
 app.get('/', (req, res) => {
   res.redirect('/stremio/configure');

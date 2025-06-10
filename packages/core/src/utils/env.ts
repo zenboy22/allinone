@@ -1007,7 +1007,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Time window for static file serving rate limiting in seconds',
   }),
   STATIC_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 10, // allow 100 requests per IP per minute
+    default: 100, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
   USER_API_RATE_LIMIT_WINDOW: num({
