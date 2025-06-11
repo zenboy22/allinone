@@ -586,10 +586,6 @@ export const Env = cleanEnv(process.env, {
     default: undefined,
     desc: 'Default MediaFusion timeout',
   }),
-  MEDIAFUSION_CONFIG_TIMEOUT: num({
-    default: 5000,
-    desc: 'MediaFusion config timeout',
-  }),
   DEFAULT_MEDIAFUSION_USER_AGENT: userAgent({
     default: undefined,
     desc: 'Default MediaFusion user agent',
@@ -629,32 +625,6 @@ export const Env = cleanEnv(process.env, {
     default: undefined,
     desc: 'Default Jackettio user agent',
   }),
-
-  // Stremio Jackett settings
-  // STREMIO_JACKETT_URL: url({
-  //   default: 'https://stremio-jackett.elfhosted.com',
-  //   desc: 'Stremio Jackett URL',
-  // }),
-  // DEFAULT_STREMIO_JACKETT_JACKETT_URL: url({
-  //   default: undefined,
-  //   desc: 'Default Stremio Jackett Jackett URL',
-  // }),
-  // DEFAULT_STREMIO_JACKETT_JACKETT_API_KEY: str({
-  //   default: undefined,
-  //   desc: 'Default Stremio Jackett Jackett API key',
-  // }),
-  // DEFAULT_STREMIO_JACKETT_TMDB_API_KEY: str({
-  //   default: undefined,
-  //   desc: 'Default Stremio Jackett TMDB API key',
-  // }),
-  // DEFAULT_STREMIO_JACKETT_TIMEOUT: num({
-  //   default: undefined,
-  //   desc: 'Default Stremio Jackett timeout',
-  // }),
-  // DEFAULT_STREMIO_JACKETT_USER_AGENT: userAgent({
-  //   default: undefined,
-  //   desc: 'Default Stremio Jackett user agent',
-  // }),
 
   // Torrentio settings
   TORRENTIO_URL: url({
