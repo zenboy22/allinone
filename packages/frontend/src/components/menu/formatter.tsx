@@ -350,6 +350,15 @@ function Content() {
             >
               wiki
             </a>
+            . You can also check the definitions of the predefined formatters{' '}
+            <a
+              href="https://github.com/Viren070/AIOStreams/blob/main/packages/core/src/formatters/predefined.ts"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[--brand] hover:text-[--brand]/80 hover:underline"
+            >
+              here
+            </a>
             .
           </div>
           <div className="space-y-4">

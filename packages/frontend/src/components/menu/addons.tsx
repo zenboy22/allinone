@@ -953,10 +953,25 @@ function AddonGroupCard() {
   return (
     <SettingsCard
       title="Groups"
-      description="Optionally assign your addons to groups. Streams are only fetched from your first group initially,
-and only if a certain condition is met, will streams be fetched from the next group, and so on. Leaving this blank will mean streams are 
-fetched from all addons."
+      //       description="Optionally assign your addons to groups. Streams are only fetched from your first group initially,
+      // and only if a certain condition is met, will streams be fetched from the next group, and so on. Leaving this blank will mean streams are
+      // fetched from all addons. For a guide and a reference to the group system,"
     >
+      <div className="text-sm text-[--muted] mb-2">
+        Optionally assign your addons to groups. Streams are only fetched from
+        your first group initially, and only if a certain condition is met, will
+        streams be fetched from the next group, and so on. Leaving this blank
+        will mean streams are fetched from all addons. You can also check the{' '}
+        <a
+          href="https://github.com/Viren070/AIOStreams/wiki/Groups"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[--brand] hover:text-[--brand]/80 hover:underline"
+        >
+          wiki
+        </a>
+        for a detailed guide to using groups.
+      </div>
       {(userData.groups || []).map((group, index) => (
         <div key={index} className="flex gap-2">
           <div className="flex-1 flex gap-2">
