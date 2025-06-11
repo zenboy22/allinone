@@ -226,7 +226,7 @@ function Content() {
               value={selectedProxyId}
               onValueChange={handleProxyServiceChange}
               options={proxyOptions}
-              disabled={isIdForced}
+              disabled={isIdForced || !proxyEnabled}
             />
             {selectedProxyDetails && (
               <p className="text-[--muted] text-sm">
@@ -242,7 +242,7 @@ function Content() {
               type="password"
               onValueChange={handleUrlChange}
               placeholder="Enter proxy URL"
-              disabled={isUrlForced}
+              disabled={isUrlForced || !proxyEnabled}
             />
             <p className="text-[--muted] text-sm">
               The URL of your hosted proxy service.
@@ -256,7 +256,7 @@ function Content() {
               value={proxyCredentials}
               onValueChange={handleCredentialsChange}
               placeholder="Enter proxy credentials"
-              disabled={isCredentialsForced}
+              disabled={isCredentialsForced || !proxyEnabled}
             />
             {selectedProxyDetails && (
               <p className="text-[--muted] text-sm">
@@ -280,7 +280,7 @@ function Content() {
               options={serviceOptions}
               placeholder="Select services to proxy"
               multiple={true}
-              disabled={isServicesForced}
+              disabled={isServicesForced || !proxyEnabled}
               emptyMessage="No services available"
             />
             <p className="text-[--muted] text-sm">
@@ -298,7 +298,7 @@ function Content() {
               options={addonOptions}
               placeholder="Select addons to proxy"
               multiple={true}
-              disabled={isProxiedAddonsDisabled}
+              disabled={isProxiedAddonsDisabled || !proxyEnabled}
               emptyMessage="No addons available"
             />
             <p className="text-[--muted] text-sm">

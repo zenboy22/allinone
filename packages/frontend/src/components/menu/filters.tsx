@@ -1655,6 +1655,7 @@ function Content() {
 
                 <SettingsCard>
                   <Combobox
+                    disabled={!userData.deduplicator?.enabled}
                     label="Detection Methods"
                     multiple
                     help="Select the methods used to detect duplicates"
@@ -1706,6 +1707,7 @@ function Content() {
                     </div>
                   </div>
                   <Select
+                    disabled={!userData.deduplicator?.enabled}
                     label="Cached Results"
                     value={userData.deduplicator?.cached ?? 'disabled'}
                     options={[
@@ -1730,6 +1732,7 @@ function Content() {
                   />
 
                   <Select
+                    disabled={!userData.deduplicator?.enabled}
                     label="Uncached Results"
                     value={userData.deduplicator?.uncached ?? 'disabled'}
                     options={[
@@ -1754,6 +1757,7 @@ function Content() {
                   />
 
                   <Select
+                    disabled={!userData.deduplicator?.enabled}
                     label="P2P Results"
                     value={userData.deduplicator?.p2p ?? 'disabled'}
                     options={[
@@ -1957,7 +1961,7 @@ function FilterSettings<T extends string>({
           <div>
             <Combobox
               label={`Preferred ${filterName}`}
-              help={`Set preferred ${filterName.toLowerCase()} and control its order. This is used if the relevant sort criterion is enabled in the Sorting section.`}
+              help={`Set preferred ${filterName.toLowerCase()} and control its order below. This is used if the relevant sort criterion is enabled in the Sorting section.`}
               value={preferred}
               onValueChange={(values) => {
                 setPreferred(values as T[]);
