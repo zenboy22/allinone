@@ -1214,11 +1214,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       // is requested season present
       if (
-        (requestedSeason &&
-          stream.parsedFile?.season &&
+        requestedSeason &&
+        ((stream.parsedFile?.season &&
           stream.parsedFile.season !== requestedSeason) ||
-        (stream.parsedFile?.seasons &&
-          !stream.parsedFile.seasons.includes(requestedSeason))
+          (stream.parsedFile?.seasons &&
+            !stream.parsedFile.seasons.includes(requestedSeason)))
       ) {
         return false;
       }
