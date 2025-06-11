@@ -148,13 +148,13 @@ function Content() {
   // Keep userData in sync with custom formatter fields
   useEffect(() => {
     if (selectedFormatter === constants.CUSTOM_FORMATTER) {
-      setUserData({
-        ...userData,
+      setUserData((prev) => ({
+        ...prev,
         formatter: {
           id: constants.CUSTOM_FORMATTER,
           definition: { name: customName, description: customDescription },
         },
-      });
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customName, customDescription, selectedFormatter]);
@@ -165,8 +165,8 @@ function Content() {
       setCustomName(userData.formatter?.definition?.name || '');
       setCustomDescription(userData.formatter?.definition?.description || '');
     }
-    setUserData({
-      ...userData,
+    setUserData((prev) => ({
+      ...prev,
       formatter: {
         id: value as constants.FormatterType,
         definition:
@@ -177,7 +177,7 @@ function Content() {
               }
             : undefined,
       },
-    });
+    }));
   };
 
   const formatStream = useCallback(async () => {

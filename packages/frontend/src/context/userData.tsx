@@ -42,9 +42,7 @@ const DefaultUserData: UserData = {
 
 interface UserDataContextType {
   userData: UserData;
-  setUserData: (
-    data: UserData | null | ((prev: UserData) => UserData | null)
-  ) => void;
+  setUserData: (data: ((prev: UserData) => UserData | null) | null) => void;
   uuid: string | null;
   setUuid: (uuid: string | null) => void;
   password: string | null;
@@ -66,17 +64,15 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
   >(null);
 
   const safeSetUserData = (
-    data: UserData | null | ((prev: UserData) => UserData | null)
+    data: ((prev: UserData) => UserData | null) | null
   ) => {
-    if (typeof data === 'function') {
-      setUserData((prev) => {
-        const result = (data as (prev: UserData) => UserData | null)(prev);
-        return result === null ? DefaultUserData : result;
-      });
-    } else if (data === null) {
+    if (data === null) {
       setUserData(DefaultUserData);
     } else {
-      setUserData(data);
+      setUserData((prev) => {
+        const result = data(prev);
+        return result === null ? DefaultUserData : result;
+      });
     }
   };
 

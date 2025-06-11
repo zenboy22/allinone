@@ -1085,7 +1085,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       details: Record<string, number>;
     }
     const skipReasons: Record<string, SkipReason> = {
-      strictTitleMatching: { total: 0, details: {} },
+      titleMatching: { total: 0, details: {} },
+      seasonEpisodeMatching: { total: 0, details: {} },
       excludedStreamType: { total: 0, details: {} },
       requiredStreamType: { total: 0, details: {} },
       excludedResolution: { total: 0, details: {} },
@@ -1117,7 +1118,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     const isRegexAllowed = FeatureControl.isRegexAllowed(this.userData);
 
     let titles: string[] = [];
-    if (this.userData.strictTitleMatch && TYPES.includes(type as any)) {
+    if (this.userData.titleMatching && TYPES.includes(type as any)) {
       try {
         titles = await new TMDBMetadata().getTitles(id, type as any);
         logger.info(`Found ${titles.length} titles for ${id}`, { titles });
@@ -1126,8 +1127,15 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       }
     }
 
+    const normaliseTitle = (title: string) => {
+      return title
+        .replace(/[^\p{L}\p{N}+]/gu, '')
+        .replace(/\s+/g, '')
+        .toLowerCase();
+    };
+
     const performTitleMatch = (stream: ParsedStream) => {
-      const titleMatchingOptions = this.userData.strictTitleMatch;
+      const titleMatchingOptions = this.userData.titleMatching;
       if (!titleMatchingOptions || !titleMatchingOptions.enabled) {
         return true;
       }
@@ -1155,17 +1163,76 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return true;
       }
 
-      return titles.some(
-        (title) =>
-          title
-            .replace(/[^\p{L}\p{N}+]/gu, '')
-            .replace(/\s+/g, '')
-            .toLowerCase() ===
-          streamTitle
-            .replace(/[^\p{L}\p{N}+]/gu, '')
-            .replace(/\s+/g, '')
-            .toLowerCase()
-      );
+      if (titleMatchingOptions.mode === 'exact') {
+        // the stream title should be an exact match of a valid title
+        return titles.some(
+          (title) => normaliseTitle(title) === normaliseTitle(streamTitle)
+        );
+      } else {
+        // a valid title should be present somewhere in the stream title
+        const valid = titles.some((title) =>
+          normaliseTitle(streamTitle).includes(normaliseTitle(title))
+        );
+        return valid;
+      }
+    };
+
+    const performSeasonEpisodeMatch = (stream: ParsedStream) => {
+      const seasonEpisodeMatchingOptions = this.userData.seasonEpisodeMatching;
+      if (
+        !seasonEpisodeMatchingOptions ||
+        !seasonEpisodeMatchingOptions.enabled
+      ) {
+        return true;
+      }
+
+      // parse the id to get the season and episode
+      const seasonEpisodeRegex = /:(\d+):(\d+)$/;
+      const match = id.match(seasonEpisodeRegex);
+
+      if (!match || !match[1] || !match[2]) {
+        // only if both season and episode are present, we can filter
+        return true;
+      }
+
+      const requestedSeason = parseInt(match[1]);
+      const requestedEpisode = parseInt(match[2]);
+
+      if (
+        seasonEpisodeMatchingOptions.requestTypes?.length &&
+        !seasonEpisodeMatchingOptions.requestTypes.includes(type)
+      ) {
+        return true;
+      }
+
+      if (
+        seasonEpisodeMatchingOptions.addons?.length &&
+        !seasonEpisodeMatchingOptions.addons.includes(stream.addon.id!)
+      ) {
+        return true;
+      }
+
+      // is requested season present
+      if (
+        (requestedSeason &&
+          stream.parsedFile?.season &&
+          stream.parsedFile.season !== requestedSeason) ||
+        (stream.parsedFile?.seasons &&
+          !stream.parsedFile.seasons.includes(requestedSeason))
+      ) {
+        return false;
+      }
+
+      // is requested episode present
+      if (
+        requestedEpisode &&
+        stream.parsedFile?.episode &&
+        stream.parsedFile.episode !== requestedEpisode
+      ) {
+        return false;
+      }
+
+      return true;
     };
 
     const excludedRegexPatterns =
@@ -1731,13 +1798,25 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       }
 
       if (!performTitleMatch(stream)) {
-        skipReasons.strictTitleMatching.total++;
-        skipReasons.strictTitleMatching.details[
+        skipReasons.titleMatching.total++;
+        skipReasons.titleMatching.details[
           stream.parsedFile?.title || 'Unknown'
         ] =
-          (skipReasons.strictTitleMatching.details[
+          (skipReasons.titleMatching.details[
             stream.parsedFile?.title || 'Unknown'
           ] || 0) + 1;
+        return false;
+      }
+
+      if (!performSeasonEpisodeMatch(stream)) {
+        const detail =
+          stream.parsedFile?.title +
+          ' ' +
+          (stream.parsedFile?.seasonEpisode?.join(' x ') || 'Unknown');
+
+        skipReasons.seasonEpisodeMatching.total++;
+        skipReasons.seasonEpisodeMatching.details[detail] =
+          (skipReasons.seasonEpisodeMatching.details[detail] || 0) + 1;
         return false;
       }
 

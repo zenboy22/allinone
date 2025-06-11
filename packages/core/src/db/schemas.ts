@@ -331,7 +331,15 @@ export const UserDataSchema = z.object({
   hideErrors: z.boolean().optional(),
   hideErrorsForResources: z.array(ResourceSchema).optional(),
   tmdbAccessToken: z.string().optional(),
-  strictTitleMatch: z
+  titleMatching: z
+    .object({
+      mode: z.enum(['exact', 'contains']).optional(),
+      enabled: z.boolean().optional(),
+      requestTypes: z.array(z.string()).optional(),
+      addons: z.array(z.string()).optional(),
+    })
+    .optional(),
+  seasonEpisodeMatching: z
     .object({
       enabled: z.boolean().optional(),
       requestTypes: z.array(z.string()).optional(),

@@ -39,7 +39,10 @@ export function ConfigModal({
         return;
       }
 
-      setUserData(result.data.config);
+      setUserData((prev) => ({
+        ...prev,
+        ...result.data!.config, // we just checked that this is not null
+      }));
       setUuid(uuid);
       setPassword(password);
       setEncryptedPassword(result.data.encryptedPassword);

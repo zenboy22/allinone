@@ -40,10 +40,10 @@ function Content() {
             side="right"
             value={userData.hideErrors}
             onValueChange={(value) => {
-              setUserData({
-                ...userData,
+              setUserData((prev) => ({
+                ...prev,
                 hideErrors: value,
-              });
+              }));
             }}
           />
           <Combobox
@@ -57,10 +57,10 @@ function Content() {
             emptyMessage="No resources found"
             value={userData.hideErrorsForResources}
             onValueChange={(value) => {
-              setUserData({
-                ...userData,
+              setUserData((prev) => ({
+                ...prev,
                 hideErrorsForResources: value as (typeof RESOURCES)[number][],
-              });
+              }));
             }}
           />
         </SettingsCard>
@@ -73,10 +73,10 @@ function Content() {
             side="right"
             value={userData.precacheNextEpisode}
             onValueChange={(value) => {
-              setUserData({
-                ...userData,
+              setUserData((prev) => ({
+                ...prev,
                 precacheNextEpisode: value,
-              });
+              }));
             }}
           />
         </SettingsCard>

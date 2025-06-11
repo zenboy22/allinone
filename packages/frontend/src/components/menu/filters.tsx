@@ -15,6 +15,7 @@ import {
   FaRegTrashAlt,
   FaFileExport,
   FaFileImport,
+  FaEquals,
 } from 'react-icons/fa';
 import { FaTextSlash } from 'react-icons/fa6';
 import {
@@ -267,9 +268,9 @@ function Content() {
                 <MdPerson className="text-lg mr-3" />
                 Seeders
               </TabsTrigger>
-              <TabsTrigger value="strict-title-matching">
-                <FaTextSlash className="text-lg mr-3" />
-                Strict Title Matching
+              <TabsTrigger value="title-matching">
+                <FaEquals className="text-lg mr-3" />
+                Matching
               </TabsTrigger>
               <TabsTrigger value="keyword">
                 <FaTextSlash className="text-lg mr-3" />
@@ -523,28 +524,28 @@ function Content() {
                 excludedOptions={userData.excludedResolutions || []}
                 includedOptions={userData.includedResolutions || []}
                 onPreferredChange={(preferred) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     preferredResolutions: preferred,
-                  });
+                  }));
                 }}
                 onRequiredChange={(required) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     requiredResolutions: required,
-                  });
+                  }));
                 }}
                 onExcludedChange={(excluded) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     excludedResolutions: excluded,
-                  });
+                  }));
                 }}
                 onIncludedChange={(included) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     includedResolutions: included,
-                  });
+                  }));
                 }}
                 options={RESOLUTIONS.map((resolution) => ({
                   name: resolution,
@@ -565,28 +566,28 @@ function Content() {
                 excludedOptions={userData.excludedQualities || []}
                 includedOptions={userData.includedQualities || []}
                 onPreferredChange={(preferred) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     preferredQualities: preferred,
-                  });
+                  }));
                 }}
                 onRequiredChange={(required) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     requiredQualities: required,
-                  });
+                  }));
                 }}
                 onExcludedChange={(excluded) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     excludedQualities: excluded,
-                  });
+                  }));
                 }}
                 onIncludedChange={(included) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     includedQualities: included,
-                  });
+                  }));
                 }}
                 options={QUALITIES.map((quality) => ({
                   name: quality,
@@ -607,28 +608,28 @@ function Content() {
                 excludedOptions={userData.excludedEncodes || []}
                 includedOptions={userData.includedEncodes || []}
                 onPreferredChange={(preferred) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     preferredEncodes: preferred,
-                  });
+                  }));
                 }}
                 onRequiredChange={(required) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     requiredEncodes: required,
-                  });
+                  }));
                 }}
                 onExcludedChange={(excluded) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     excludedEncodes: excluded,
-                  });
+                  }));
                 }}
                 onIncludedChange={(included) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     includedEncodes: included,
-                  });
+                  }));
                 }}
                 options={ENCODES.map((encode) => ({
                   name: encode,
@@ -649,28 +650,28 @@ function Content() {
                 excludedOptions={userData.excludedStreamTypes || []}
                 includedOptions={userData.includedStreamTypes || []}
                 onPreferredChange={(preferred) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     preferredStreamTypes: preferred,
-                  });
+                  }));
                 }}
                 onRequiredChange={(required) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     requiredStreamTypes: required,
-                  });
+                  }));
                 }}
                 onExcludedChange={(excluded) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     excludedStreamTypes: excluded,
-                  });
+                  }));
                 }}
                 onIncludedChange={(included) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     includedStreamTypes: included,
-                  });
+                  }));
                 }}
                 options={STREAM_TYPES.map((streamType) => ({
                   name: streamType,
@@ -691,28 +692,28 @@ function Content() {
                 excludedOptions={userData.excludedVisualTags || []}
                 includedOptions={userData.includedVisualTags || []}
                 onPreferredChange={(preferred) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     preferredVisualTags: preferred,
-                  });
+                  }));
                 }}
                 onRequiredChange={(required) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     requiredVisualTags: required,
-                  });
+                  }));
                 }}
                 onExcludedChange={(excluded) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     excludedVisualTags: excluded,
-                  });
+                  }));
                 }}
                 onIncludedChange={(included) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     includedVisualTags: included,
-                  });
+                  }));
                 }}
                 options={VISUAL_TAGS.map((visualTag) => ({
                   name: visualTag,
@@ -731,28 +732,28 @@ function Content() {
                 excludedOptions={userData.excludedAudioTags || []}
                 includedOptions={userData.includedAudioTags || []}
                 onPreferredChange={(preferred) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     preferredAudioTags: preferred,
-                  });
+                  }));
                 }}
                 onRequiredChange={(required) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     requiredAudioTags: required,
-                  });
+                  }));
                 }}
                 onExcludedChange={(excluded) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     excludedAudioTags: excluded,
-                  });
+                  }));
                 }}
                 onIncludedChange={(included) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     includedAudioTags: included,
-                  });
+                  }));
                 }}
                 options={AUDIO_TAGS.map((audioTag) => ({
                   name: audioTag,
@@ -771,28 +772,28 @@ function Content() {
                 excludedOptions={userData.excludedAudioChannels || []}
                 includedOptions={userData.includedAudioChannels || []}
                 onPreferredChange={(preferred) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     preferredAudioChannels: preferred,
-                  });
+                  }));
                 }}
                 onRequiredChange={(required) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     requiredAudioChannels: required,
-                  });
+                  }));
                 }}
                 onExcludedChange={(excluded) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     excludedAudioChannels: excluded,
-                  });
+                  }));
                 }}
                 onIncludedChange={(included) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     includedAudioChannels: included,
-                  });
+                  }));
                 }}
                 options={AUDIO_CHANNELS.map((audioChannel) => ({
                   name: audioChannel,
@@ -811,28 +812,28 @@ function Content() {
                 excludedOptions={userData.excludedLanguages || []}
                 includedOptions={userData.includedLanguages || []}
                 onPreferredChange={(preferred) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     preferredLanguages: preferred,
-                  });
+                  }));
                 }}
                 onRequiredChange={(required) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     requiredLanguages: required,
-                  });
+                  }));
                 }}
                 onExcludedChange={(excluded) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     excludedLanguages: excluded,
-                  });
+                  }));
                 }}
                 onIncludedChange={(included) => {
-                  setUserData({
-                    ...userData,
+                  setUserData((prev) => ({
+                    ...prev,
                     includedLanguages: included,
-                  });
+                  }));
                 }}
                 options={LANGUAGES.map((language) => ({
                   name: language
@@ -952,104 +953,203 @@ function Content() {
               </SettingsCard>
             </PageWrapper>
           </TabsContent>
-          <TabsContent value="strict-title-matching" className="space-y-4">
+          <TabsContent value="title-matching" className="space-y-4">
             <PageWrapper>
-              <HeadingWithPageControls heading="Strict Title Matching" />
-              <SettingsCard
-                title="Strict Title Matching"
-                description="Any streams which don't specifically match the requested title will be filtered out. You can optionally choose to only apply it to specific request types and addons"
-              >
-                <Switch
-                  label="Enabled"
-                  side="right"
-                  value={userData.strictTitleMatch?.enabled}
-                  onValueChange={(value) => {
-                    setUserData({
-                      ...userData,
-                      strictTitleMatch: {
-                        ...userData.strictTitleMatch,
-                        enabled: value,
-                      },
-                    });
-                  }}
-                />
+              <HeadingWithPageControls heading="Matching" />
+              <div className="space-y-4">
+                <SettingsCard
+                  title="Title Matching"
+                  description="Any streams which don't specifically match the requested title will be filtered out. You can optionally choose to only apply it to specific request types and addons"
+                >
+                  <Switch
+                    label="Enabled"
+                    side="right"
+                    value={userData.titleMatching?.enabled ?? false}
+                    onValueChange={(value) => {
+                      setUserData((prev) => ({
+                        ...prev,
+                        titleMatching: {
+                          ...(prev.titleMatching || {}),
+                          enabled: value,
+                        },
+                      }));
+                    }}
+                  />
 
-                <TextInput
-                  label="TMDB Access Token"
-                  help={
-                    <>
-                      <p>
-                        A TMDB access token is required to fetch titles from the
-                        TMDB API. You can get it from your{' '}
-                        <a
-                          href="https://www.themoviedb.org/settings/api"
-                          target="_blank"
-                          className="text-[--brand] hover:underline"
-                          rel="noopener noreferrer"
-                        >
-                          TMDB Account Settings
-                        </a>
-                      </p>
-                      <p></p>
-                    </>
-                  }
-                  required={!status?.settings.tmdbApiAvailable}
-                  value={userData.tmdbAccessToken}
-                  type="password"
-                  placeholder="Enter your TMDB access token"
-                  onValueChange={(value) => {
-                    setUserData({
-                      ...userData,
-                      tmdbAccessToken: value,
-                    });
-                  }}
-                />
+                  <Select
+                    disabled={!userData.titleMatching?.enabled}
+                    label="Matching Mode"
+                    options={['exact', 'contains'].map((mode) => ({
+                      label: mode,
+                      value: mode,
+                    }))}
+                    defaultValue="exact"
+                    value={userData.titleMatching?.mode}
+                    help={
+                      userData.titleMatching?.mode === 'contains'
+                        ? "Streams whose detected title doesn't contain the requested title will be excluded"
+                        : "Streams whose detected title doesn't match the requested title exactly will be excluded"
+                    }
+                    onValueChange={(value) => {
+                      setUserData((prev) => ({
+                        ...prev,
+                        titleMatching: {
+                          ...prev.titleMatching,
+                          mode: value as 'exact' | 'contains' | undefined,
+                        },
+                      }));
+                    }}
+                  />
 
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Combobox
-                      label="Request Types"
-                      emptyMessage="There aren't any request types to choose from..."
-                      help="Request types that will use strict title matching. Leave blank to apply to all request types."
-                      options={TYPES.map((type) => ({
-                        label: type,
-                        value: type,
-                        text: type,
-                      }))}
-                      value={userData.strictTitleMatch?.requestTypes}
-                      onValueChange={(value) => {
-                        setUserData({
-                          ...userData,
-                          strictTitleMatch: {
-                            ...userData.strictTitleMatch,
-                            requestTypes: value,
-                          },
-                        });
-                      }}
-                    />
-                    <Combobox
-                      label="Addons"
-                      help="Addons that will use strict title matching. Leave blank to apply to all addons."
-                      emptyMessage="You haven't installed any addons yet..."
-                      options={userData.presets.map((preset) => ({
-                        label: preset.options.name,
-                        type: preset.options.name,
-                        value: JSON.stringify(preset),
-                      }))}
-                      value={userData.strictTitleMatch?.addons || []}
-                      onValueChange={(value) => {
-                        setUserData({
-                          ...userData,
-                          strictTitleMatch: {
-                            ...userData.strictTitleMatch,
-                            addons: value,
-                          },
-                        });
-                      }}
-                    />
+                  <TextInput
+                    label="TMDB Access Token"
+                    help={
+                      <>
+                        <p>
+                          A TMDB access token is required to fetch titles from
+                          the TMDB API. You can get it from your{' '}
+                          <a
+                            href="https://www.themoviedb.org/settings/api"
+                            target="_blank"
+                            className="text-[--brand] hover:underline"
+                            rel="noopener noreferrer"
+                          >
+                            TMDB Account Settings
+                          </a>
+                        </p>
+                        <p></p>
+                      </>
+                    }
+                    disabled={!userData.titleMatching?.enabled}
+                    required={!status?.settings.tmdbApiAvailable}
+                    value={userData.tmdbAccessToken}
+                    type="password"
+                    placeholder="Enter your TMDB access token"
+                    onValueChange={(value) => {
+                      setUserData((prev) => ({
+                        ...prev,
+                        tmdbAccessToken: value,
+                      }));
+                    }}
+                  />
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Combobox
+                        disabled={!userData.titleMatching?.enabled}
+                        label="Request Types"
+                        emptyMessage="There aren't any request types to choose from..."
+                        help="Request types that will use strict title matching. Leave blank to apply to all request types."
+                        options={TYPES.map((type) => ({
+                          label: type,
+                          value: type,
+                          text: type,
+                        }))}
+                        value={userData.titleMatching?.requestTypes}
+                        onValueChange={(value) => {
+                          setUserData((prev) => ({
+                            ...prev,
+                            titleMatching: {
+                              ...prev.titleMatching,
+                              requestTypes: value,
+                            },
+                          }));
+                        }}
+                      />
+                      <Combobox
+                        disabled={!userData.titleMatching?.enabled}
+                        label="Addons"
+                        help="Addons that will use strict title matching. Leave blank to apply to all addons."
+                        emptyMessage="You haven't installed any addons yet..."
+                        options={userData.presets.map((preset) => ({
+                          label: preset.options.name,
+                          type: preset.options.name,
+                          value: JSON.stringify(preset),
+                        }))}
+                        value={userData.titleMatching?.addons || []}
+                        onValueChange={(value) => {
+                          setUserData((prev) => ({
+                            ...prev,
+                            titleMatching: {
+                              ...prev.titleMatching,
+                              addons: value,
+                            },
+                          }));
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-              </SettingsCard>
+                </SettingsCard>
+
+                <SettingsCard
+                  title="Season/Episode Matching"
+                  description="Any streams which don't specifically match the requested season/episode will be filtered out. You can optionally choose to only apply it to specific request types and addons"
+                >
+                  <Switch
+                    label="Enabled"
+                    side="right"
+                    value={userData.seasonEpisodeMatching?.enabled ?? false}
+                    onValueChange={(value) => {
+                      setUserData((prev) => ({
+                        ...prev,
+                        seasonEpisodeMatching: {
+                          ...(prev.seasonEpisodeMatching || {}),
+                          enabled: value,
+                        },
+                      }));
+                    }}
+                  />
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Combobox
+                        disabled={!userData.seasonEpisodeMatching?.enabled}
+                        label="Request Types"
+                        help="Request types that will use season/episode matching. Leave blank to apply to all request types."
+                        emptyMessage="There aren't any request types to choose from..."
+                        options={TYPES.map((type) => ({
+                          label: type,
+                          value: type,
+                          text: type,
+                        }))}
+                        value={userData.seasonEpisodeMatching?.requestTypes}
+                        onValueChange={(value) => {
+                          setUserData((prev) => ({
+                            ...prev,
+                            seasonEpisodeMatching: {
+                              ...prev.seasonEpisodeMatching,
+                              requestTypes: value,
+                            },
+                          }));
+                        }}
+                      />
+                      <Combobox
+                        disabled={!userData.seasonEpisodeMatching?.enabled}
+                        label="Addons"
+                        help="Addons that will use season/episode matching. Leave blank to apply to all addons."
+                        emptyMessage="You haven't installed any addons yet..."
+                        options={userData.presets.map((preset) => ({
+                          label: preset.options.name,
+                          type: preset.options.name,
+                          value: JSON.stringify(preset),
+                        }))}
+                        value={userData.seasonEpisodeMatching?.addons || []}
+                        onValueChange={(value) => {
+                          setUserData((prev) => {
+                            return {
+                              ...prev,
+                              seasonEpisodeMatching: {
+                                ...prev.seasonEpisodeMatching,
+                                addons: value,
+                              },
+                            };
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+                </SettingsCard>
+              </div>
             </PageWrapper>
           </TabsContent>
           <TabsContent value="keyword" className="space-y-4">
