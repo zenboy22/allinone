@@ -113,7 +113,7 @@ export class ConditionParser {
         throw new Error('Resolution must be a string');
       }
       return streams.filter(
-        (stream) => stream.parsedFile?.resolution === resolution
+        (stream) => (stream.parsedFile?.resolution || 'Unknown') === resolution
       );
     };
     this.parser.functions.quality = function (
@@ -127,7 +127,9 @@ export class ConditionParser {
       } else if (typeof quality !== 'string') {
         throw new Error('Quality must be a string');
       }
-      return streams.filter((stream) => stream.parsedFile?.quality === quality);
+      return streams.filter(
+        (stream) => (stream.parsedFile?.quality || 'Unknown') === quality
+      );
     };
     this.parser.functions.type = function (
       streams: ParsedStream[],
@@ -171,20 +173,21 @@ export class ConditionParser {
       }
       return streams.filter((stream) => stream.service?.id === service);
     };
-    this.parser.functions.cached = function (
-      streams: ParsedStream[],
-      cached: boolean
-    ) {
+    this.parser.functions.cached = function (streams: ParsedStream[]) {
       if (!Array.isArray(streams)) {
         throw new Error(
           "Please use one of 'totalStreams' or 'previousStreams' as the first argument"
         );
-      } else if (typeof cached !== 'boolean') {
+      }
+      return streams.filter((stream) => stream.service?.cached === true);
+    };
+    this.parser.functions.uncached = function (streams: ParsedStream[]) {
+      if (!Array.isArray(streams)) {
         throw new Error(
-          `Expected cached to be of type boolean, but got ${typeof cached}`
+          "Please use one of 'totalStreams' or 'previousStreams' as the first argument"
         );
       }
-      return streams.filter((stream) => stream.service?.cached === cached);
+      return streams.filter((stream) => stream.service?.cached === false);
     };
     this.parser.functions.releaseGroup = function (
       streams: ParsedStream[],
