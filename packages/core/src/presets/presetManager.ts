@@ -31,6 +31,7 @@ import { DebridioTvPreset } from './debridioTv';
 import { TorrentCatalogsPreset } from './torrentCatalogs';
 
 const PRESET_LIST: string[] = [
+  'custom',
   'torrentio',
   'comet',
   'mediafusion',
@@ -60,7 +61,6 @@ const PRESET_LIST: string[] = [
   'star-wars-universe',
   'dc-universe',
   'aiostreams',
-  'custom',
 ];
 
 export class PresetManager {
