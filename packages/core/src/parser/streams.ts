@@ -101,6 +101,14 @@ class StreamParser {
       );
     }
 
+    if (parsedStream.folderName && parsedStream.parsedFile) {
+      const parsedFolder = FileParser.parse(parsedStream.folderName);
+      parsedStream.parsedFile = {
+        ...parsedStream.parsedFile,
+        title: parsedFolder.title, // prefer titles from the folder name if it exists
+      };
+    }
+
     parsedStream.torrent = {
       infoHash:
         parsedStream.type === 'p2p'
