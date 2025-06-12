@@ -68,7 +68,7 @@ export class LightGDriveFormatter extends BaseFormatter {
     super(
       {
         name: `
-{stream.proxied::istrue["🕵️ "||""]}{stream.type::=p2p["[P2P] "||""]}{service.shortName::exists["[{service.shortName}"||""]}{service.library::istrue["☁️"||""]}{service.cached::istrue["⚡] "||""]}{service.cached::isfalse["⏳] "||""]}{addon.name}{stream.resolution::exists[" {stream.resolution}"||""]}{stream.regexMatched::exists[" ({stream.regexMatched})"||""]}      
+{stream.proxied::istrue["🕵️ "||""]}{stream.type::=p2p["[P2P] "||""]}{service.shortName::exists["[{service.shortName}"||""]}{stream.library::istrue["☁️"||""]}{service.cached::istrue["⚡] "||""]}{service.cached::isfalse["⏳] "||""]}{addon.name}{stream.resolution::exists[" {stream.resolution}"||""]}{stream.regexMatched::exists[" ({stream.regexMatched})"||""]}      
 `,
         description: `
 {stream.title::exists["📁 {stream.title}"||""]}{stream.year::exists[" ({stream.year})"||""]}{stream.season::>=0[" S"||""]}{stream.season::<=9["0"||""]}{stream.season::>0["{stream.season}"||""]}{stream.episode::>=0[" • E"||""]}{stream.episode::<=9["0"||""]}{stream.episode::>0["{stream.episode}"||""]}
