@@ -529,7 +529,7 @@ export const MetaPreviewSchema = z.object({
   cast: z.array(z.string()).or(z.null()).optional(),
   // background: z.string().min(1).optional(),
   // logo: z.string().min(1).optional(),
-  description: z.string().optional(),
+  description: z.string().or(z.null()).optional(),
   trailers: z.array(TrailerSchema).optional(),
   links: z.array(MetaLinkSchema).optional(),
   // released: z.string().datetime().optional(),
