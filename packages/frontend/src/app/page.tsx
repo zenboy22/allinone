@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { UserDataProvider } from '@/context/userData';
 import { LuffyError } from '@/components/shared/luffy-error';
 import { TextGenerateEffect } from '@/components/shared/text-generate-effect';
+import { OptionsProvider } from '@/context/options';
 
 function ErrorOverlay({ error }: { error: string | null }) {
   return (
@@ -76,7 +77,9 @@ export default function Home() {
     <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
       <StatusProvider>
         <UserDataProvider>
-          <AppContent />
+          <OptionsProvider>
+            <AppContent />
+          </OptionsProvider>
         </UserDataProvider>
       </StatusProvider>
     </ThemeProvider>

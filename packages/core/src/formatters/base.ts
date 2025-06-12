@@ -55,6 +55,7 @@ export interface ParseValue {
     resolution: string | null;
     languages: string[] | null;
     languageEmojis: string[] | null;
+    wedontknowwhatakilometeris: string[] | null;
     visualTags: string[] | null;
     audioTags: string[] | null;
     releaseGroup: string | null;
@@ -126,6 +127,12 @@ export abstract class BaseFormatter {
         languageEmojis: stream.parsedFile?.languages
           ? stream.parsedFile.languages
               .map((lang) => languageToEmoji(lang) || lang)
+              .filter((value, index, self) => self.indexOf(value) === index)
+          : null,
+        wedontknowwhatakilometeris: stream.parsedFile?.languages
+          ? stream.parsedFile.languages
+              .map((lang) => languageToEmoji(lang) || lang)
+              .map((emoji) => emoji.replace('🇬🇧', '🇺🇸🦅'))
               .filter((value, index, self) => self.indexOf(value) === index)
           : null,
         visualTags: stream.parsedFile?.visualTags || null,

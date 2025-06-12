@@ -212,7 +212,10 @@ function Content() {
         </div>
       </div>
       <div className="space-y-4">
-        <SettingsCard>
+        <SettingsCard
+          title="Type"
+          description="Here, you can define different sort criteria for different types of content. Most people will only need to define the global sort criteria, and nothing else. However, if you wanted different sorting for cached and uncached content, you can do that here. You have to define the 'main' criteria to have cached at the top, and then separately define the cached and uncached criteria. If you also want to define different sorting for movies and series, you would do the same."
+        >
           <Select
             label="Sort Order Type"
             options={[
@@ -266,8 +269,8 @@ function Content() {
 
         {currentSortCriteria.length > 0 && (
           <SettingsCard
-            title="Sort Order"
-            description="Drag to reorder your sort criteria. Click the direction icon to toggle between ascending and descending."
+            title="Order"
+            description="Drag to reorder your sort criteria for the currently selected type. Click the direction icon to toggle between ascending and descending."
           >
             <DndContext
               modifiers={[restrictToVerticalAxis]}

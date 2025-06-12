@@ -21,6 +21,7 @@ import {
   BiLogOutCircle,
   BiCog,
   BiServer,
+  BiSmile,
 } from 'react-icons/bi';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDisclosure } from '@/hooks/disclosure';
@@ -32,6 +33,7 @@ import { Modal } from '@/components/ui/modal';
 import { TextInput } from '@/components/ui/text-input';
 import { toast } from 'sonner';
 import { Tooltip } from '@/components/ui/tooltip';
+import { useOptions } from '@/context/options';
 
 type MenuItem = VerticalMenuItem & {
   id: MenuId;
@@ -43,10 +45,13 @@ export function MainSidebar() {
   const isCollapsed = !ctx.isBelowBreakpoint && !expandedSidebar;
   const { selectedMenu, setSelectedMenu } = useMenu();
   const pathname = usePathname();
+  const { isOptionsEnabled, enableOptions } = useOptions();
 
   const user = useUserData();
   const signInModal = useDisclosure(false);
   const [initialUuid, setInitialUuid] = React.useState<string | null>(null);
+
+  const clickHistory = React.useRef<number[]>([]);
 
   React.useEffect(() => {
     const uuidMatch = pathname.match(
@@ -126,38 +131,22 @@ export function MainSidebar() {
       isCurrent: selectedMenu === 'miscellaneous',
       id: 'miscellaneous',
     },
+    ...(isOptionsEnabled
+      ? [
+          {
+            name: 'Fun',
+            iconType: BiSmile,
+            isCurrent: selectedMenu === 'fun',
+            id: 'fun',
+          },
+        ]
+      : []),
     {
       name: 'Save & Install',
       iconType: BiSave,
       isCurrent: selectedMenu === 'save-install',
       id: 'save-install',
     },
-  ];
-
-  const bottomMenuItems: MenuItem[] = [
-    ...(user.uuid && user.password
-      ? [
-          {
-            name: 'Log Out',
-            iconType: BiLogOutCircle,
-            isCurrent: false,
-            id: 'unload-config' as MenuId,
-            onClick: () => {
-              confirmClearConfig.open();
-            },
-          },
-        ]
-      : [
-          {
-            name: 'Log In',
-            iconType: BiLogInCircle,
-            isCurrent: signInModal.isOpen,
-            id: 'sign-in' as MenuId,
-            onClick: () => {
-              signInModal.open();
-            },
-          },
-        ]),
   ];
 
   const handleExpandSidebar = () => {
@@ -206,11 +195,27 @@ export function MainSidebar() {
 
         <div>
           <div className="mb-4 p-4 pb-0 flex flex-col items-center w-full">
-            <img
-              src={user.userData.addonLogo || '/logo.png'}
-              alt="logo"
-              className="w-22.5 h-15"
-            />
+            <div
+              className="flex items-center gap-2"
+              onClick={() => {
+                const now = Date.now();
+                const clicks = clickHistory.current.filter(
+                  (time) => now - time < 5000
+                );
+                clicks.push(now);
+                clickHistory.current = clicks;
+                if (clicks.length >= 10) {
+                  clickHistory.current = [];
+                  enableOptions();
+                }
+              }}
+            >
+              <img
+                src={user.userData.addonLogo || '/logo.png'}
+                alt="logo"
+                className="w-22.5 h-15"
+              />
+            </div>
             <span className="text-xs text-gray-500">
               {status
                 ? status.tag.includes('nightly')

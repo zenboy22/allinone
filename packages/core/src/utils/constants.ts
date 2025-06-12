@@ -585,6 +585,12 @@ const SORT_CRITERIA = [
 export const MIN_SIZE = 0;
 export const MAX_SIZE = 100 * 1000 * 1000 * 1000; // 100GB
 
+export const DEFAULT_POSTERS = [
+  'aHR0cHM6Ly93d3cucG5nbWFydC5jb20vZmlsZXMvMTEvUmlja3JvbGxpbmctUE5HLVBpYy5wbmc=',
+];
+
+export const DEFAULT_YT_ID = 'eHZGWmpvNVBnRzA=';
+
 export const SORT_CRITERIA_DETAILS = {
   quality: {
     name: 'Quality',

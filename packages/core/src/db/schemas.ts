@@ -273,6 +273,11 @@ export const UserDataSchema = z.object({
   includedKeywords: z.array(z.string().min(1)).optional(),
   excludedKeywords: z.array(z.string().min(1)).optional(),
   preferredKeywords: z.array(z.string().min(1)).optional(),
+
+  randomiseResults: z.boolean().optional(),
+  enhanceResults: z.boolean().optional(),
+  enhancePosters: z.boolean().optional(),
+
   excludedSeeders: z
     .object({
       min: z.number().optional(),

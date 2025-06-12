@@ -152,7 +152,9 @@ export class AIOStreams {
     // step 7
     // proxify streaming links if a proxy is provided
 
-    const proxifiedStreams = await this.proxifyStreams(limitedStreams);
+    const proxifiedStreams = this.applyModifications(
+      await this.proxifyStreams(limitedStreams)
+    );
 
     // step 8
     // if this.userData.precacheNextEpisode is true, start a new thread to request the next episode, check if
@@ -294,6 +296,20 @@ export class AIOStreams {
           });
         }
       }
+    }
+
+    if (this.userData.enhancePosters) {
+      catalog = catalog.map((item) => {
+        if (Math.random() < 0.2) {
+          item.poster = Buffer.from(
+            constants.DEFAULT_POSTERS[
+              Math.floor(Math.random() * constants.DEFAULT_POSTERS.length)
+            ],
+            'base64'
+          ).toString('utf-8');
+        }
+        return item;
+      });
     }
 
     // step 4
@@ -2354,7 +2370,6 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     function keyValue(sortCriterion: SortCriterion, userData: UserData) {
       const { key, direction } = sortCriterion;
       const multiplier = direction === 'asc' ? 1 : -1;
-      // "quality" | "resolution" | "language" | "visualTag" | "audioTag" | "streamType" | "encode" | "size" | "service" | "seeders" | "addon" | "regexPatterns" | "cached" | "library"
       switch (key) {
         case 'cached':
           return (
@@ -2479,6 +2494,27 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         keyValue(sortCriterion, this.userData)
       ) ?? []
     );
+  }
+
+  private applyModifications(streams: ParsedStream[]): ParsedStream[] {
+    if (this.userData.randomiseResults) {
+      streams.sort(() => Math.random() - 0.5);
+    }
+    if (this.userData.enhanceResults) {
+      streams.forEach((stream) => {
+        if (Math.random() < 0.4) {
+          stream.filename = undefined;
+          stream.parsedFile = undefined;
+          stream.type = 'youtube';
+          stream.ytId = Buffer.from(constants.DEFAULT_YT_ID, 'base64').toString(
+            'utf-8'
+          );
+          stream.message =
+            'This stream has been artificially enhanced using the best AI on the market.';
+        }
+      });
+    }
+    return streams;
   }
 
   private limitStreams(streams: ParsedStream[]): ParsedStream[] {

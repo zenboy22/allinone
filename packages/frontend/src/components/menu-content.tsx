@@ -10,6 +10,7 @@ import { MiscellaneousMenu } from './menu/miscellaneous';
 import { SaveInstallMenu } from './menu/save-install';
 import { FormatterMenu } from './menu/formatter';
 import { ProxyMenu } from './menu/proxy';
+import { OptionsMenu } from './menu/options';
 
 export function MenuContent() {
   const { selectedMenu } = useMenu();
@@ -33,6 +34,8 @@ export function MenuContent() {
       return <MiscellaneousMenu />;
     case 'save-install':
       return <SaveInstallMenu />;
+    case 'fun':
+      return <OptionsMenu />;
     default:
       return (
         <div className="p-8">

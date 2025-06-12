@@ -8,10 +8,19 @@ import { PageWrapper } from '@/components/shared/page-wrapper';
 import { Alert } from '@/components/ui/alert';
 import { SettingsCard } from '../shared/settings-card';
 import { toast } from 'sonner';
-import { DownloadIcon, UploadIcon } from 'lucide-react';
+import { CopyIcon, DownloadIcon, PlusIcon, UploadIcon } from 'lucide-react';
 import { useStatus } from '@/context/status';
 import { BiCopy } from 'react-icons/bi';
 import { PageControls } from '../shared/page-controls';
+import { useDisclosure } from '@/hooks/disclosure';
+import { Modal } from '../ui/modal';
+import { Switch } from '../ui/switch';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../ui/accordion';
 
 export function SaveInstallMenu() {
   return (
@@ -43,6 +52,9 @@ function Content() {
   const baseUrl = status?.settings?.baseUrl || window.location.origin;
   const [addonPassword, setAddonPassword] = React.useState('');
   const importFileRef = React.useRef<HTMLInputElement>(null);
+  const installModal = useDisclosure(false);
+  const [filterCredentialsInExport, setFilterCredentialsInExport] =
+    React.useState(false);
 
   React.useEffect(() => {
     if (userData?.addonPassword) {
@@ -147,7 +159,20 @@ function Content() {
 
   const handleExport = () => {
     try {
-      const dataStr = JSON.stringify(userData, null, 2);
+      const dataStr = JSON.stringify(
+        {
+          ...userData,
+          addonPassword: filterCredentialsInExport
+            ? undefined
+            : userData.addonPassword,
+          services: userData?.services?.map((service) => ({
+            ...service,
+            credentials: filterCredentialsInExport ? {} : service.credentials,
+          })),
+        },
+        null,
+        2
+      );
       const blob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -321,7 +346,7 @@ function Content() {
               </form>
             </SettingsCard>
 
-            <SettingsCard
+            {/* <SettingsCard
               title="Install"
               description="Choose how you want to install your personalized addon. There is no need to reinstall the addon after updating your configuration above, unless you've updated your upstream addons."
             >
@@ -346,6 +371,54 @@ function Content() {
                 </Button>
                 <Button onClick={copyManifestUrl}>Copy URL</Button>
               </div>
+            </SettingsCard> */}
+
+            <SettingsCard
+              title="Install"
+              description="Install your addon using your preferred method. There usually isn't a need to reinstall the addon after updating your configuration above, unless you use catalogs and you've changed the order of them or the addons that provide them"
+            >
+              <Button intent="white" rounded onClick={installModal.open}>
+                Install
+              </Button>
+
+              <Modal
+                open={installModal.isOpen}
+                onOpenChange={installModal.toggle}
+                title="Install"
+                description="Install your addon"
+              >
+                <div className="flex flex-col gap-4">
+                  <Button
+                    onClick={() =>
+                      window.open(
+                        `stremio://${baseUrl.replace(/^https?:\/\//, '')}/stremio/${uuid}/${encryptedPassword}/manifest.json`
+                      )
+                    }
+                    intent="primary"
+                    className="w-full"
+                  >
+                    Stremio
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      window.open(
+                        `https://web.stremio.com/#/addons?addon=${encodedManifest}`
+                      )
+                    }
+                    intent="primary"
+                    className="w-full"
+                  >
+                    Stremio Web
+                  </Button>
+                  <Button
+                    onClick={copyManifestUrl}
+                    intent="primary"
+                    className="w-full"
+                  >
+                    Copy URL
+                  </Button>
+                </div>
+              </Modal>
             </SettingsCard>
           </>
         )}
@@ -383,6 +456,27 @@ function Content() {
                 </Button>
               </label>
             </div>
+          </div>
+          <div className="flex items-center gap-2 mt-4 w-full">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="export-settings" className="w-full">
+                <AccordionTrigger className="w-full">
+                  Export Settings
+                </AccordionTrigger>
+                <AccordionContent className="w-full">
+                  <div className="flex items-center justify-between w-full">
+                    <Switch
+                      value={filterCredentialsInExport ?? false}
+                      onValueChange={(value) =>
+                        setFilterCredentialsInExport(value)
+                      }
+                      side="right"
+                      label="Exclude Credentials"
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </SettingsCard>
       </div>
