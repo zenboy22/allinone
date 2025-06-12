@@ -1,10 +1,47 @@
+import { AUDIO_TAGS, QUALITIES, RESOLUTIONS } from '../utils/constants';
+import { VISUAL_TAGS } from '../utils/constants';
+import { ENCODES } from '../utils/constants';
+import { LANGUAGES } from '../utils/constants';
+import { AUDIO_CHANNELS } from '../utils/constants';
 const createRegex = (pattern: string): RegExp =>
   new RegExp(`(?<![^\\s\\[(_\\-.,])(${pattern})(?=[\\s\\)\\]_.\\-,]|$)`, 'i');
 
 const createLanguageRegex = (pattern: string): RegExp =>
   createRegex(`${pattern}(?![ .\\-_]?sub(title)?s?)`);
 
-export const PARSE_REGEX = {
+type PARSE_REGEX = {
+  resolutions: Omit<Record<(typeof RESOLUTIONS)[number], RegExp>, 'Unknown'> & {
+    Unknown?: RegExp;
+  };
+  qualities: Omit<Record<(typeof QUALITIES)[number], RegExp>, 'Unknown'> & {
+    Unknown?: RegExp;
+  };
+  visualTags: Omit<
+    Record<(typeof VISUAL_TAGS)[number], RegExp>,
+    'Unknown' | 'HDR+DV'
+  > & {
+    Unknown?: RegExp;
+    'HDR+DV'?: RegExp;
+  };
+  audioTags: Omit<Record<(typeof AUDIO_TAGS)[number], RegExp>, 'Unknown'> & {
+    Unknown?: RegExp;
+  };
+  audioChannels: Omit<
+    Record<(typeof AUDIO_CHANNELS)[number], RegExp>,
+    'Unknown'
+  > & {
+    Unknown?: RegExp;
+  };
+  languages: Omit<Record<(typeof LANGUAGES)[number], RegExp>, 'Unknown'> & {
+    Unknown?: RegExp;
+  };
+  encodes: Omit<Record<(typeof ENCODES)[number], RegExp>, 'Unknown'> & {
+    Unknown?: RegExp;
+  };
+  releaseGroup: RegExp;
+};
+
+export const PARSE_REGEX: PARSE_REGEX = {
   resolutions: {
     '2160p': createRegex(
       '(bd|hd|m)?(4k|2160(p|i)?)|u(ltra)?[ .\\-_]?hd|3840\s?x\s?(\d{4})'
@@ -20,7 +57,6 @@ export const PARSE_REGEX = {
     '480p': createRegex('(bd|hd|m)?(480(p|i)?)|sd'),
     '360p': createRegex('(bd|hd|m)?(360(p|i)?)'),
     '240p': createRegex('(bd|hd|m)?(240(p|i)?)'),
-    '180p': createRegex('(bd|hd|m)?(180(p|i)?)'),
     '144p': createRegex('(bd|hd|m)?(144(p|i)?)'),
   },
   qualities: {
@@ -86,7 +122,7 @@ export const PARSE_REGEX = {
     HEVC: createRegex('hevc[ .\\-_]?(10)?|[xh][ .\\-_]?265'),
     AVC: createRegex('avc|[xh][ .\\-_]?264'),
     AV1: createRegex('av1'),
-    Xvid: createRegex('xvid'),
+    XviD: createRegex('xvid'),
     DivX: createRegex('divx|dvix'),
     'H-OU': createRegex('h?(alf)?[ .\\-_]?(ou|over[ .\\-_]?under)'),
     'H-SBS': createRegex('h?(alf)?[ .\\-_]?(sbs|side[ .\\-_]?by[ .\\-_]?side)'),

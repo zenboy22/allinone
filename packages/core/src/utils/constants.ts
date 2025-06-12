@@ -506,8 +506,8 @@ const RESOLUTIONS = [
 ] as const;
 
 const QUALITIES = [
-  'Bluray REMUX',
-  'Bluray',
+  'BluRay REMUX',
+  'BluRay',
   'WEB-DL',
   'WEBRip',
   'HDRip',
@@ -532,6 +532,7 @@ const VISUAL_TAGS = [
   'IMAX',
   'AI',
   'SDR',
+  'Unknown',
 ] as const;
 
 const AUDIO_TAGS = [

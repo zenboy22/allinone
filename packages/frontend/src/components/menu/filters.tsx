@@ -99,8 +99,8 @@ const defaultPreferredResolutions: Resolution[] = [
 ];
 
 const defaultPreferredQualities: Quality[] = [
-  'Bluray REMUX',
-  'Bluray',
+  'BluRay REMUX',
+  'BluRay',
   'WEB-DL',
   'WEBRip',
   'HDRip',
@@ -1831,11 +1831,15 @@ function FilterSettings<T extends string>({
   const [included, setIncluded] = useState<T[]>(includedOptions);
   const [isDragging, setIsDragging] = useState(false);
 
+  const filterToAllowedValues = (filter: T[]) => {
+    return filter.filter((value) => options.some((opt) => opt.value === value));
+  };
+
   useEffect(() => {
-    setRequired(requiredOptions);
-    setExcluded(excludedOptions);
-    setPreferred(preferredOptions);
-    setIncluded(includedOptions);
+    setRequired(filterToAllowedValues(requiredOptions));
+    setExcluded(filterToAllowedValues(excludedOptions));
+    setPreferred(filterToAllowedValues(preferredOptions));
+    setIncluded(filterToAllowedValues(includedOptions));
   }, [requiredOptions, excludedOptions, preferredOptions, includedOptions]);
 
   // DND logic
@@ -2003,6 +2007,11 @@ function FilterSettings<T extends string>({
                     name={
                       options.find((opt) => opt.value === value)?.name || value
                     }
+                    onDelete={() => {
+                      const newPreferred = preferred.filter((v) => v !== value);
+                      setPreferred(newPreferred);
+                      onPreferredChange(newPreferred);
+                    }}
                   />
                 ))}
               </div>
@@ -2014,7 +2023,15 @@ function FilterSettings<T extends string>({
   );
 }
 
-function SortableFilterItem({ id, name }: { id: string; name: string }) {
+function SortableFilterItem({
+  id,
+  name,
+  onDelete,
+}: {
+  id: string;
+  name: string;
+  onDelete: () => void;
+}) {
   const {
     attributes,
     listeners,
@@ -2040,6 +2057,19 @@ function SortableFilterItem({ id, name }: { id: string; name: string }) {
         />
         <div className="flex-1 flex flex-col justify-center min-w-0">
           <span className="font-mono text-base truncate">{name}</span>
+        </div>
+        <div className="flex-shrink-0 ml-auto">
+          <IconButton
+            size="sm"
+            rounded
+            icon={<FaRegTrashAlt />}
+            intent="alert-subtle"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
+          />
         </div>
       </div>
     </div>

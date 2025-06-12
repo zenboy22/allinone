@@ -53,14 +53,11 @@ function Content() {
   React.useEffect(() => {
     const requirements: string[] = [];
 
-    console.log(uuid, password);
     // already created a config
     if (uuid && password) {
+      setPasswordRequirements([]);
       return;
     }
-
-    console.log(newPassword);
-    console.log('checking requirements');
 
     if (newPassword.length < 8) {
       requirements.push('Password must be at least 8 characters long');
@@ -84,7 +81,7 @@ function Content() {
     }
 
     setPasswordRequirements(requirements);
-  }, [newPassword]);
+  }, [newPassword, uuid, password]);
 
   const handleSave = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
