@@ -41,31 +41,41 @@ export async function safeRegexTest(
   }
 }
 
+export function parseRegex(pattern: string): {
+  regex: string;
+  flags: string;
+} {
+  const regexFormatMatch = /^\/(.+)\/([gimuy]*)$/.exec(pattern);
+  return regexFormatMatch
+    ? { regex: regexFormatMatch[1], flags: regexFormatMatch[2] }
+    : { regex: pattern, flags: '' };
+}
+
 export async function compileRegex(
   pattern: string,
-  flags: string = '',
   bypassCache: boolean = false
 ): Promise<RegExp> {
+  const { regex, flags } = parseRegex(pattern);
   if (bypassCache) {
-    return new RegExp(pattern, flags);
+    return new RegExp(regex, flags);
   }
+
   return await regexCache.wrap(
-    (p: string, f: string) => new RegExp(p, f),
-    getSimpleTextHash(`${pattern}|${flags}`),
+    (p: string, f: string) => new RegExp(p, f || undefined),
+    getSimpleTextHash(`${regex}|${flags}`),
     60,
-    pattern,
+    regex,
     flags
   );
 }
 
 export async function formRegexFromKeywords(
-  keywords: string[],
-  flags: string = 'i'
+  keywords: string[]
 ): Promise<RegExp> {
   const pattern = `(?<![^ [(_\\-.])(${keywords
     .map((filter) => filter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'))
     .map((filter) => filter.replace(/\s/g, '[ .\\-_]?'))
     .join('|')})(?=[ \\)\\]_.-]|$)`;
 
-  return await compileRegex(pattern, flags);
+  return await compileRegex(pattern);
 }
