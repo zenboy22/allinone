@@ -2246,9 +2246,6 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
               pattern: regexPattern.pattern.source,
               index: i,
             };
-            logger.debug(
-              `Stream ${stream.filename} matched regex ${regexPattern.name} with index ${i}`
-            );
             break;
           }
         }
@@ -2363,13 +2360,12 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           return multiplier * (stream.size ?? 0);
         case 'seeders':
           return multiplier * (stream.torrent?.seeders ?? 0);
-        case 'encode':
-          return (
-            multiplier *
-            (userData.preferredEncodes?.findIndex(
-              (encode) => encode === (stream.parsedFile?.encode || 'Unknown')
-            ) ?? 0)
+        case 'encode': {
+          const index = userData.preferredEncodes?.findIndex(
+            (encode) => encode === (stream.parsedFile?.encode || 'Unknown')
           );
+          return multiplier * -(index === -1 ? 0 : (index ?? 0));
+        }
         case 'addon':
           // find the first occurence of the stream.addon.id in the addons array
           const idx = userData.presets.findIndex(
@@ -2377,34 +2373,19 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           );
           return multiplier * (idx !== -1 ? -idx : 0);
 
-        case 'resolution':
-          return (
-            multiplier *
-            -(
-              // negate as lower index = higher priority
-              (
-                userData.preferredResolutions?.findIndex(
-                  (resolution) =>
-                    resolution === (stream.parsedFile?.resolution || 'Unknown')
-                ) ?? 0
-              )
-            )
+        case 'resolution': {
+          const index = userData.preferredResolutions?.findIndex(
+            (resolution) =>
+              resolution === (stream.parsedFile?.resolution || 'Unknown')
           );
-
-        case 'quality':
-          return (
-            multiplier *
-            -(
-              // negate as lower index = higher priority
-              (
-                userData.preferredQualities?.findIndex(
-                  (quality) =>
-                    quality === (stream.parsedFile?.quality || 'Unknown')
-                ) ?? 0
-              )
-            )
+          return multiplier * -(index === -1 ? 0 : (index ?? 0));
+        }
+        case 'quality': {
+          const index = userData.preferredQualities?.findIndex(
+            (quality) => quality === (stream.parsedFile?.quality || 'Unknown')
           );
-
+          return multiplier * -(index === -1 ? 0 : (index ?? 0));
+        }
         case 'visualTag': {
           let minIndex = userData.preferredVisualTags?.length;
           if (minIndex === undefined) {
@@ -2441,16 +2422,12 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           }
           return multiplier * -minAudioIndex;
         }
-        case 'streamType':
-          return (
-            multiplier *
-            -(
-              userData.preferredStreamTypes?.findIndex(
-                (type) => type === stream.type
-              ) ?? 0
-            )
+        case 'streamType': {
+          const index = userData.preferredStreamTypes?.findIndex(
+            (type) => type === stream.type
           );
-
+          return multiplier * -(index === -1 ? 0 : (index ?? 0));
+        }
         case 'language': {
           let minLanguageIndex = userData.preferredLanguages?.length;
           if (minLanguageIndex === undefined) {
@@ -2480,17 +2457,10 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           return multiplier * (stream.keywordMatched ? 1 : 0);
 
         case 'service':
-          return (
-            multiplier *
-            -(
-              // negate as lower index = higher priority
-              (
-                userData.services?.findIndex(
-                  (service) => service.id === stream.service?.id
-                ) ?? 0
-              )
-            )
+          const index = userData.services?.findIndex(
+            (service) => service.id === stream.service?.id
           );
+          return multiplier * -(index === -1 ? 0 : (index ?? 0));
         default:
           return 0;
       }
