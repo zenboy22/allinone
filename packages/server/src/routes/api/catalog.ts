@@ -39,6 +39,15 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       id: catalog.id,
       name: catalog.name,
       type: catalog.type,
+      addonName: aio.getAddon(parseInt(catalog.id.split(':')[0])).name,
+      hideable: catalog.extra
+        ? catalog.extra?.findIndex(
+            (extra) =>
+              extra.name === 'genre' &&
+              extra.options?.length &&
+              extra.options.length > 0
+          ) !== -1
+        : false,
     }));
     res.status(200).json(createResponse({ success: true, data: catalogs }));
   } catch (error) {

@@ -220,6 +220,8 @@ const CatalogModification = z.object({
   onlyOnDiscover: z.boolean().optional(), // only show the catalog on the discover page
   enabled: z.boolean().optional(), // enable or disable the catalog
   rpdb: z.boolean().optional(), // use rpdb for posters if supported
+  hideable: z.boolean().optional(), // hide the catalog from the home page
+  addonName: z.string().min(1).optional(), // the name of the addon that provides the catalog
 });
 
 export const UserDataSchema = z.object({

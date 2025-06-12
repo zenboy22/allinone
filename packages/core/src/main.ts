@@ -741,7 +741,7 @@ export class AIOStreams {
     return this.finalAddonCatalogs;
   }
 
-  private getAddon(index: number): Addon {
+  public getAddon(index: number): Addon {
     return this.addons[index];
   }
 

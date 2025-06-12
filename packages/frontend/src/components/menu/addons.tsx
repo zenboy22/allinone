@@ -63,6 +63,8 @@ interface CatalogModification {
   shuffle?: boolean;
   rpdb?: boolean;
   onlyOnDiscover?: boolean;
+  hideable?: boolean;
+  addonName?: string;
 }
 
 export function AddonsMenu() {
@@ -1067,6 +1069,9 @@ function CatalogSettingsCard() {
                 enabled: true,
                 shuffle: false,
                 rpdb: userData.rpdbApiKey ? true : false,
+                // Store these properties directly in the modification object
+                hideable: catalog.hideable,
+                addonName: catalog.addonName,
               });
             }
           });
@@ -1102,6 +1107,8 @@ function CatalogSettingsCard() {
     shuffle: boolean;
     rpdb: boolean;
     onlyOnDiscover: boolean;
+    hideable?: boolean;
+    addonName?: string;
   } | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -1268,6 +1275,8 @@ function CatalogSettingsCard() {
                           shuffle: catalog.shuffle ?? false,
                           rpdb: catalog.rpdb ?? false,
                           onlyOnDiscover: catalog.onlyOnDiscover ?? false,
+                          hideable: catalog.hideable,
+                          addonName: catalog.addonName,
                         });
                         setModalOpen(true);
                       }}
@@ -1297,7 +1306,7 @@ function CatalogSettingsCard() {
         title={
           <div className="max-w-[calc(100vw-4rem)] sm:max-w-[400px] truncate">
             Edit Catalog: {editingCatalog?.name || editingCatalog?.id} -{' '}
-            {capitalise(editingCatalog?.type)}
+            {capitalise(editingCatalog?.type)} - {editingCatalog?.addonName}
           </div>
         }
       >
@@ -1336,6 +1345,7 @@ function CatalogSettingsCard() {
 
             <Switch
               label="Shuffle Results"
+              help="This will shuffle the items in the catalog on each request"
               side="right"
               className="ml-2"
               value={editingCatalog?.shuffle ?? false}
@@ -1347,7 +1357,8 @@ function CatalogSettingsCard() {
             />
 
             <Switch
-              label="Use RPDB for Posters"
+              label="Use RPDB"
+              help="Replace posters with RPDB posters if supported"
               side="right"
               className="ml-2"
               value={editingCatalog?.rpdb ?? false}
@@ -1355,19 +1366,21 @@ function CatalogSettingsCard() {
                 setEditingCatalog((prev) => (prev ? { ...prev, rpdb } : null));
               }}
             />
-
-            <Switch
-              label="Only Show this catalog on the discover page."
-              moreHelp="This only works if the catalog supports selecting a 'genre'"
-              side="right"
-              className="ml-2"
-              value={editingCatalog?.onlyOnDiscover ?? false}
-              onValueChange={(onlyOnDiscover) => {
-                setEditingCatalog((prev) =>
-                  prev ? { ...prev, onlyOnDiscover } : null
-                );
-              }}
-            />
+            {editingCatalog?.hideable && (
+              <Switch
+                label="Only show on Discover"
+                help="This will prevent the catalog from showing on the home page, and only show it on the 'Discover' page"
+                moreHelp="This can potentially break the catalog!"
+                side="right"
+                className="ml-2"
+                value={editingCatalog?.onlyOnDiscover ?? false}
+                onValueChange={(onlyOnDiscover) => {
+                  setEditingCatalog((prev) =>
+                    prev ? { ...prev, onlyOnDiscover } : null
+                  );
+                }}
+              />
+            )}
           </div>
           <Button className="w-full mt-4" type="submit">
             Save Changes

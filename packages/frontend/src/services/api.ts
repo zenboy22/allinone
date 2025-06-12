@@ -180,6 +180,8 @@ export class UserConfigAPI {
         id: string;
         type: string;
         name: string;
+        hideable: boolean;
+        addonName: string;
       }[]
     >
   > {
