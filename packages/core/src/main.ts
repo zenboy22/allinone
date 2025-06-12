@@ -2246,6 +2246,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
               pattern: regexPattern.pattern.source,
               index: i,
             };
+            logger.debug(
+              `Stream ${stream.filename} matched regex ${regexPattern.name} with index ${i}`
+            );
             break;
           }
         }
@@ -2462,9 +2465,16 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           return multiplier * -minLanguageIndex;
         }
         case 'regexPatterns':
-          // each stream will have a property to denote the lowest index of the regex patterns that it matched
-          // and we would just need to return that (multiplied by the multiplier)
-          return multiplier * -(stream.regexMatched?.index ?? 0);
+          return (
+            multiplier *
+            -(stream.regexMatched ? stream.regexMatched.index : Infinity)
+          );
+
+        // return (
+        //   multiplier *
+        //   (stream.regexMatched ? -stream.regexMatched.index : -Infinity)
+        // );
+        // return multiplier * -(stream.regexMatched?.index ?? 0);
 
         case 'keyword':
           return multiplier * (stream.keywordMatched ? 1 : 0);

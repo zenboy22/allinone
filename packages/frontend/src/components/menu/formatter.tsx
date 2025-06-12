@@ -203,6 +203,7 @@ function Content() {
         indexer,
         regexMatched: {
           name: regexMatched,
+          index: 0,
         },
         torrent: {
           infoHash: type === 'p2p' ? '1234567890' : undefined,
