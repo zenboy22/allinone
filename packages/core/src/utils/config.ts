@@ -18,6 +18,7 @@ import { ZodError } from 'zod';
 import { ConditionParser } from '../parser/conditions';
 import { RPDB } from './rpdb';
 import { FeatureControl } from './feature';
+import { compileRegex } from './regex';
 
 const logger = createLogger('core');
 
@@ -296,12 +297,58 @@ export async function validateConfig(
     }
   }
 
+  if (config.uuid) {
+    await validateRegexes(config);
+  }
+
   await new AIOStreams(
     ensureDecrypted(config),
     skipErrorsFromAddonsOrProxies
   ).initialise();
 
   return config;
+}
+
+async function validateRegexes(config: UserData) {
+  if (!config.uuid) {
+    return;
+  }
+
+  const excludedRegexes = config.excludedRegexPatterns;
+  const includedRegexes = config.includedRegexPatterns;
+  const requiredRegexes = config.requiredRegexPatterns;
+  const preferredRegexes = config.preferredRegexPatterns;
+  const regexAllowed = FeatureControl.isRegexAllowed(config);
+
+  if (
+    !regexAllowed &&
+    (excludedRegexes?.length ||
+      includedRegexes?.length ||
+      requiredRegexes?.length ||
+      preferredRegexes?.length)
+  ) {
+    throw new Error(
+      'You do not have permission to use regex filters, please remove them from your config'
+    );
+  }
+
+  const regexes = [
+    ...(excludedRegexes ?? []),
+    ...(includedRegexes ?? []),
+    ...(requiredRegexes ?? []),
+    ...(preferredRegexes ?? []).map((regex) => regex.pattern),
+  ];
+
+  await Promise.all(
+    regexes.map(async (regex) => {
+      try {
+        await compileRegex(regex);
+      } catch (error: any) {
+        logger.error(`Invalid regex: ${regex}: ${error.message}`);
+        throw new Error(`Invalid regex: ${regex}: ${error.message}`);
+      }
+    })
+  );
 }
 
 function ensureDecrypted(config: UserData) {
