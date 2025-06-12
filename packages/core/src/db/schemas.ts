@@ -199,8 +199,8 @@ const OptionDefinition = z.object({
 export type Option = z.infer<typeof OptionDefinition>;
 
 const NameableRegex = z.object({
-  name: z.string().min(1),
-  pattern: z.string().regex(/^.*$/),
+  name: z.string().min(0),
+  pattern: z.string().min(1),
 });
 
 const Group = z.object({
