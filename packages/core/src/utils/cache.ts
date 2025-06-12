@@ -68,7 +68,7 @@ export class Cache<K, V> {
     }
   }
 
-  get(key: K): V | undefined {
+  get(key: K, updateTTL: boolean = true): V | undefined {
     const item = this.cache.get(key);
     if (item) {
       const now = Date.now();
@@ -76,7 +76,9 @@ export class Cache<K, V> {
         this.cache.delete(key);
         return undefined;
       }
-      item.lastAccessed = now;
+      if (updateTTL) {
+        item.lastAccessed = now;
+      }
       return item.value;
     }
     return undefined;
@@ -93,6 +95,18 @@ export class Cache<K, V> {
       this.evict();
     }
     this.cache.set(key, new CacheItem<V>(value, Date.now(), ttl * 1000));
+  }
+
+  /**
+   * Update the value of an existing key in the cache without changing the TTL
+   * @param key The key to update
+   * @param value The new value
+   */
+  update(key: K, value: V): void {
+    const item = this.cache.get(key);
+    if (item) {
+      item.value = value;
+    }
   }
 
   clear(): void {

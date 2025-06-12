@@ -294,6 +294,15 @@ export const Env = cleanEnv(process.env, {
     desc: 'Maximum days of inactivity before pruning',
   }),
 
+  RECURSION_THRESHOLD_LIMIT: num({
+    default: 10,
+    desc: 'Maximum number of requests to the same URL',
+  }),
+  RECURSION_THRESHOLD_WINDOW: num({
+    default: 5,
+    desc: 'Time window for recursion threshold in seconds',
+  }),
+
   DEFAULT_USER_AGENT: userAgent({
     default: `AIOStreams/${metadata?.version || 'unknown'}`,
     desc: 'Default user agent for the addon',
@@ -1022,6 +1031,30 @@ export const Env = cleanEnv(process.env, {
   }),
   STREMIO_CATALOG_RATE_LIMIT_MAX_REQUESTS: num({
     default: 20, // allow 100 requests per IP per minute
+    desc: 'Maximum number of requests allowed per IP within the time window',
+  }),
+  STREMIO_MANIFEST_RATE_LIMIT_WINDOW: num({
+    default: 5, // 1 minute
+    desc: 'Time window for Stremio manifest rate limiting in seconds',
+  }),
+  STREMIO_MANIFEST_RATE_LIMIT_MAX_REQUESTS: num({
+    default: 10, // allow 100 requests per IP per minute
+    desc: 'Maximum number of requests allowed per IP within the time window',
+  }),
+  STREMIO_SUBTITLE_RATE_LIMIT_WINDOW: num({
+    default: 5, // 1 minute
+    desc: 'Time window for Stremio subtitle rate limiting in seconds',
+  }),
+  STREMIO_SUBTITLE_RATE_LIMIT_MAX_REQUESTS: num({
+    default: 10, // allow 100 requests per IP per minute
+    desc: 'Maximum number of requests allowed per IP within the time window',
+  }),
+  STREMIO_META_RATE_LIMIT_WINDOW: num({
+    default: 5, // 1 minute
+    desc: 'Time window for Stremio meta rate limiting in seconds',
+  }),
+  STREMIO_META_RATE_LIMIT_MAX_REQUESTS: num({
+    default: 10, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
 });

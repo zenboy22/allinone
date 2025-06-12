@@ -3,9 +3,12 @@ import { AIOStreams, constants, MetaResponse } from '@aiostreams/core';
 import { createLogger } from '@aiostreams/core';
 import { createResponse } from '../../utils/responses';
 import { StremioTransformer } from '@aiostreams/core';
+import { stremioMetaRateLimiter } from '../../middlewares/ratelimit';
 
 const logger = createLogger('server');
 const router = Router();
+
+router.use(stremioMetaRateLimiter);
 
 router.get(
   '/:type/:id.json',

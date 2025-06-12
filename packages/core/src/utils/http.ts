@@ -1,9 +1,11 @@
+import { Cache } from './cache';
 import { HEADERS_FOR_IP_FORWARDING } from './constants';
 import { Env } from './env';
 import { createLogger, maskSensitiveInfo } from './logger';
 import { fetch, ProxyAgent } from 'undici';
 
 const logger = createLogger('http');
+const urlCount = Cache.getInstance<string, number>('url-count');
 
 export function makeUrlLogSafe(url: string) {
   // for each component of the path, if it is longer than 10 characters, mask it
@@ -32,6 +34,20 @@ export function makeRequest(
     for (const header of HEADERS_FOR_IP_FORWARDING) {
       headers.set(header, forwardIp);
     }
+  }
+
+  // block recursive requests
+  const currentCount = urlCount.get(url, false) ?? 0;
+  if (currentCount > Env.RECURSION_THRESHOLD_LIMIT) {
+    logger.warn(
+      `Detected possible recursive requests to ${url}. Current count: ${currentCount}. Blocking request.`
+    );
+    throw new Error('Recursion limit exceeded');
+  }
+  if (currentCount > 0) {
+    urlCount.update(url, currentCount + 1);
+  } else {
+    urlCount.set(url, 1, Env.RECURSION_THRESHOLD_WINDOW);
   }
   logger.debug(
     `Making a ${useProxy ? 'proxied' : 'direct'} request to ${makeUrlLogSafe(

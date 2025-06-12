@@ -75,6 +75,24 @@ const stremioCatalogRateLimiter = createRateLimiter(
   'stremio-catalog'
 );
 
+const stremioManifestRateLimiter = createRateLimiter(
+  Env.STREMIO_MANIFEST_RATE_LIMIT_WINDOW * 1000,
+  Env.STREMIO_MANIFEST_RATE_LIMIT_MAX_REQUESTS,
+  'stremio-manifest'
+);
+
+const stremioSubtitleRateLimiter = createRateLimiter(
+  Env.STREMIO_SUBTITLE_RATE_LIMIT_WINDOW * 1000,
+  Env.STREMIO_SUBTITLE_RATE_LIMIT_MAX_REQUESTS,
+  'stremio-subtitle'
+);
+
+const stremioMetaRateLimiter = createRateLimiter(
+  Env.STREMIO_META_RATE_LIMIT_WINDOW * 1000,
+  Env.STREMIO_META_RATE_LIMIT_MAX_REQUESTS,
+  'stremio-meta'
+);
+
 const staticRateLimiter = createRateLimiter(
   Env.STATIC_RATE_LIMIT_WINDOW * 1000,
   Env.STATIC_RATE_LIMIT_MAX_REQUESTS,
@@ -88,5 +106,8 @@ export {
   catalogApiRateLimiter,
   stremioStreamRateLimiter,
   stremioCatalogRateLimiter,
+  stremioManifestRateLimiter,
+  stremioSubtitleRateLimiter,
+  stremioMetaRateLimiter,
   staticRateLimiter,
 };

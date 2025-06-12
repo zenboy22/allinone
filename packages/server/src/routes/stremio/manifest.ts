@@ -9,11 +9,14 @@ import {
 } from '@aiostreams/core';
 import { Manifest } from '@aiostreams/core';
 import { createLogger } from '@aiostreams/core';
+import { stremioManifestRateLimiter } from '../../middlewares/ratelimit';
 
 const logger = createLogger('server');
 const router = Router();
 
 export default router;
+
+router.use(stremioManifestRateLimiter);
 
 const manifest = async (config?: UserData): Promise<Manifest> => {
   let addonId = Env.ADDON_ID;
@@ -24,7 +27,7 @@ const manifest = async (config?: UserData): Promise<Manifest> => {
   let resources: Manifest['resources'] = [];
   let addonCatalogs: Manifest['addonCatalogs'] = [];
   if (config) {
-    const aiostreams = new AIOStreams(config);
+    const aiostreams = new AIOStreams(config, false);
 
     await aiostreams.initialise();
 
