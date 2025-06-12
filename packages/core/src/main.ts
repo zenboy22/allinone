@@ -2264,15 +2264,23 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     if (type === 'movie' && this.userData.sortCriteria?.movies?.length) {
       logger.info('Using movie sort criteria');
       sortCriteria = this.userData.sortCriteria?.movies;
-      cachedSortCriteria = this.userData.sortCriteria?.cachedMovies;
-      uncachedSortCriteria = this.userData.sortCriteria?.uncachedMovies;
+      if (this.userData.sortCriteria?.cachedMovies?.length) {
+        cachedSortCriteria = this.userData.sortCriteria?.cachedMovies;
+      }
+      if (this.userData.sortCriteria?.uncachedMovies?.length) {
+        uncachedSortCriteria = this.userData.sortCriteria?.uncachedMovies;
+      }
     }
 
     if (type === 'series' && this.userData.sortCriteria?.series?.length) {
       logger.info('Using series sort criteria');
       sortCriteria = this.userData.sortCriteria?.series;
-      cachedSortCriteria = this.userData.sortCriteria?.cachedSeries;
-      uncachedSortCriteria = this.userData.sortCriteria?.uncachedSeries;
+      if (this.userData.sortCriteria?.cachedSeries?.length) {
+        cachedSortCriteria = this.userData.sortCriteria?.cachedSeries;
+      }
+      if (this.userData.sortCriteria?.uncachedSeries?.length) {
+        uncachedSortCriteria = this.userData.sortCriteria?.uncachedSeries;
+      }
     }
     let sortedStreams = [];
 
