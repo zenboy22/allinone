@@ -136,7 +136,10 @@ function Content() {
         //   toast.error('Failed to import configuration: Invalid JSON file');
         //   return;
         // }
-        setUserData(json);
+        setUserData((prev) => ({
+          ...prev,
+          ...json,
+        }));
         toast.success('Configuration imported successfully');
       } catch (err) {
         toast.error('Failed to import configuration: Invalid JSON file');
