@@ -59,6 +59,10 @@ import {
   TYPES,
   DEDUPLICATOR_KEYS,
   AUDIO_CHANNELS,
+  MIN_SIZE,
+  MAX_SIZE,
+  MIN_SEEDERS,
+  MAX_SEEDERS,
 } from '../../../../core/src/utils/constants';
 import { PageControls } from '../shared/page-controls';
 import { Switch } from '../ui/switch';
@@ -81,9 +85,6 @@ type VisualTag = (typeof VISUAL_TAGS)[number];
 type AudioTag = (typeof AUDIO_TAGS)[number];
 type AudioChannel = (typeof AUDIO_CHANNELS)[number];
 type Language = (typeof LANGUAGES)[number];
-
-const MIN_SIZE = 0;
-const MAX_SIZE = 100 * 1000 * 1000 * 1000; // 100GB
 
 const defaultPreferredResolutions: Resolution[] = [
   '2160p',
@@ -853,100 +854,251 @@ function Content() {
                 description="Configure required, excluded, and included seeder ranges"
               >
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <NumberInput
-                      label="Required Minimum Seeders"
-                      help="Streams with fewer seeders than this will be excluded"
-                      value={userData.requiredSeeders?.min}
-                      min={0}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          requiredSeeders: {
-                            ...prev.requiredSeeders,
-                            min: value,
-                          },
-                        }));
-                      }}
-                    />
-                    <NumberInput
-                      label="Required Maximum Seeders"
-                      help="Streams with more seeders than this will be excluded"
-                      value={userData.requiredSeeders?.max}
-                      min={0}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          requiredSeeders: {
-                            ...prev.requiredSeeders,
-                            max: value,
-                          },
-                        }));
-                      }}
-                    />
+                  <div className="space-y-6">
+                    <div className="flex flex-col md:flex-row gap-4">
+                      <div className="flex-1 min-w-0">
+                        <Slider
+                          min={MIN_SEEDERS}
+                          max={MAX_SEEDERS}
+                          defaultValue={[MIN_SEEDERS, MAX_SEEDERS]}
+                          value={
+                            userData.requiredSeederRange || [
+                              MIN_SEEDERS,
+                              MAX_SEEDERS,
+                            ]
+                          }
+                          onValueChange={(newValue) =>
+                            newValue !== undefined &&
+                            newValue?.[0] !== undefined &&
+                            newValue?.[1] !== undefined &&
+                            setUserData((prev) => ({
+                              ...prev,
+                              requiredSeederRange: [newValue[0], newValue[1]],
+                            }))
+                          }
+                          minStepsBetweenThumbs={1}
+                          label="Required Seeder Range"
+                          help="Streams with seeders outside this range will be excluded"
+                        />
+                        <div className="flex justify-between mt-1 text-xs text-[--muted]">
+                          <span>
+                            {userData.requiredSeederRange?.[0] || MIN_SEEDERS}
+                          </span>
+                          <span>
+                            {userData.requiredSeederRange?.[1] || MAX_SEEDERS}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 md:w-[240px] shrink-0">
+                        <NumberInput
+                          label="Min"
+                          value={
+                            userData.requiredSeederRange?.[0] || MIN_SEEDERS
+                          }
+                          min={MIN_SEEDERS}
+                          max={userData.requiredSeederRange?.[1] || MAX_SEEDERS}
+                          onValueChange={(newValue) =>
+                            newValue !== undefined &&
+                            setUserData((prev) => ({
+                              ...prev,
+                              requiredSeederRange: [
+                                newValue,
+                                prev.requiredSeederRange?.[1] || MAX_SEEDERS,
+                              ],
+                            }))
+                          }
+                        />
+                        <NumberInput
+                          label="Max"
+                          value={
+                            userData.requiredSeederRange?.[1] || MAX_SEEDERS
+                          }
+                          min={userData.requiredSeederRange?.[0] || MIN_SEEDERS}
+                          max={MAX_SEEDERS}
+                          onValueChange={(newValue) =>
+                            newValue !== undefined &&
+                            setUserData((prev) => ({
+                              ...prev,
+                              requiredSeederRange: [
+                                prev.requiredSeederRange?.[0] || MIN_SEEDERS,
+                                newValue,
+                              ],
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-4">
+                      <div className="flex-1 min-w-0">
+                        <Slider
+                          min={MIN_SEEDERS}
+                          max={MAX_SEEDERS}
+                          defaultValue={[MIN_SEEDERS, MAX_SEEDERS]}
+                          value={
+                            userData.excludeSeederRange || [
+                              MIN_SEEDERS,
+                              MAX_SEEDERS,
+                            ]
+                          }
+                          onValueChange={(newValue) =>
+                            newValue !== undefined &&
+                            newValue?.[0] !== undefined &&
+                            newValue?.[1] !== undefined &&
+                            setUserData((prev) => ({
+                              ...prev,
+                              excludeSeederRange: [newValue[0], newValue[1]],
+                            }))
+                          }
+                          minStepsBetweenThumbs={1}
+                          label="Excluded Seeder Range"
+                          help="Streams with seeders in this range will be excluded"
+                        />
+                        <div className="flex justify-between mt-1 text-xs text-[--muted]">
+                          <span>
+                            {userData.excludeSeederRange?.[0] || MIN_SEEDERS}
+                          </span>
+                          <span>
+                            {userData.excludeSeederRange?.[1] || MAX_SEEDERS}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 md:w-[240px] shrink-0">
+                        <NumberInput
+                          label="Min"
+                          value={
+                            userData.excludeSeederRange?.[0] || MIN_SEEDERS
+                          }
+                          min={MIN_SEEDERS}
+                          max={userData.excludeSeederRange?.[1] || MAX_SEEDERS}
+                          onValueChange={(newValue) =>
+                            newValue !== undefined &&
+                            setUserData((prev) => ({
+                              ...prev,
+                              excludeSeederRange: [
+                                newValue,
+                                prev.excludeSeederRange?.[1] || MAX_SEEDERS,
+                              ],
+                            }))
+                          }
+                        />
+                        <NumberInput
+                          label="Max"
+                          value={
+                            userData.excludeSeederRange?.[1] || MAX_SEEDERS
+                          }
+                          min={userData.excludeSeederRange?.[0] || MIN_SEEDERS}
+                          max={MAX_SEEDERS}
+                          onValueChange={(newValue) =>
+                            newValue !== undefined &&
+                            setUserData((prev) => ({
+                              ...prev,
+                              excludeSeederRange: [
+                                prev.excludeSeederRange?.[0] || MIN_SEEDERS,
+                                newValue,
+                              ],
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-4">
+                      <div className="flex-1 min-w-0">
+                        <Slider
+                          min={MIN_SEEDERS}
+                          max={MAX_SEEDERS}
+                          defaultValue={[MIN_SEEDERS, MAX_SEEDERS]}
+                          value={
+                            userData.includeSeederRange || [
+                              MIN_SEEDERS,
+                              MAX_SEEDERS,
+                            ]
+                          }
+                          onValueChange={(newValue) =>
+                            newValue !== undefined &&
+                            newValue?.[0] !== undefined &&
+                            newValue?.[1] !== undefined &&
+                            setUserData((prev) => ({
+                              ...prev,
+                              includeSeederRange: [newValue[0], newValue[1]],
+                            }))
+                          }
+                          minStepsBetweenThumbs={1}
+                          label="Included Seeder Range"
+                          help="Streams with seeders in this range will be included, ignoring other filters"
+                        />
+                        <div className="flex justify-between mt-1 text-xs text-[--muted]">
+                          <span>
+                            {userData.includeSeederRange?.[0] || MIN_SEEDERS}
+                          </span>
+                          <span>
+                            {userData.includeSeederRange?.[1] || MAX_SEEDERS}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 md:w-[240px] shrink-0">
+                        <NumberInput
+                          label="Min"
+                          value={
+                            userData.includeSeederRange?.[0] || MIN_SEEDERS
+                          }
+                          min={MIN_SEEDERS}
+                          max={userData.includeSeederRange?.[1] || MAX_SEEDERS}
+                          onValueChange={(newValue) =>
+                            newValue !== undefined &&
+                            setUserData((prev) => ({
+                              ...prev,
+                              includeSeederRange: [
+                                newValue,
+                                prev.includeSeederRange?.[1] || MAX_SEEDERS,
+                              ],
+                            }))
+                          }
+                        />
+                        <NumberInput
+                          label="Max"
+                          value={
+                            userData.includeSeederRange?.[1] || MAX_SEEDERS
+                          }
+                          min={userData.includeSeederRange?.[0] || MIN_SEEDERS}
+                          max={MAX_SEEDERS}
+                          onValueChange={(newValue) =>
+                            newValue !== undefined &&
+                            setUserData((prev) => ({
+                              ...prev,
+                              includeSeederRange: [
+                                prev.includeSeederRange?.[0] || MIN_SEEDERS,
+                                newValue,
+                              ],
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <NumberInput
-                      label="Excluded Minimum Seeders"
-                      help="Streams with more seeders than this will be excluded"
-                      value={userData.excludedSeeders?.min}
-                      min={0}
+
+                  <div className="space-y-4">
+                    <Combobox
+                      label="Stream Types"
+                      emptyMessage="There aren't any stream types to choose from..."
+                      options={['p2p', 'cached', 'uncached'].map((type) => ({
+                        label: type,
+                        value: type,
+                      }))}
+                      value={userData.seederRangeTypes || []}
                       onValueChange={(value) => {
                         setUserData((prev) => ({
                           ...prev,
-                          excludedSeeders: {
-                            ...prev.excludedSeeders,
-                            min: value,
-                          },
+                          seederRangeTypes: value as (
+                            | 'p2p'
+                            | 'cached'
+                            | 'uncached'
+                          )[],
                         }));
                       }}
-                    />
-                    <NumberInput
-                      label="Excluded Maximum Seeders"
-                      help="Streams with fewer seeders than this will be excluded"
-                      value={userData.excludedSeeders?.max}
-                      min={0}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          excludedSeeders: {
-                            ...prev.excludedSeeders,
-                            max: value,
-                          },
-                        }));
-                      }}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <NumberInput
-                      label="Included Minimum Seeders"
-                      help="Streams with more seeders than this will be included, ignoring other filters"
-                      value={userData.includedSeeders?.min}
-                      min={0}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          includedSeeders: {
-                            ...prev.includedSeeders,
-                            min: value,
-                          },
-                        }));
-                      }}
-                    />
-                    <NumberInput
-                      label="Included Maximum Seeders"
-                      help="Streams with fewer seeders than this will be included, ignoring other filters"
-                      value={userData.includedSeeders?.max}
-                      min={0}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          includedSeeders: {
-                            ...prev.includedSeeders,
-                            max: value,
-                          },
-                        }));
-                      }}
+                      help="Stream types that will use the seeder ranges defined above. Leave blank to apply to all stream types."
+                      multiple
                     />
                   </div>
                 </div>
@@ -1036,6 +1188,7 @@ function Content() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Combobox
+                        multiple
                         disabled={!userData.titleMatching?.enabled}
                         label="Request Types"
                         emptyMessage="There aren't any request types to choose from..."
@@ -1057,6 +1210,7 @@ function Content() {
                         }}
                       />
                       <Combobox
+                        multiple
                         disabled={!userData.titleMatching?.enabled}
                         label="Addons"
                         help="Addons that will use strict title matching. Leave blank to apply to all addons."
@@ -1103,6 +1257,7 @@ function Content() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Combobox
+                        multiple
                         disabled={!userData.seasonEpisodeMatching?.enabled}
                         label="Request Types"
                         help="Request types that will use season/episode matching. Leave blank to apply to all request types."
@@ -1124,6 +1279,7 @@ function Content() {
                         }}
                       />
                       <Combobox
+                        multiple
                         disabled={!userData.seasonEpisodeMatching?.enabled}
                         label="Addons"
                         help="Addons that will use season/episode matching. Leave blank to apply to all addons."

@@ -1350,6 +1350,50 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       }
     };
 
+    const normaliseRange = (
+      range: [number, number] | undefined,
+      defaults: { min: number; max: number }
+    ): [number | undefined, number | undefined] | undefined => {
+      if (!range) return undefined;
+      const [min, max] = range;
+      const normMin = min === defaults.min ? undefined : min;
+      const normMax = max === defaults.max ? undefined : max;
+      return normMin === undefined && normMax === undefined
+        ? undefined
+        : [normMin, normMax];
+    };
+
+    const normaliseSeederRange = (
+      seederRange: [number, number] | undefined
+    ) => {
+      return normaliseRange(seederRange, {
+        min: constants.MIN_SEEDERS,
+        max: constants.MAX_SEEDERS,
+      });
+    };
+
+    const normaliseSizeRange = (sizeRange: [number, number] | undefined) => {
+      return normaliseRange(sizeRange, {
+        min: constants.MIN_SIZE,
+        max: constants.MAX_SIZE,
+      });
+    };
+
+    const getStreamType = (
+      stream: ParsedStream
+    ): 'p2p' | 'cached' | 'uncached' | undefined => {
+      switch (stream.type) {
+        case 'debrid':
+          return stream.service?.cached ? 'cached' : 'uncached';
+        case 'usenet':
+          return stream.service?.cached ? 'cached' : 'uncached';
+        case 'p2p':
+          return 'p2p';
+        default:
+          return undefined;
+      }
+    };
+
     const shouldKeepStream = async (stream: ParsedStream): Promise<boolean> => {
       const file = stream.parsedFile;
 
@@ -1433,23 +1477,42 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return true;
       }
 
+      const includedSeederRange = normaliseSeederRange(
+        this.userData.includeSeederRange
+      );
+      const excludedSeederRange = normaliseSeederRange(
+        this.userData.excludeSeederRange
+      );
+      const requiredSeederRange = normaliseSeederRange(
+        this.userData.requiredSeederRange
+      );
+
+      const typeForSeederRange = getStreamType(stream);
+
       if (
-        this.userData.includedSeeders?.min &&
-        stream.torrent?.seeders &&
-        stream.torrent.seeders > this.userData.includedSeeders.min
+        includedSeederRange &&
+        (!this.userData.seederRangeTypes ||
+          (typeForSeederRange &&
+            this.userData.seederRangeTypes.includes(typeForSeederRange)))
       ) {
-        return true;
-      }
-      if (
-        this.userData.includedSeeders?.max &&
-        stream.torrent?.seeders &&
-        stream.torrent.seeders < this.userData.includedSeeders.max
-      ) {
-        return true;
+        if (
+          stream.torrent?.seeders &&
+          includedSeederRange[0] &&
+          stream.torrent.seeders > includedSeederRange[0]
+        ) {
+          return true;
+        }
+        if (
+          stream.torrent?.seeders &&
+          includedSeederRange[1] &&
+          stream.torrent.seeders < includedSeederRange[1]
+        ) {
+          return true;
+        }
       }
 
-      // Track stream type exclusions
       if (this.userData.excludedStreamTypes?.includes(stream.type)) {
+        // Track stream type exclusions
         skipReasons.excludedStreamType.total++;
         skipReasons.excludedStreamType.details[stream.type] =
           (skipReasons.excludedStreamType.details[stream.type] || 0) + 1;
@@ -1780,37 +1843,47 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       }
 
       if (
-        this.userData.requiredSeeders?.min &&
-        stream.torrent?.seeders &&
-        stream.torrent.seeders < this.userData.requiredSeeders.min
+        requiredSeederRange &&
+        (!this.userData.seederRangeTypes ||
+          (typeForSeederRange &&
+            this.userData.seederRangeTypes.includes(typeForSeederRange)))
       ) {
-        skipReasons.requiredSeeders.total++;
-        return false;
-      }
-      if (
-        this.userData.requiredSeeders?.max &&
-        stream.torrent?.seeders &&
-        stream.torrent.seeders > this.userData.requiredSeeders.max
-      ) {
-        skipReasons.requiredSeeders.total++;
-        return false;
+        if (
+          stream.torrent?.seeders &&
+          requiredSeederRange[0] &&
+          stream.torrent.seeders < requiredSeederRange[0]
+        ) {
+          return false;
+        }
+        if (
+          stream.torrent?.seeders &&
+          requiredSeederRange[1] &&
+          stream.torrent.seeders > requiredSeederRange[1]
+        ) {
+          return false;
+        }
       }
 
       if (
-        this.userData.excludedSeeders?.min &&
-        stream.torrent?.seeders &&
-        stream.torrent.seeders < this.userData.excludedSeeders.min
+        excludedSeederRange &&
+        (!this.userData.seederRangeTypes ||
+          (typeForSeederRange &&
+            this.userData.seederRangeTypes.includes(typeForSeederRange)))
       ) {
-        skipReasons.excludedSeeders.total++;
-        return false;
-      }
-      if (
-        this.userData.excludedSeeders?.max &&
-        stream.torrent?.seeders &&
-        stream.torrent.seeders > this.userData.excludedSeeders.max
-      ) {
-        skipReasons.excludedSeeders.total++;
-        return false;
+        if (
+          stream.torrent?.seeders &&
+          excludedSeederRange[0] &&
+          stream.torrent.seeders > excludedSeederRange[0]
+        ) {
+          return false;
+        }
+        if (
+          stream.torrent?.seeders &&
+          excludedSeederRange[1] &&
+          stream.torrent.seeders < excludedSeederRange[1]
+        ) {
+          return false;
+        }
       }
 
       if (!performTitleMatch(stream)) {
@@ -1836,19 +1909,6 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return false;
       }
 
-      const useMinMax = (
-        minMax: [number, number] | undefined,
-        defaults: { min: number; max: number }
-      ): [number | undefined, number | undefined] | undefined => {
-        if (!minMax) return undefined;
-        const [min, max] = minMax;
-        const normMin = min === defaults.min ? undefined : min;
-        const normMax = max === defaults.max ? undefined : max;
-        return normMin === undefined && normMax === undefined
-          ? undefined
-          : [normMin, normMax];
-      };
-
       const global = this.userData.size?.global;
       const resolution = stream.parsedFile?.resolution
         ? this.userData.size?.resolution?.[
@@ -1860,24 +1920,12 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       let minMax: [number | undefined, number | undefined] | undefined;
       if (type === 'movie') {
         minMax =
-          useMinMax(resolution?.movies, {
-            min: constants.MIN_SIZE,
-            max: constants.MAX_SIZE,
-          }) ||
-          useMinMax(global?.movies, {
-            min: constants.MIN_SIZE,
-            max: constants.MAX_SIZE,
-          });
+          normaliseSizeRange(resolution?.movies) ||
+          normaliseSizeRange(global?.movies);
       } else {
         minMax =
-          useMinMax(resolution?.series, {
-            min: constants.MIN_SIZE,
-            max: constants.MAX_SIZE,
-          }) ||
-          useMinMax(global?.series, {
-            min: constants.MIN_SIZE,
-            max: constants.MAX_SIZE,
-          });
+          normaliseSizeRange(resolution?.series) ||
+          normaliseSizeRange(global?.series);
       }
 
       if (minMax) {

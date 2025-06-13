@@ -278,24 +278,16 @@ export const UserDataSchema = z.object({
   enhanceResults: z.boolean().optional(),
   enhancePosters: z.boolean().optional(),
 
-  excludedSeeders: z
-    .object({
-      min: z.number().optional(),
-      max: z.number().optional(),
-    })
+  excludeSeederRange: z
+    .tuple([z.number().min(0), z.number().min(0)])
     .optional(),
-  includedSeeders: z
-    .object({
-      min: z.number().optional(),
-      max: z.number().optional(),
-    })
+  includeSeederRange: z
+    .tuple([z.number().min(0), z.number().min(0)])
     .optional(),
-  requiredSeeders: z
-    .object({
-      min: z.number().optional(),
-      max: z.number().optional(),
-    })
+  requiredSeederRange: z
+    .tuple([z.number().min(0), z.number().min(0)])
     .optional(),
+  seederRangeTypes: z.array(z.enum(['p2p', 'cached', 'uncached'])).optional(),
   excludeCached: z.boolean().optional(),
   excludeCachedFromAddons: z.array(z.string().min(1)).optional(),
   excludeCachedFromServices: z.array(z.string().min(1)).optional(),
