@@ -47,6 +47,7 @@ export class UserRepository {
       }
 
       let validatedConfig: UserData;
+      config.trusted = false;
       try {
         // don't skip errors, but don't decrypt credentials
         // as we need to store the encrypted version

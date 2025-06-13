@@ -301,9 +301,7 @@ export async function validateConfig(
     }
   }
 
-  if (config.uuid) {
-    await validateRegexes(config);
-  }
+  await validateRegexes(config);
 
   await new AIOStreams(
     ensureDecrypted(config),
@@ -314,10 +312,6 @@ export async function validateConfig(
 }
 
 async function validateRegexes(config: UserData) {
-  if (!config.uuid) {
-    return;
-  }
-
   const excludedRegexes = config.excludedRegexPatterns;
   const includedRegexes = config.includedRegexPatterns;
   const requiredRegexes = config.requiredRegexPatterns;
