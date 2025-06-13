@@ -1,0 +1,179 @@
+import { Env } from './env';
+import { Cache } from './cache';
+import { TYPES } from './constants';
+
+export type ExternalIdType = 'imdb' | 'tmdb' | 'tvdb';
+
+interface ExternalId {
+  type: ExternalIdType;
+  value: string;
+}
+
+const API_BASE_URL = 'https://api.themoviedb.org/3';
+const FIND_BY_ID_PATH = '/find';
+const MOVIE_DETAILS_PATH = '/movie';
+const TV_DETAILS_PATH = '/tv';
+const ALTERNATIVE_TITLES_PATH = '/alternative_titles';
+
+// Cache TTLs in seconds
+const ID_CACHE_TTL = 24 * 60 * 60; // 24 hours
+const TITLE_CACHE_TTL = 7 * 24 * 60 * 60; // 7 days
+
+export class TMDBMetadata {
+  private readonly TMDB_ID_REGEX = /^(?:tmdb)[-:](\d+)(?::\d+:\d+)?$/;
+  private readonly TVDB_ID_REGEX = /^(?:tvdb)[-:](\d+)(?::\d+:\d+)?$/;
+  private readonly IMDB_ID_REGEX = /^(?:tt)(\d+)(?::\d+:\d+)?$/;
+  private readonly idCache: Cache<string, string>;
+  private readonly titleCache: Cache<string, string[]>;
+  private readonly accessToken: string;
+
+  public constructor(accessToken?: string) {
+    if (!accessToken && !Env.TMDB_ACCESS_TOKEN) {
+      throw new Error('TMDB Access Token is not set');
+    }
+    this.accessToken = (accessToken || Env.TMDB_ACCESS_TOKEN)!;
+    this.idCache = Cache.getInstance<string, string>('tmdb_id_conversion');
+    this.titleCache = Cache.getInstance<string, string[]>('alternative_titles');
+  }
+
+  private getHeaders(): Record<string, string> {
+    return {
+      Authorization: `Bearer ${this.accessToken}`,
+    };
+  }
+
+  private parseExternalId(id: string): ExternalId | null {
+    if (this.TMDB_ID_REGEX.test(id)) {
+      const match = id.match(this.TMDB_ID_REGEX);
+      return match ? { type: 'tmdb', value: match[1] } : null;
+    }
+    if (this.IMDB_ID_REGEX.test(id)) {
+      const match = id.match(this.IMDB_ID_REGEX);
+      return match ? { type: 'imdb', value: `tt${match[1]}` } : null;
+    }
+    if (this.TVDB_ID_REGEX.test(id)) {
+      const match = id.match(this.TVDB_ID_REGEX);
+      return match ? { type: 'tvdb', value: match[1] } : null;
+    }
+    return null;
+  }
+
+  private async convertToTmdbId(
+    id: ExternalId,
+    type: (typeof TYPES)[number]
+  ): Promise<string> {
+    if (id.type === 'tmdb') {
+      return id.value;
+    }
+
+    // Check cache first
+    const cacheKey = `${id.type}:${id.value}:${type}`;
+    const cachedId = this.idCache.get(cacheKey);
+    if (cachedId) {
+      return cachedId;
+    }
+
+    const url = new URL(API_BASE_URL + FIND_BY_ID_PATH + `/${id.value}`);
+    url.searchParams.set('external_source', `${id.type}_id`);
+
+    const response = await fetch(url, {
+      headers: this.getHeaders(),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`${response.status} - ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const results = type === 'movie' ? data.movie_results : data.tv_results;
+    const meta = results?.[0];
+
+    if (!meta) {
+      throw new Error(`No ${type} metadata found for ID: ${id.value}`);
+    }
+
+    const tmdbId = meta.id.toString();
+    // Cache the result
+    this.idCache.set(cacheKey, tmdbId, ID_CACHE_TTL);
+    return tmdbId;
+  }
+
+  public async getTitles(
+    id: string,
+    type: (typeof TYPES)[number]
+  ): Promise<string[]> {
+    if (!['movie', 'series', 'anime'].includes(type)) {
+      return [];
+    }
+
+    const externalId = this.parseExternalId(id);
+    if (!externalId) {
+      throw new Error(
+        'Invalid ID format. Must be TMDB (tmdb:123) or IMDB (tt123) or TVDB (tvdb:123) format'
+      );
+    }
+
+    const tmdbId = await this.convertToTmdbId(externalId, type);
+
+    // Check cache first
+    const cacheKey = `${tmdbId}:${type}`;
+    const cachedTitles = this.titleCache.get(cacheKey);
+    if (cachedTitles) {
+      return cachedTitles;
+    }
+
+    // Fetch primary title from details endpoint
+    const detailsUrl = new URL(
+      API_BASE_URL +
+        (type === 'movie' ? MOVIE_DETAILS_PATH : TV_DETAILS_PATH) +
+        `/${tmdbId}`
+    );
+
+    const detailsResponse = await fetch(detailsUrl, {
+      headers: this.getHeaders(),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!detailsResponse.ok) {
+      throw new Error(`Failed to fetch details: ${detailsResponse.statusText}`);
+    }
+
+    const detailsData = await detailsResponse.json();
+    const primaryTitle =
+      type === 'movie' ? detailsData.title : detailsData.name;
+
+    // Fetch alternative titles
+    const altTitlesUrl = new URL(
+      API_BASE_URL +
+        (type === 'movie' ? MOVIE_DETAILS_PATH : TV_DETAILS_PATH) +
+        `/${tmdbId}` +
+        ALTERNATIVE_TITLES_PATH
+    );
+
+    const altTitlesResponse = await fetch(altTitlesUrl, {
+      headers: this.getHeaders(),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!altTitlesResponse.ok) {
+      throw new Error(
+        `Failed to fetch alternative titles: ${altTitlesResponse.statusText}`
+      );
+    }
+
+    const altTitlesData = await altTitlesResponse.json();
+    const alternativeTitles =
+      type === 'movie'
+        ? altTitlesData.titles.map((title: any) => title.title)
+        : altTitlesData.results.map((title: any) => title.title);
+
+    // Combine primary title with alternative titles, ensuring no duplicates
+    const allTitles = [primaryTitle, ...alternativeTitles];
+    const uniqueTitles = [...new Set(allTitles)];
+
+    // Cache the result
+    this.titleCache.set(cacheKey, uniqueTitles, TITLE_CACHE_TTL);
+    return uniqueTitles;
+  }
+}
