@@ -145,7 +145,7 @@ export const PARSE_REGEX: PARSE_REGEX = {
     Italian: createLanguageRegex('italian|ita'),
     Korean: createLanguageRegex('korean|kor'),
     Hindi: createLanguageRegex('hindi|hin'),
-    Bengali: createLanguageRegex('bengali|ben'),
+    Bengali: createLanguageRegex('bengali|ben(?![ .\\-_]?the[ .\\-_]?men)'),
     Punjabi: createLanguageRegex('punjabi|pan'),
     Marathi: createLanguageRegex('marathi|mar'),
     Gujarati: createLanguageRegex('gujarati|guj'),
