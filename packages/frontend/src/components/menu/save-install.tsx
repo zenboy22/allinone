@@ -258,12 +258,17 @@ function Content() {
               {status?.settings.protected && (
                 <>
                   <TextInput
-                    label="API Key"
-                    id="api-key"
+                    label="Addon Password"
                     type="password"
                     value={addonPassword}
                     required
-                    placeholder="Enter the API Key for this instance"
+                    placeholder="Enter the password for this instance"
+                    help={
+                      <>
+                        This would be the value of the{' '}
+                        <code>ADDON_PASSWORD</code> environment variable
+                      </>
+                    }
                     onValueChange={(value) => {
                       setAddonPassword(value);
                       setUserData((prev) => ({
@@ -272,10 +277,6 @@ function Content() {
                       }));
                     }}
                   />
-                  <p className="text-sm text-[--muted] mt-1">
-                    This instance is protected by a password, please enter it to
-                    continue.
-                  </p>
                 </>
               )}
               <Button intent="white" type="submit" loading={loading} rounded>
@@ -320,12 +321,18 @@ function Content() {
                 {status?.settings.protected && (
                   <>
                     <TextInput
-                      label="Password"
+                      label="Addon Password"
                       id="password"
                       type="password"
                       value={addonPassword}
                       required
                       placeholder="Enter the password for this instance"
+                      help={
+                        <>
+                          This would be the value of the{' '}
+                          <code>ADDON_PASSWORD</code> environment variable
+                        </>
+                      }
                       onValueChange={(value) => {
                         setAddonPassword(value);
                         setUserData((prev) => ({
@@ -334,10 +341,6 @@ function Content() {
                         }));
                       }}
                     />
-                    <p className="text-sm text-[--muted] mt-1 mb-2">
-                      This instance is protected by a password, please enter it
-                      to continue.
-                    </p>
                   </>
                 )}
                 <Button type="submit" intent="white" loading={loading} rounded>
