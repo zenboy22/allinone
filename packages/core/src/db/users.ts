@@ -63,7 +63,6 @@ export class UserRepository {
       }
 
       const uuid = await this.generateUUID();
-      config.uuid = uuid;
 
       const { encryptedConfig, salt: configSalt } = await this.encryptConfig(
         validatedConfig,
