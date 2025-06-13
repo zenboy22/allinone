@@ -15,8 +15,8 @@ class DMMCastStreamParser extends StreamParser {
     stream: Stream,
     currentParsedStream: ParsedStream
   ): string | undefined {
-    let filename = stream.title
-      ? stream.title
+    let filename = stream.description
+      ? stream.description
           .split('\n')
           .map((line) => line.replace(/-$/, ''))
           .filter((line) => !line.includes('📦'))
@@ -29,11 +29,21 @@ class DMMCastStreamParser extends StreamParser {
     stream: Stream,
     currentParsedStream: ParsedStream
   ): string | undefined {
-    if (!stream.title?.includes('📦')) {
+    if (!stream.description?.includes('📦')) {
       currentParsedStream.filename = undefined;
-      return stream.title;
+      return `${stream.name} - ${stream.description}`;
     }
     return undefined;
+  }
+
+  protected override getInLibrary(
+    stream: Stream,
+    currentParsedStream: ParsedStream
+  ): boolean {
+    if (stream.name?.includes('Yours')) {
+      return true;
+    }
+    return false;
   }
 }
 
