@@ -2539,11 +2539,12 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         case 'keyword':
           return multiplier * (stream.keywordMatched ? 1 : 0);
 
-        case 'service':
+        case 'service': {
           const index = userData.services?.findIndex(
             (service) => service.id === stream.service?.id
           );
           return multiplier * -(index === -1 ? 0 : (index ?? 0));
+        }
         default:
           return 0;
       }
