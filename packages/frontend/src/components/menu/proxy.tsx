@@ -119,7 +119,7 @@ function Content() {
           <div className="space-y-2">
             <Select
               label="Proxy Service"
-              value={userData.proxy?.id ?? 'mediaflow'}
+              value={userData.proxy?.id}
               onValueChange={(v) => {
                 setUserData((prev) => ({
                   ...prev,
