@@ -192,9 +192,10 @@ function Content() {
               disabled={isPublicIpForced || !userData.proxy?.enabled}
             />
             <p className="text-[--muted] text-sm">
-              Configure this only when running MediaFlow locally with a proxy
-              service. Leave empty if MediaFlow is configured locally without a
-              proxy server or if it's hosted on a remote server.
+              Configure this only when running {selectedProxyDetails?.name}{' '}
+              locally with a proxy service. Leave empty if{' '}
+              {selectedProxyDetails?.name} is configured locally without a proxy
+              server or if it's hosted on a remote server.
             </p>
           </div>
         </SettingsCard>
