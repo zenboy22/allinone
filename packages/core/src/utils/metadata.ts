@@ -82,7 +82,7 @@ export class TMDBMetadata {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch metadata');
+      throw new Error(`${response.status} - ${response.statusText}`);
     }
 
     const data = await response.json();
