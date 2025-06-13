@@ -850,7 +850,7 @@ export class AIOStreams {
   private async assignPublicIps() {
     let userIp = this.userData.ip;
     let proxyIp = undefined;
-    if (this.userData.proxy) {
+    if (this.userData.proxy && this.userData.proxy.enabled) {
       proxyIp = await this.getProxyIp();
     }
     for (const addon of this.addons) {

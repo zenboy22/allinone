@@ -382,14 +382,12 @@ function ensureDecrypted(config: UserData): UserData {
   // Decrypt proxy config
   if (decryptedConfig.proxy) {
     const proxy = decryptedConfig.proxy;
-    proxy.credentials = tryDecrypt(
-      proxy.credentials ? decodeURIComponent(proxy.credentials) : undefined,
-      'proxy credentials'
-    );
-    proxy.url = tryDecrypt(
-      proxy.url ? decodeURIComponent(proxy.url) : undefined,
-      'proxy URL'
-    );
+    proxy.credentials = proxy.credentials
+      ? tryDecrypt(decodeURIComponent(proxy.credentials), 'proxy credentials')
+      : undefined;
+    proxy.url = proxy.url
+      ? tryDecrypt(decodeURIComponent(proxy.url), 'proxy URL')
+      : undefined;
   }
 
   return decryptedConfig;

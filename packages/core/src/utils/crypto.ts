@@ -72,7 +72,7 @@ type ErrorResponse = {
 export type Response = SuccessResponse | ErrorResponse;
 
 export function isEncrypted(data: string): boolean {
-  return data.startsWith('aioEncrypt:');
+  return data?.startsWith('aioEncrypt:') ?? false;
 }
 /**
  * Encrypts a string using AES-256-CBC encryption, returns a string in the format "iv:encrypted" where

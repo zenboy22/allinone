@@ -52,6 +52,7 @@ export class UserRepository {
         // as we need to store the encrypted version
         validatedConfig = await validateConfig(config, false, false);
       } catch (error: any) {
+        logger.error(`Invalid config for new user: ${error.message}`);
         return Promise.reject(
           new APIError(
             constants.ErrorCode.USER_INVALID_CONFIG,

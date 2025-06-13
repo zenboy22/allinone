@@ -113,6 +113,7 @@ export const userDataMiddleware = async (
           );
           return;
         }
+        logger.error(`Invalid config for ${uuid}: ${error.message}`);
         next(
           new APIError(
             constants.ErrorCode.USER_INVALID_CONFIG,
