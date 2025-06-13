@@ -226,6 +226,7 @@ const CatalogModification = z.object({
 
 export const UserDataSchema = z.object({
   uuid: z.string().uuid().optional(),
+  encryptedPassword: z.string().min(1).optional(),
   trusted: z.boolean().optional(),
   addonPassword: z.string().min(1).optional(),
   ip: z.string().ip().optional(),

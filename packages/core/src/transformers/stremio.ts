@@ -26,7 +26,7 @@ type ErrorOptions = {
   errorUrl?: string;
 };
 
-const logger = createLogger('transformer');
+const logger = createLogger('stremio');
 
 export class StremioTransformer {
   constructor(private readonly userData: UserData) {}

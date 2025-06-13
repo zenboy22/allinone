@@ -33,6 +33,7 @@ import {
   maskSensitiveInfo,
   makeUrlLogSafe,
   formatZodError,
+  PossibleRecursiveRequestError,
 } from './utils';
 import { PresetManager } from './presets';
 import { StreamParser } from './parser';
@@ -115,7 +116,8 @@ export class Wrapper {
           const res = await makeRequest(
             this.manifestUrl,
             this.addon.timeout,
-            this.addon.headers
+            this.addon.headers,
+            this.addon.ip
           );
           if (!res.ok) {
             throw new Error(`${res.status} - ${res.statusText}`);
@@ -135,6 +137,9 @@ export class Wrapper {
           logger.error(
             `Failed to fetch manifest for ${this.addon.identifyingName}: ${error.message}`
           );
+          if (error instanceof PossibleRecursiveRequestError) {
+            throw error;
+          }
           throw new Error(
             `Failed to fetch manifest for ${this.addon.identifyingName}: ${error.message}`
           );

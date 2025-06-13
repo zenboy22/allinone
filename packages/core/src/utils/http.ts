@@ -7,6 +7,12 @@ import { fetch, ProxyAgent } from 'undici';
 const logger = createLogger('http');
 const urlCount = Cache.getInstance<string, number>('url-count');
 
+export class PossibleRecursiveRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PossibleRecursiveRequestError';
+  }
+}
 export function makeUrlLogSafe(url: string) {
   // for each component of the path, if it is longer than 10 characters, mask it
   // and replace the query params of key 'password' with '****'
@@ -37,22 +43,25 @@ export function makeRequest(
   }
 
   // block recursive requests
-  const currentCount = urlCount.get(url, false) ?? 0;
+  const key = `${url}-${forwardIp}`;
+  const currentCount = urlCount.get(key, false) ?? 0;
   if (currentCount > Env.RECURSION_THRESHOLD_LIMIT) {
     logger.warn(
       `Detected possible recursive requests to ${url}. Current count: ${currentCount}. Blocking request.`
     );
-    throw new Error('Recursion limit exceeded');
+    throw new PossibleRecursiveRequestError(
+      `Possible recursive request to ${url}`
+    );
   }
   if (currentCount > 0) {
-    urlCount.update(url, currentCount + 1);
+    urlCount.update(key, currentCount + 1);
   } else {
-    urlCount.set(url, 1, Env.RECURSION_THRESHOLD_WINDOW);
+    urlCount.set(key, 1, Env.RECURSION_THRESHOLD_WINDOW);
   }
   logger.debug(
     `Making a ${useProxy ? 'proxied' : 'direct'} request to ${makeUrlLogSafe(
       url
-    )}`
+    )} with forwarded ip ${maskSensitiveInfo(forwardIp ?? 'none')}`
   );
   let response = fetch(url, {
     dispatcher: useProxy ? new ProxyAgent(Env.ADDON_PROXY!) : undefined,

@@ -58,14 +58,9 @@ export class Cache<K, V> {
     if (cachedValue !== undefined) {
       return cachedValue as ReturnType<T>;
     }
-    try {
-      const result = await fn(...args);
-      this.set(key, result, ttl);
-      return result;
-    } catch (error) {
-      // Don't cache errors
-      throw error;
-    }
+    const result = await fn(...args);
+    this.set(key, result, ttl);
+    return result;
   }
 
   get(key: K, updateTTL: boolean = true): V | undefined {

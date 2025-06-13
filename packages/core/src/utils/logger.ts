@@ -26,6 +26,8 @@ const moduleMap: { [key: string]: string } = {
   database: '🗃️  DATABASE',
   users: '👤  USERS',
   http: '🌐  HTTP',
+  proxy: '🚀 PROXY',
+  stremio: '🎥 STREMIO',
 };
 
 // Define colors for each log level using full names

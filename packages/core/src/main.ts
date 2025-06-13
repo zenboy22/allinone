@@ -4,6 +4,7 @@ import {
   Resource,
   StrictManifestResource,
   UserData,
+  UserRepository,
 } from './db';
 import {
   AUDIO_TAGS,
@@ -17,6 +18,9 @@ import {
   TYPES,
   VISUAL_TAGS,
   TMDBMetadata,
+  PossibleRecursiveRequestError,
+  decryptString,
+  maskSensitiveInfo,
 } from './utils';
 import { Wrapper } from './wrapper';
 import { PresetManager } from './presets';
@@ -79,6 +83,7 @@ export class AIOStreams {
   public async initialise(): Promise<AIOStreams> {
     if (this.isInitialised) return this;
     await this.applyPresets();
+    await this.assignPublicIps();
     await this.fetchManifests();
     await this.fetchResources();
     this.isInitialised = true;
@@ -105,8 +110,6 @@ export class AIOStreams {
     // if a proxy server is configured, and we fail to get the IP, return an error.
     // however, note that some addons may not be configured to use a proxy,
     // so we should attach an IP to each addon depending on if it would be using the proxy or not.
-
-    this.assignPublicIps();
 
     // step 2
     // get all parsed stream objects and errors from all addons that have the stream resource.
@@ -262,11 +265,26 @@ export class AIOStreams {
     const actualCatalogId = id.split('.').slice(1).join('.');
     // step 3
     // get the catalog from the addon
-    let catalog = await new Wrapper(addon).getCatalog(
-      type,
-      actualCatalogId,
-      extras
-    );
+    let catalog;
+    try {
+      catalog = await new Wrapper(addon).getCatalog(
+        type,
+        actualCatalogId,
+        extras
+      );
+    } catch (error) {
+      await this.handlePossibleRecursiveError(error);
+      return {
+        success: false,
+        data: [],
+        errors: [
+          {
+            title: `[❌] ${addon.name}`,
+            description: error instanceof Error ? error.message : String(error),
+          },
+        ],
+      };
+    }
 
     logger.info(
       `Received catalog ${actualCatalogId} of type ${type} from ${addon.name} in ${getTimeTakenSincePoint(start)}`
@@ -348,6 +366,7 @@ export class AIOStreams {
             errors: [],
           };
         } catch (error) {
+          await this.handlePossibleRecursiveError(error);
           logger.error(`Error getting meta from addon ${addon.name}`, {
             error: error instanceof Error ? error.message : String(error),
           });
@@ -386,6 +405,7 @@ export class AIOStreams {
             errors: [],
           };
         } catch (error) {
+          await this.handlePossibleRecursiveError(error);
           logger.error(`Error getting meta from addon ${addon.name}`, {
             error: error instanceof Error ? error.message : String(error),
           });
@@ -458,6 +478,7 @@ export class AIOStreams {
             allSubtitles.push(...subtitles);
           }
         } catch (error) {
+          await this.handlePossibleRecursiveError(error);
           errors.push({
             title: `[❌] ${addon.identifyingName}`,
             description: error instanceof Error ? error.message : String(error),
@@ -509,6 +530,7 @@ export class AIOStreams {
         actualAddonCatalogId
       );
     } catch (error) {
+      await this.handlePossibleRecursiveError(error);
       return {
         success: false,
         data: [],
@@ -562,6 +584,7 @@ export class AIOStreams {
             this.validateAddon(addon);
             return [index, await new Wrapper(addon).getManifest()];
           } catch (error: any) {
+            await this.handlePossibleRecursiveError(error);
             if (this.skipFailedAddons) {
               this.addonInitialisationErrors.push({
                 addon: addon,
@@ -761,27 +784,6 @@ export class AIOStreams {
     return this.addons[index];
   }
 
-  private shouldProxyAddon(addon: Addon): boolean {
-    let proxyConfig = this.userData.proxy;
-    if (!proxyConfig) {
-      return false;
-    }
-
-    if (!proxyConfig.proxiedAddons || proxyConfig.proxiedAddons.length === 0) {
-      return true;
-    }
-
-    if (proxyConfig.proxiedAddons.includes(addon.manifestUrl)) {
-      return true;
-    }
-
-    if (addon.id && proxyConfig.proxiedAddons.includes(addon.id)) {
-      return true;
-    }
-
-    return false;
-  }
-
   private shouldProxyStream(stream: ParsedStream): boolean {
     const streamService = stream.service ? stream.service.id : 'none';
     const proxy = this.userData.proxy;
@@ -852,7 +854,17 @@ export class AIOStreams {
       proxyIp = await this.getProxyIp();
     }
     for (const addon of this.addons) {
-      const proxy = this.shouldProxyAddon(addon);
+      const proxy =
+        this.userData.proxy &&
+        (!this.userData.proxy?.proxiedAddons?.length ||
+          this.userData.proxy.proxiedAddons.includes(addon.id || ''));
+      logger.debug(
+        `Using ${proxy ? 'proxy' : 'user'} ip for ${addon.identifyingName}: ${
+          proxy
+            ? maskSensitiveInfo(proxyIp ?? 'none')
+            : maskSensitiveInfo(userIp ?? 'none')
+        }`
+      );
       if (proxy) {
         addon.ip = proxyIp;
       } else {
@@ -955,6 +967,7 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
           timeTaken: Date.now() - start,
         };
       } catch (error) {
+        await this.handlePossibleRecursiveError(error);
         const errMsg = error instanceof Error ? error.message : String(error);
         errors.push({
           title: `[❌] ${addon.identifyingName}`,
@@ -2707,6 +2720,28 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
     }
 
     return limitedStreams;
+  }
+
+  private async handlePossibleRecursiveError(error: any) {
+    if (error instanceof PossibleRecursiveRequestError) {
+      if (this.userData.uuid && this.userData.encryptedPassword) {
+        const newData = {
+          ...this.userData,
+          presets: [],
+        };
+        const password = decryptString(this.userData.encryptedPassword).data;
+        if (password) {
+          logger.warn(
+            `resetting addons of user ${this.userData.uuid} due to possible recursive request`
+          );
+          await UserRepository.updateUser(
+            this.userData.uuid,
+            password,
+            newData
+          );
+        }
+      }
+    }
   }
 
   private async proxifyStreams(
