@@ -20,7 +20,10 @@ export class RPDB {
   public async validateApiKey() {
     const response = await makeRequest(
       `https://api.ratingposterdb.com/${this.apiKey}/isValid`,
-      5000
+      5000,
+      undefined,
+      undefined,
+      true
     );
     if (!response.ok) {
       throw new Error(

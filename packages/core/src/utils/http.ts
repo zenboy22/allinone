@@ -32,7 +32,8 @@ export function makeRequest(
   url: string,
   timeout: number,
   headers: HeadersInit = {},
-  forwardIp?: string
+  forwardIp?: string,
+  ignoreRecursion?: boolean
 ) {
   const useProxy = shouldProxy(url);
   headers = new Headers(headers);
@@ -45,7 +46,7 @@ export function makeRequest(
   // block recursive requests
   const key = `${url}-${forwardIp}`;
   const currentCount = urlCount.get(key, false) ?? 0;
-  if (currentCount > Env.RECURSION_THRESHOLD_LIMIT) {
+  if (currentCount > Env.RECURSION_THRESHOLD_LIMIT && !ignoreRecursion) {
     logger.warn(
       `Detected possible recursive requests to ${url}. Current count: ${currentCount}. Blocking request.`
     );
