@@ -350,7 +350,7 @@ async function validateRegexes(config: UserData) {
 }
 
 function ensureDecrypted(config: UserData): UserData {
-  const decryptedConfig = { ...config };
+  const decryptedConfig: UserData = structuredClone(config);
 
   // Helper function to decrypt a value if needed
   const tryDecrypt = (value: any, context: string) => {
@@ -375,12 +375,14 @@ function ensureDecrypted(config: UserData): UserData {
 
   // Decrypt proxy config
   if (decryptedConfig.proxy) {
-    const proxy = decryptedConfig.proxy;
-    proxy.credentials = proxy.credentials
-      ? tryDecrypt(decodeURIComponent(proxy.credentials), 'proxy credentials')
+    decryptedConfig.proxy.credentials = decryptedConfig.proxy.credentials
+      ? tryDecrypt(
+          decodeURIComponent(decryptedConfig.proxy.credentials),
+          'proxy credentials'
+        )
       : undefined;
-    proxy.url = proxy.url
-      ? tryDecrypt(decodeURIComponent(proxy.url), 'proxy URL')
+    decryptedConfig.proxy.url = decryptedConfig.proxy.url
+      ? tryDecrypt(decodeURIComponent(decryptedConfig.proxy.url), 'proxy URL')
       : undefined;
   }
 
