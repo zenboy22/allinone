@@ -519,7 +519,7 @@ function validateOption(
     }
 
     if (option.forced) {
-      value = option.forced;
+      value = encryptString(option.forced).data;
     }
     value = decodeURIComponent(value);
     if (isEncrypted(value) && decryptValues) {
@@ -557,8 +557,12 @@ async function validateProxy(
   // apply forced values if they exist
   proxy.enabled = Env.FORCE_PROXY_ENABLED ?? proxy.enabled;
   proxy.id = Env.FORCE_PROXY_ID ?? proxy.id;
-  proxy.url = Env.FORCE_PROXY_URL ?? proxy.url;
-  proxy.credentials = Env.FORCE_PROXY_CREDENTIALS ?? proxy.credentials;
+  proxy.url = Env.FORCE_PROXY_URL
+    ? (encryptString(Env.FORCE_PROXY_URL).data ?? undefined)
+    : (proxy.url ?? undefined);
+  proxy.credentials = Env.FORCE_PROXY_CREDENTIALS
+    ? (encryptString(Env.FORCE_PROXY_CREDENTIALS).data ?? undefined)
+    : (proxy.credentials ?? undefined);
   proxy.publicIp = Env.FORCE_PROXY_PUBLIC_IP ?? proxy.publicIp;
   proxy.proxiedAddons = Env.FORCE_PROXY_DISABLE_PROXIED_ADDONS
     ? undefined
