@@ -185,7 +185,7 @@ function Content() {
               onValueChange={(v) => {
                 setUserData((prev) => ({
                   ...prev,
-                  proxy: { ...prev.proxy, publicIp: v },
+                  proxy: { ...prev.proxy, publicIp: v || undefined },
                 }));
               }}
               placeholder="Enter public IP"
