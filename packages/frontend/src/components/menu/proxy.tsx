@@ -35,68 +35,12 @@ export function ProxyMenu() {
   );
 }
 
-// provides a page to configure a proxy
-// use constants.PROXY_DETAILS to get the list of proxies
-// and use status.settings.defaults.proxy to load default values if current userData doesn't have a value
-// use status.settings.forced.proxy to always load the forced values
-
-// should look like this.
-// a switch to enable/disable the proxy. should be enabled on left and then switch on right, with descriptin of setting below.
-// when disabled, hide the rest of the settings
-// a select menu to choose a proxy, mapped to the proxy.id option (Get name/label from details)
-// shows the description below the select.
-// then a password input to provide the credential
-// then a multi select menu to choose services that proxy is used for
-// then a multi select menu to choose addons that proxy is used for
-// addon labels should use the addon name, and value should be the ID, calculated using same method as getPresetUniqueKey in addons.tsx
-
 function Content() {
   const { status } = useStatus();
   const { userData, setUserData } = useUserData();
   const details = constants.PROXY_SERVICE_DETAILS;
 
-  // Initialize proxy configuration from userData, defaults, or forced values
-  const [proxyEnabled, setProxyEnabled] = useState(false);
-  const [selectedProxyId, setSelectedProxyId] =
-    useState<ProxyServiceId>('mediaflow');
-  const [proxyUrl, setProxyUrl] = useState('');
-  const [proxyCredentials, setProxyCredentials] = useState('');
-  const [proxiedServices, setProxiedServices] = useState<string[] | undefined>(
-    undefined
-  );
-  const [proxiedAddons, setProxiedAddons] = useState<string[] | undefined>(
-    undefined
-  );
-  const [hasChanges, setHasChanges] = useState(false);
-
   // Effect to initialize values from userData/defaults/forced
-  useEffect(() => {
-    if (!status) return;
-
-    const forced = status.settings.forced.proxy;
-    const defaults = status.settings.defaults.proxy;
-    const current = userData.proxy;
-
-    // Apply forced values first, then current values, then defaults
-    setProxyEnabled(
-      forced.enabled ?? current?.enabled ?? defaults.enabled ?? false
-    );
-    setSelectedProxyId(
-      (forced.id ?? current?.id ?? defaults.id ?? '') as ProxyServiceId
-    );
-    setProxyCredentials(
-      forced.credentials ?? current?.credentials ?? defaults.credentials ?? ''
-    );
-    setProxyUrl(forced.url ?? current?.url ?? defaults.url ?? '');
-    setProxiedServices(
-      forced.proxiedServices ??
-        current?.proxiedServices ??
-        defaults.proxiedServices ??
-        []
-    );
-    setProxiedAddons(current?.proxiedAddons);
-    setHasChanges(false);
-  }, [status]);
 
   // Generate options for proxy service select
   const proxyOptions = Object.entries(details).map(([id, detail]) => ({
@@ -126,61 +70,7 @@ function Content() {
     };
   });
 
-  // Handle changes
-  const handleProxyChange = (enabled: boolean) => {
-    setProxyEnabled(enabled);
-    if (!enabled && !selectedProxyId && userData.proxy === undefined) {
-      setHasChanges(false);
-    } else {
-      setHasChanges(true);
-    }
-  };
-
-  const handleUrlChange = (value: string) => {
-    setProxyUrl(value);
-    setHasChanges(true);
-  };
-
-  const handleProxyServiceChange = (value: string) => {
-    setSelectedProxyId(value as ProxyServiceId);
-    setHasChanges(true);
-  };
-
-  const handleCredentialsChange = (value: string) => {
-    setProxyCredentials(value);
-    setHasChanges(true);
-  };
-
-  const handleProxiedServicesChange = (values: string[]) => {
-    setProxiedServices(values);
-    setHasChanges(true);
-  };
-
-  const handleProxiedAddonsChange = (values: string[]) => {
-    setProxiedAddons(values);
-    setHasChanges(true);
-  };
-
-  const handleSubmit = () => {
-    const proxyConfig: ProxyConfig = {
-      enabled: proxyEnabled,
-      id: selectedProxyId,
-      url: proxyUrl,
-      credentials: proxyCredentials,
-      proxiedServices: proxiedServices,
-      proxiedAddons: proxiedAddons,
-    };
-
-    setUserData((prev) => ({
-      ...prev,
-      proxy: proxyConfig,
-    }));
-
-    setHasChanges(false);
-    toast.success('Proxy settings saved');
-  };
-
-  // Check if values are forced
+  // lues are forced
   const isForced = status?.settings.forced.proxy;
   const isProxyForced = isForced?.enabled !== null;
   const isUrlForced = isForced?.url !== null;
@@ -189,8 +79,8 @@ function Content() {
   const isServicesForced = isForced?.proxiedServices !== null;
   const isProxiedAddonsDisabled = isForced?.disableProxiedAddons;
 
-  const selectedProxyDetails = selectedProxyId
-    ? details[selectedProxyId]
+  const selectedProxyDetails = userData.proxy?.id
+    ? details[userData.proxy.id]
     : undefined;
 
   return (
@@ -213,8 +103,13 @@ function Content() {
           <Switch
             side="right"
             label="Enable"
-            value={proxyEnabled}
-            onValueChange={handleProxyChange}
+            value={userData.proxy?.enabled ?? false}
+            onValueChange={(v) => {
+              setUserData((prev) => ({
+                ...prev,
+                proxy: { ...prev.proxy, enabled: v },
+              }));
+            }}
             disabled={isProxyForced}
           />
         </SettingsCard>
@@ -223,10 +118,15 @@ function Content() {
           <div className="space-y-2">
             <Select
               label="Proxy Service"
-              value={selectedProxyId}
-              onValueChange={handleProxyServiceChange}
+              value={userData.proxy?.id ?? 'mediaflow'}
+              onValueChange={(v) => {
+                setUserData((prev) => ({
+                  ...prev,
+                  proxy: { ...prev.proxy, id: v as ProxyServiceId },
+                }));
+              }}
               options={proxyOptions}
-              disabled={isIdForced || !proxyEnabled}
+              disabled={isIdForced || !userData.proxy?.enabled}
             />
             {selectedProxyDetails && (
               <p className="text-[--muted] text-sm">
@@ -238,11 +138,16 @@ function Content() {
           <div className="space-y-2">
             <TextInput
               label="URL"
-              value={proxyUrl}
+              value={userData.proxy?.url ?? ''}
               type="password"
-              onValueChange={handleUrlChange}
+              onValueChange={(v) => {
+                setUserData((prev) => ({
+                  ...prev,
+                  proxy: { ...prev.proxy, url: v },
+                }));
+              }}
               placeholder="Enter proxy URL"
-              disabled={isUrlForced || !proxyEnabled}
+              disabled={isUrlForced || !userData.proxy?.enabled}
             />
             <p className="text-[--muted] text-sm">
               The URL of your hosted proxy service.
@@ -253,10 +158,15 @@ function Content() {
             <TextInput
               label="Credentials"
               type="password"
-              value={proxyCredentials}
-              onValueChange={handleCredentialsChange}
+              value={userData.proxy?.credentials ?? ''}
+              onValueChange={(v) => {
+                setUserData((prev) => ({
+                  ...prev,
+                  proxy: { ...prev.proxy, credentials: v },
+                }));
+              }}
               placeholder="Enter proxy credentials"
-              disabled={isCredentialsForced || !proxyEnabled}
+              disabled={isCredentialsForced || !userData.proxy?.enabled}
             />
             {selectedProxyDetails && (
               <p className="text-[--muted] text-sm">
@@ -275,12 +185,17 @@ function Content() {
           <div className="space-y-2">
             <Combobox
               label="Proxied Services"
-              value={proxiedServices}
-              onValueChange={handleProxiedServicesChange}
+              value={userData.proxy?.proxiedServices ?? []}
+              onValueChange={(v) => {
+                setUserData((prev) => ({
+                  ...prev,
+                  proxy: { ...prev.proxy, proxiedServices: v },
+                }));
+              }}
               options={serviceOptions}
               placeholder="Select services to proxy"
               multiple={true}
-              disabled={isServicesForced || !proxyEnabled}
+              disabled={isServicesForced || !userData.proxy?.enabled}
               emptyMessage="No services available"
             />
             <p className="text-[--muted] text-sm">
@@ -293,12 +208,17 @@ function Content() {
           <div className="space-y-2">
             <Combobox
               label="Proxied Addons"
-              value={proxiedAddons}
-              onValueChange={handleProxiedAddonsChange}
+              value={userData.proxy?.proxiedAddons ?? []}
+              onValueChange={(v) => {
+                setUserData((prev) => ({
+                  ...prev,
+                  proxy: { ...prev.proxy, proxiedAddons: v },
+                }));
+              }}
               options={addonOptions}
               placeholder="Select addons to proxy"
               multiple={true}
-              disabled={isProxiedAddonsDisabled || !proxyEnabled}
+              disabled={isProxiedAddonsDisabled || !userData.proxy?.enabled}
               emptyMessage="No addons available"
             />
             <p className="text-[--muted] text-sm">
@@ -306,17 +226,6 @@ function Content() {
             </p>
           </div>
         </SettingsCard>
-      </div>
-
-      <div className="flex justify-start mt-4">
-        <Button
-          intent="white"
-          rounded
-          onClick={handleSubmit}
-          disabled={!hasChanges}
-        >
-          Save Changes
-        </Button>
       </div>
     </>
   );

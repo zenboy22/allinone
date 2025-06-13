@@ -127,36 +127,7 @@ function Content() {
     const currentServices = userData.services ?? [];
 
     // Remove any services not in SERVICE_DETAILS and apply forced/default credentials
-    let filtered = currentServices
-      .filter((s) => allServiceIds.includes(s.id))
-      .map((service) => {
-        const svcMeta = status.settings.services[service.id]!;
-        const updatedCredentials = { ...service.credentials };
-        let hasChanges = false;
-
-        svcMeta.credentials.forEach((cred) => {
-          // Always apply forced credentials, regardless of existing value
-          if (cred.forced) {
-            if (updatedCredentials[cred.id] !== cred.forced) {
-              updatedCredentials[cred.id] = cred.forced;
-              hasChanges = true;
-            }
-          }
-          // Only apply defaults for missing credentials
-          else if (!service.credentials?.[cred.id] && cred.default) {
-            updatedCredentials[cred.id] = cred.default;
-            hasChanges = true;
-          }
-        });
-
-        // Only create a new object if there were changes
-        return hasChanges
-          ? {
-              ...service,
-              credentials: updatedCredentials,
-            }
-          : service;
-      });
+    let filtered = currentServices.filter((s) => allServiceIds.includes(s.id));
 
     // Add any missing services from SERVICE_DETAILS
     const missing = allServiceIds.filter(
@@ -168,18 +139,6 @@ function Content() {
         const svcMeta = status.settings.services[id]!;
         const credentials: Record<string, any> = {};
         let enabled = false;
-
-        // Apply forced/default credentials for new services
-        svcMeta.credentials.forEach((cred) => {
-          if (cred.forced) {
-            credentials[cred.id] = cred.forced;
-            // enable the service if it has forced credentials
-            enabled = true;
-          } else if (cred.default) {
-            credentials[cred.id] = cred.default;
-            enabled = true;
-          }
-        });
 
         return {
           id,
@@ -437,7 +396,6 @@ function SortableServiceItem({
     </li>
   );
 }
-
 function ServiceModal({
   open,
   onOpenChange,

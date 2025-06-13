@@ -41,9 +41,9 @@ const Formatter = z.object({
 
 const StreamProxyConfig = z.object({
   enabled: z.boolean().optional(),
-  id: z.enum(constants.PROXY_SERVICES),
-  url: z.string().url(),
-  credentials: z.string().min(1),
+  id: z.enum(constants.PROXY_SERVICES).optional(),
+  url: z.string().optional(),
+  credentials: z.string().min(1).optional(),
   publicIp: z.string().ip().optional(),
   proxiedAddons: z.array(z.string().min(1)).optional(),
   proxiedServices: z.array(z.string().min(1)).optional(),

@@ -13,14 +13,24 @@ export interface ProxyStream {
   };
 }
 
+type ValidatedStreamProxyConfig = StreamProxyConfig & {
+  id: 'mediaflow' | 'stremthru';
+  url: string;
+  credentials: string;
+};
+
 export abstract class BaseProxy {
-  protected readonly config: StreamProxyConfig;
+  protected readonly config: ValidatedStreamProxyConfig;
   private readonly PRIVATE_CIDR =
     /^(10\.|127\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)/;
 
   constructor(config: StreamProxyConfig) {
+    if (!config.id || !config.credentials || !config.url) {
+      throw new Error('Proxy configuration is missing');
+    }
+
     this.config = {
-      enabled: config.enabled,
+      enabled: config.enabled ?? false,
       id: config.id,
       url: config.url,
       credentials: config.credentials,

@@ -13,7 +13,7 @@ import { createProxy } from '../proxy';
 import { constants } from '.';
 import { isEncrypted, decryptString, encryptString } from './crypto';
 import { Env } from './env';
-import { createLogger } from './logger';
+import { createLogger, maskSensitiveInfo } from './logger';
 import { ZodError } from 'zod';
 import { ConditionParser } from '../parser/conditions';
 import { RPDB } from './rpdb';
@@ -273,11 +273,15 @@ export async function validateConfig(
   }
 
   if (config.proxy) {
-    config.proxy = await validateProxy(
-      config.proxy,
-      skipErrorsFromAddonsOrProxies,
-      decryptValues
-    );
+    const decryptedProxy = ensureDecrypted(config).proxy;
+    if (decryptedProxy) {
+      config.proxy = await validateProxy(
+        config.proxy,
+        decryptedProxy,
+        skipErrorsFromAddonsOrProxies,
+        decryptValues
+      );
+    }
   }
 
   if (config.rpdbApiKey) {
@@ -351,7 +355,7 @@ async function validateRegexes(config: UserData) {
   );
 }
 
-function ensureDecrypted(config: UserData) {
+function ensureDecrypted(config: UserData): UserData {
   const decryptedConfig = { ...config };
 
   // Helper function to decrypt a value if needed
@@ -369,7 +373,7 @@ function ensureDecrypted(config: UserData) {
     if (!service.credentials) continue;
     for (const [credential, value] of Object.entries(service.credentials)) {
       service.credentials[credential] = tryDecrypt(
-        value,
+        decodeURIComponent(value),
         `credential ${credential}`
       );
     }
@@ -378,8 +382,14 @@ function ensureDecrypted(config: UserData) {
   // Decrypt proxy config
   if (decryptedConfig.proxy) {
     const proxy = decryptedConfig.proxy;
-    proxy.credentials = tryDecrypt(proxy.credentials, 'proxy credentials');
-    proxy.url = tryDecrypt(proxy.url, 'proxy URL');
+    proxy.credentials = tryDecrypt(
+      proxy.credentials ? decodeURIComponent(proxy.credentials) : undefined,
+      'proxy credentials'
+    );
+    proxy.url = tryDecrypt(
+      proxy.url ? decodeURIComponent(proxy.url) : undefined,
+      'proxy URL'
+    );
   }
 
   return decryptedConfig;
@@ -519,6 +529,7 @@ function validateOption(
     if (option.forced) {
       value = option.forced;
     }
+    value = decodeURIComponent(value);
     if (isEncrypted(value) && decryptValues) {
       const { success, data, error } = decryptString(value);
       if (!success) {
@@ -547,6 +558,7 @@ function validateOption(
 
 async function validateProxy(
   proxy: StreamProxyConfig,
+  decryptedProxy: StreamProxyConfig,
   skipProxyErrors: boolean = false,
   decryptCredentials: boolean = false
 ): Promise<StreamProxyConfig> {
@@ -572,18 +584,10 @@ async function validateProxy(
       throw new Error('Proxy credentials are required');
     }
 
-    const ProxyService = createProxy(proxy);
-
-    try {
-      proxy.publicIp || (await ProxyService.getPublicIp());
-    } catch (error) {
-      if (!skipProxyErrors) {
-        throw new Error(
-          `Failed to get the public IP of the proxy service ${proxy.id}: ${error}`
-        );
-      }
-    }
-
+    proxy.credentials = decodeURIComponent(proxy.credentials);
+    proxy.url = proxy.url.startsWith('aioEncrypt')
+      ? decodeURIComponent(proxy.url)
+      : proxy.url;
     if (isEncrypted(proxy.credentials) && decryptCredentials) {
       const { success, data, error } = decryptString(proxy.credentials);
       if (!success) {
@@ -601,6 +605,22 @@ async function validateProxy(
         );
       }
       proxy.url = data;
+    }
+
+    // use decrypted proxy config for validation.
+    const ProxyService = createProxy(decryptedProxy);
+
+    try {
+      proxy.publicIp || (await ProxyService.getPublicIp());
+    } catch (error) {
+      if (!skipProxyErrors) {
+        logger.error(
+          `Failed to get the public IP of the proxy service ${proxy.id} (${maskSensitiveInfo(proxy.url)}): ${error}`
+        );
+        throw new Error(
+          `Failed to get the public IP of the proxy service ${proxy.id}: ${error}`
+        );
+      }
     }
   }
   return proxy;

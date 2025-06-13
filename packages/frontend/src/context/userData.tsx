@@ -1,8 +1,18 @@
 import React from 'react';
 import { UserData } from '@aiostreams/core';
-import { QUALITIES, RESOLUTIONS } from '../../../core/src/utils/constants';
+import {
+  QUALITIES,
+  RESOLUTIONS,
+  SERVICE_DETAILS,
+} from '../../../core/src/utils/constants';
+import { useStatus } from './status';
 
 const DefaultUserData: UserData = {
+  services: Object.values(SERVICE_DETAILS).map((service) => ({
+    id: service.id,
+    enabled: false,
+    credentials: {},
+  })),
   presets: [],
   formatter: {
     id: 'gdrive',
@@ -56,12 +66,100 @@ const UserDataContext = React.createContext<UserDataContextType | undefined>(
 );
 
 export function UserDataProvider({ children }: { children: React.ReactNode }) {
+  const { status } = useStatus();
   const [userData, setUserData] = React.useState<UserData>(DefaultUserData);
   const [uuid, setUuid] = React.useState<string | null>(null);
   const [password, setPassword] = React.useState<string | null>(null);
   const [encryptedPassword, setEncryptedPassword] = React.useState<
     string | null
   >(null);
+
+  // Effect to apply forced and default values from status
+  React.useEffect(() => {
+    if (!status) return;
+
+    const forced = status.settings.forced;
+    const defaults = status.settings.defaults;
+    const services = status.settings.services;
+
+    setUserData((prev) => {
+      const newData = { ...prev };
+
+      // // Apply forced values first
+      // if (forced.proxy) {
+      //   newData.proxy = {
+      //     ...newData.proxy,
+      //     enabled: forced.proxy.enabled ?? newData.proxy?.enabled ?? false,
+      //     id: (forced.proxy.id ?? newData.proxy?.id) as
+      //       | 'mediaflow'
+      //       | 'stremthru'
+      //       | undefined,
+      //     url: forced.proxy.url ?? newData.proxy?.url,
+      //     credentials: forced.proxy.credentials ?? newData.proxy?.credentials,
+      //     proxiedServices:
+      //       forced.proxy.proxiedServices ??
+      //       newData.proxy?.proxiedServices ??
+      //       [],
+      //   };
+      // }
+
+      // // Apply default values if not already set
+      // if (defaults.proxy) {
+      //   newData.proxy = {
+      //     ...newData.proxy,
+      //     enabled: defaults.proxy.enabled ?? false,
+      //     id: (newData.proxy?.id ?? defaults.proxy.id ?? undefined) as
+      //       | 'mediaflow'
+      //       | 'stremthru'
+      //       | undefined,
+      //     url: newData.proxy?.url ?? defaults.proxy.url ?? undefined,
+      //     credentials:
+      //       newData.proxy?.credentials ??
+      //       defaults.proxy.credentials ??
+      //       undefined,
+      //     proxiedServices:
+      //       newData.proxy?.proxiedServices ??
+      //       defaults.proxy.proxiedServices ??
+      //       [],
+      //   };
+      // }
+      newData.proxy = {
+        ...newData.proxy,
+        enabled: forced.proxy.enabled ?? defaults.proxy?.enabled ?? undefined,
+        id: (forced.proxy.id ?? defaults.proxy?.id) as
+          | 'mediaflow'
+          | 'stremthru'
+          | undefined,
+        url: forced.proxy.url ?? defaults.proxy?.url ?? undefined,
+        credentials:
+          forced.proxy.credentials ?? defaults.proxy?.credentials ?? undefined,
+        proxiedServices:
+          forced.proxy.proxiedServices ?? defaults.proxy?.proxiedServices ?? [],
+      };
+
+      newData.services = (newData.services ?? []).map((service) => {
+        const serviceMeta = services[service.id];
+        if (!serviceMeta) return service;
+        serviceMeta.credentials.forEach((credential) => {
+          if (credential.forced) {
+            service.credentials[credential.id] = credential.forced;
+          } else if (credential.default) {
+            service.credentials[credential.id] = credential.default;
+          }
+        });
+        // enable if every credential is set
+        service.enabled = serviceMeta.credentials.every(
+          (credential) =>
+            credential.forced ||
+            credential.default ||
+            service.credentials[credential.id] !== undefined
+        );
+        return service;
+      });
+
+      return newData;
+    });
+  }, [status]);
 
   const safeSetUserData = (
     data: ((prev: UserData) => UserData | null) | null
