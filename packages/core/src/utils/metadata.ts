@@ -25,18 +25,20 @@ export class TMDBMetadata {
   private readonly IMDB_ID_REGEX = /^(?:tt)(\d+)(?::\d+:\d+)?$/;
   private readonly idCache: Cache<string, string>;
   private readonly titleCache: Cache<string, string[]>;
+  private readonly accessToken: string;
 
-  public constructor() {
-    if (!Env.TMDB_ACCESS_TOKEN) {
+  public constructor(accessToken?: string) {
+    if (!accessToken && !Env.TMDB_ACCESS_TOKEN) {
       throw new Error('TMDB Access Token is not set');
     }
+    this.accessToken = (accessToken || Env.TMDB_ACCESS_TOKEN)!;
     this.idCache = Cache.getInstance<string, string>('tmdb_id_conversion');
     this.titleCache = Cache.getInstance<string, string[]>('alternative_titles');
   }
 
   private getHeaders(): Record<string, string> {
     return {
-      Authorization: `Bearer ${Env.TMDB_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${this.accessToken}`,
     };
   }
 

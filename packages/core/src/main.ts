@@ -1136,7 +1136,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     let titles: string[] = [];
     if (this.userData.titleMatching && TYPES.includes(type as any)) {
       try {
-        titles = await new TMDBMetadata().getTitles(id, type as any);
+        titles = await new TMDBMetadata(
+          this.userData.tmdbAccessToken
+        ).getTitles(id, type as any);
         logger.info(`Found ${titles.length} titles for ${id}`, { titles });
       } catch (error) {
         logger.error(`Error fetching titles for ${id}: ${error}`);
