@@ -84,49 +84,10 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
 
     setUserData((prev) => {
       const newData = { ...prev };
-
-      // // Apply forced values first
-      // if (forced.proxy) {
-      //   newData.proxy = {
-      //     ...newData.proxy,
-      //     enabled: forced.proxy.enabled ?? newData.proxy?.enabled ?? false,
-      //     id: (forced.proxy.id ?? newData.proxy?.id) as
-      //       | 'mediaflow'
-      //       | 'stremthru'
-      //       | undefined,
-      //     url: forced.proxy.url ?? newData.proxy?.url,
-      //     credentials: forced.proxy.credentials ?? newData.proxy?.credentials,
-      //     proxiedServices:
-      //       forced.proxy.proxiedServices ??
-      //       newData.proxy?.proxiedServices ??
-      //       [],
-      //   };
-      // }
-
-      // // Apply default values if not already set
-      // if (defaults.proxy) {
-      //   newData.proxy = {
-      //     ...newData.proxy,
-      //     enabled: defaults.proxy.enabled ?? false,
-      //     id: (newData.proxy?.id ?? defaults.proxy.id ?? undefined) as
-      //       | 'mediaflow'
-      //       | 'stremthru'
-      //       | undefined,
-      //     url: newData.proxy?.url ?? defaults.proxy.url ?? undefined,
-      //     credentials:
-      //       newData.proxy?.credentials ??
-      //       defaults.proxy.credentials ??
-      //       undefined,
-      //     proxiedServices:
-      //       newData.proxy?.proxiedServices ??
-      //       defaults.proxy.proxiedServices ??
-      //       [],
-      //   };
-      // }
       newData.proxy = {
         ...newData.proxy,
         enabled: forced.proxy.enabled ?? defaults.proxy?.enabled ?? undefined,
-        id: (forced.proxy.id ?? defaults.proxy?.id) as
+        id: (forced.proxy.id ?? defaults.proxy?.id ?? undefined) as
           | 'mediaflow'
           | 'stremthru'
           | undefined,
