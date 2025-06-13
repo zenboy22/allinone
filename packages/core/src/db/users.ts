@@ -77,7 +77,7 @@ export class UserRepository {
 
       const encryptedPassword = data;
       let tx;
-      let commited = false;
+      let committed = false;
       try {
         tx = await db.begin();
         await tx.execute(
@@ -85,7 +85,7 @@ export class UserRepository {
           [uuid, hashedPassword, encryptedConfig, configSalt]
         );
         await tx.commit();
-        commited = true;
+        committed = true;
         logger.info(`Created a new user with UUID: ${uuid}`);
         return { uuid, encryptedPassword };
       } catch (error) {
@@ -97,7 +97,7 @@ export class UserRepository {
         }
         throw new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR);
       } finally {
-        if (tx && !commited) {
+        if (tx && !committed) {
           await tx.rollback();
         }
       }
@@ -204,7 +204,7 @@ export class UserRepository {
   ): Promise<void> {
     return txQueue.enqueue(async () => {
       let tx;
-      let commited = false;
+      let committed = false;
       try {
         tx = await db.begin();
         const currentUser = await tx.execute(
@@ -240,7 +240,7 @@ export class UserRepository {
           [encryptedConfig, uuid]
         );
         await tx.commit();
-        commited = true;
+        committed = true;
         logger.info(`Updated user ${uuid} with an updated configuration`);
       } catch (error) {
         logger.error(
@@ -251,7 +251,7 @@ export class UserRepository {
         }
         throw new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR);
       } finally {
-        if (tx && !commited) {
+        if (tx && !committed) {
           await tx.rollback();
         }
       }
@@ -271,7 +271,7 @@ export class UserRepository {
   static async deleteUser(uuid: string): Promise<void> {
     return txQueue.enqueue(async () => {
       let tx;
-      let commited = false;
+      let committed = false;
       try {
         tx = await db.begin();
         const result = await tx.execute('DELETE FROM users WHERE uuid = ?', [
@@ -283,7 +283,7 @@ export class UserRepository {
         }
 
         await tx.commit();
-        commited = true;
+        committed = true;
         logger.info(`Deleted user ${uuid}`);
       } catch (error) {
         logger.error(
@@ -294,7 +294,7 @@ export class UserRepository {
         }
         throw new APIError(constants.ErrorCode.INTERNAL_SERVER_ERROR);
       } finally {
-        if (tx && !commited) {
+        if (tx && !committed) {
           await tx.rollback();
         }
       }
