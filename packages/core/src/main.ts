@@ -2435,10 +2435,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       const multiplier = direction === 'asc' ? 1 : -1;
       switch (key) {
         case 'cached':
-          return (
-            multiplier *
-            (stream.service?.cached || stream.type === 'http' ? 1 : 0)
-          );
+          return multiplier * (stream.service?.cached !== false ? 1 : 0);
 
         case 'library':
           return multiplier * (stream.library ? 1 : 0);
