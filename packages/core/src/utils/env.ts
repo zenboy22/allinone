@@ -986,7 +986,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Time window for static file serving rate limiting in seconds',
   }),
   STATIC_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 100, // allow 100 requests per IP per minute
+    default: 75, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
   USER_API_RATE_LIMIT_WINDOW: num({
@@ -994,7 +994,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Time window for user API rate limiting in seconds',
   }),
   USER_API_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 10, // allow 100 requests per IP per minute
+    default: 5, // allow 100 requests per IP per minute
   }),
   STREAM_API_RATE_LIMIT_WINDOW: num({
     default: 5, // 1 minute
@@ -1008,7 +1008,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Time window for format API rate limiting in seconds',
   }),
   FORMAT_API_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 15, // allow 50 requests per IP per 10 seconds
+    default: 30, // allow 50 requests per IP per 10 seconds
   }),
   CATALOG_API_RATE_LIMIT_WINDOW: num({
     default: 5, // 1 minute
@@ -1018,7 +1018,7 @@ export const Env = cleanEnv(process.env, {
     default: 5, // allow 100 requests per IP per minute
   }),
   STREMIO_STREAM_RATE_LIMIT_WINDOW: num({
-    default: 5, // 1 minute
+    default: 15, // 1 minute
     desc: 'Time window for Stremio stream rate limiting in seconds',
   }),
   STREMIO_STREAM_RATE_LIMIT_MAX_REQUESTS: num({
@@ -1030,7 +1030,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Time window for Stremio catalog rate limiting in seconds',
   }),
   STREMIO_CATALOG_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 20, // allow 100 requests per IP per minute
+    default: 30, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
   STREMIO_MANIFEST_RATE_LIMIT_WINDOW: num({
@@ -1038,7 +1038,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Time window for Stremio manifest rate limiting in seconds',
   }),
   STREMIO_MANIFEST_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 10, // allow 100 requests per IP per minute
+    default: 5, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
   STREMIO_SUBTITLE_RATE_LIMIT_WINDOW: num({
@@ -1054,7 +1054,7 @@ export const Env = cleanEnv(process.env, {
     desc: 'Time window for Stremio meta rate limiting in seconds',
   }),
   STREMIO_META_RATE_LIMIT_MAX_REQUESTS: num({
-    default: 10, // allow 100 requests per IP per minute
+    default: 15, // allow 100 requests per IP per minute
     desc: 'Maximum number of requests allowed per IP within the time window',
   }),
 });
