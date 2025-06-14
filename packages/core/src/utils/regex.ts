@@ -45,7 +45,7 @@ export function parseRegex(pattern: string): {
   regex: string;
   flags: string;
 } {
-  const regexFormatMatch = /^\/(.+)\/([gimun]*)$/.exec(pattern);
+  const regexFormatMatch = /^\/(.+)\/([gimuyn]*)$/.exec(pattern);
   return regexFormatMatch
     ? { regex: regexFormatMatch[1], flags: regexFormatMatch[2] }
     : { regex: pattern, flags: '' };
