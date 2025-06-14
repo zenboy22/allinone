@@ -6,7 +6,7 @@ export class RpdbCatalogsPreset extends Preset {
   private static catalogs = [
     {
       label: 'Movies',
-      value: 'movies',
+      value: 'movie',
     },
     {
       label: 'Series',
