@@ -20,7 +20,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     let validatedUserData: UserData;
     try {
-      validatedUserData = await validateConfig(userData);
+      validatedUserData = await validateConfig(userData, false, true);
     } catch (error) {
       next(
         new APIError(
