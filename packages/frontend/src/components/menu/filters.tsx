@@ -333,9 +333,9 @@ function Content() {
                         }));
                       }}
                       options={userData.presets.map((preset) => ({
-                        label: preset.options.name || preset.id,
-                        value: JSON.stringify(preset),
-                        textValue: preset.options.name || preset.id,
+                        label: preset.options.name || preset.type,
+                        value: preset.instanceId,
+                        textValue: preset.options.name || preset.type,
                       }))}
                       emptyMessage="You haven't installed any addons..."
                       placeholder="Select addons..."
@@ -435,8 +435,8 @@ function Content() {
                         }));
                       }}
                       options={userData.presets.map((preset) => ({
-                        label: preset.options.name,
-                        value: JSON.stringify(preset),
+                        label: preset.options.name || preset.type,
+                        value: preset.instanceId,
                         textValue: preset.options.name,
                       }))}
                       emptyMessage="You haven't installed any addons..."
@@ -1192,11 +1192,11 @@ function Content() {
                         disabled={!userData.titleMatching?.enabled}
                         label="Request Types"
                         emptyMessage="There aren't any request types to choose from..."
-                        help="Request types that will use strict title matching. Leave blank to apply to all request types."
+                        help="Request types that will use title matching. Leave blank to apply to all request types."
                         options={TYPES.map((type) => ({
                           label: type,
                           value: type,
-                          text: type,
+                          textValue: type,
                         }))}
                         value={userData.titleMatching?.requestTypes}
                         onValueChange={(value) => {
@@ -1216,9 +1216,9 @@ function Content() {
                         help="Addons that will use strict title matching. Leave blank to apply to all addons."
                         emptyMessage="You haven't installed any addons yet..."
                         options={userData.presets.map((preset) => ({
-                          label: preset.options.name,
-                          type: preset.options.name,
-                          value: JSON.stringify(preset),
+                          label: preset.options.name || preset.type,
+                          type: preset.options.name || preset.type,
+                          value: preset.instanceId,
                         }))}
                         value={userData.titleMatching?.addons || []}
                         onValueChange={(value) => {
@@ -1265,7 +1265,7 @@ function Content() {
                         options={TYPES.map((type) => ({
                           label: type,
                           value: type,
-                          text: type,
+                          textValue: type,
                         }))}
                         value={userData.seasonEpisodeMatching?.requestTypes}
                         onValueChange={(value) => {
@@ -1285,9 +1285,9 @@ function Content() {
                         help="Addons that will use season/episode matching. Leave blank to apply to all addons."
                         emptyMessage="You haven't installed any addons yet..."
                         options={userData.presets.map((preset) => ({
-                          label: preset.options.name,
-                          type: preset.options.name,
-                          value: JSON.stringify(preset),
+                          label: preset.options.name || preset.type,
+                          type: preset.options.name || preset.type,
+                          value: preset.instanceId,
                         }))}
                         value={userData.seasonEpisodeMatching?.addons || []}
                         onValueChange={(value) => {

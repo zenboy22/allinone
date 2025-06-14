@@ -105,7 +105,9 @@ export type Resource = z.infer<typeof ResourceSchema>;
 const ResourceList = z.array(ResourceSchema);
 
 const AddonSchema = z.object({
-  id: z.string().min(1).optional(),
+  instanceId: z.string().min(1).optional(), // uniquely identifies the addon in a given list of addons
+  presetType: z.string().min(1), // reference to the type of the preset that created this addon
+  presetInstanceId: z.string().min(1), // reference to the instance id of the preset that created this addon
   manifestUrl: z.string().url(),
   enabled: z.boolean(),
   resources: ResourceList.optional(),
@@ -114,21 +116,20 @@ const AddonSchema = z.object({
   timeout: z.number().min(1),
   library: z.boolean().optional(),
   streamPassthrough: z.boolean().optional(),
-  fromPresetId: z.string().min(1).optional(),
   headers: z.record(z.string().min(1), z.string().min(1)).optional(),
   ip: z.string().ip().optional(),
 });
 
 // preset objects are transformed into addons by a preset transformer.
 const PresetSchema = z.object({
-  id: z.string().min(1),
+  type: z.string().min(1), // the preset type e.g. 'torrentio'
+  instanceId: z.string().min(1), // uniquely identifies the preset in a given list of presets
   enabled: z.boolean(),
   options: z.record(z.string().min(1), z.any()),
 });
 
 export type PresetObject = z.infer<typeof PresetSchema>;
 
-const AddonList = z.array(AddonSchema);
 const PresetList = z.array(PresetSchema);
 
 export type Addon = z.infer<typeof AddonSchema>;
@@ -500,6 +501,7 @@ const MetaLinkSchema = z.object({
 const MetaVideoSchema = z.object({
   id: z.string().min(1),
   title: z.string().optional(),
+  name: z.string().optional(),
   released: z.string().datetime().optional(),
   thumbnail: z.string().url().or(z.null()).optional(),
   streams: z.array(StreamSchema).optional(),
@@ -722,6 +724,24 @@ const PresetMetadataSchema = z.object({
   SUPPORTED_RESOURCES: z.array(ResourceSchema),
 });
 
+const PresetMinimalMetadataSchema = z.object({
+  ID: z.string(),
+  NAME: z.string(),
+  LOGO: z.string(),
+  DESCRIPTION: z.string(),
+  URL: z.string(),
+  DISABLED: z
+    .object({
+      reason: z.string(),
+      disabled: z.boolean(),
+    })
+    .optional(),
+  SUPPORTED_RESOURCES: z.array(ResourceSchema),
+  SUPPORTED_STREAM_TYPES: z.array(StreamTypes),
+  SUPPORTED_SERVICES: z.array(z.string()),
+  OPTIONS: z.array(OptionDefinition),
+});
+
 const StatusResponseSchema = z.object({
   version: z.string(),
   tag: z.string(),
@@ -758,7 +778,7 @@ const StatusResponseSchema = z.object({
       }),
       timeout: z.number().or(z.null()),
     }),
-    presets: z.array(PresetMetadataSchema),
+    presets: z.array(PresetMinimalMetadataSchema),
     services: z.record(
       z.enum(constants.SERVICES),
       z.object({
@@ -775,3 +795,4 @@ const StatusResponseSchema = z.object({
 
 export type StatusResponse = z.infer<typeof StatusResponseSchema>;
 export type PresetMetadata = z.infer<typeof PresetMetadataSchema>;
+export type PresetMinimalMetadata = z.infer<typeof PresetMinimalMetadataSchema>;

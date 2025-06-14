@@ -191,6 +191,8 @@ function Content() {
         addon: {
           name: addonName,
           identifyingName: addonName,
+          presetType: 'custom',
+          presetInstanceId: '',
           enabled: true,
           manifestUrl: 'http://localhost:2000/manifest.json',
           timeout: 10000,

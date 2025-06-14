@@ -38,6 +38,7 @@ import { createFormatter } from './formatters';
 import {
   compileRegex,
   formRegexFromKeywords,
+  parseRegex,
   safeRegexTest,
 } from './utils/regex';
 import { isMatch } from 'super-regex';
@@ -59,8 +60,8 @@ export interface AIOStreamsResponse<T> {
 
 export class AIOStreams {
   private readonly userData: UserData;
-  private manifests: Record<number, Manifest | null>;
-  private supportedResources: Record<number, StrictManifestResource[]>;
+  private manifests: Record<string, Manifest | null>;
+  private supportedResources: Record<string, StrictManifestResource[]>;
   private finalResources: StrictManifestResource[] = [];
   private finalCatalogs: Manifest['catalogs'] = [];
   private finalAddonCatalogs: Manifest['addonCatalogs'] = [];
@@ -244,16 +245,16 @@ export class AIOStreams {
     // get the addon index from the id
     logger.info(`Handling catalog request`, { type, id, extras });
     const start = Date.now();
-    const addonIndex = id.split('.', 2)[0];
-    const addon = this.getAddon(Number(addonIndex));
+    const addonInstanceId = id.split('.', 2)[0];
+    const addon = this.getAddon(addonInstanceId);
     if (!addon) {
-      logger.error(`Addon ${addonIndex} not found`);
+      logger.error(`Addon ${addonInstanceId} not found`);
       return {
         success: false,
         data: [],
         errors: [
           {
-            title: `Addon ${addonIndex} not found`,
+            title: `Addon ${addonInstanceId} not found`,
             description: 'Addon not found',
           },
         ],
@@ -345,7 +346,9 @@ export class AIOStreams {
     logger.info(`Handling meta request`, { type, id });
     // step 1
     // First try to find an addon that has a matching idPrefix
-    for (const [index, resources] of Object.entries(this.supportedResources)) {
+    for (const [instanceId, resources] of Object.entries(
+      this.supportedResources
+    )) {
       const resource = resources.find(
         (r) =>
           r.name === 'meta' &&
@@ -353,10 +356,13 @@ export class AIOStreams {
           r.idPrefixes?.some((prefix) => id.startsWith(prefix))
       );
       if (resource) {
-        const addon = this.getAddon(Number(index));
+        const addon = this.getAddon(instanceId);
+        if (!addon) {
+          continue;
+        }
         logger.info(`Found addon with matching id prefix for meta resource`, {
           addonName: addon.name,
-          addonIndex: index,
+          addonInstanceId: instanceId,
         });
         try {
           const meta = await new Wrapper(addon).getMeta(type, id);
@@ -387,15 +393,20 @@ export class AIOStreams {
 
     // step 2
     // If no matching prefix found, use any addon that supports meta for this type
-    for (const [index, resources] of Object.entries(this.supportedResources)) {
+    for (const [instanceId, resources] of Object.entries(
+      this.supportedResources
+    )) {
       const resource = resources.find(
         (r) => r.name === 'meta' && r.types.includes(type)
       );
       if (resource) {
-        const addon = this.getAddon(Number(index));
+        const addon = this.getAddon(instanceId);
+        if (!addon) {
+          continue;
+        }
         logger.info(`Using fallback addon for meta resource`, {
           addonName: addon.name,
-          addonIndex: index,
+          addonInstanceId: instanceId,
         });
         try {
           const meta = await new Wrapper(addon).getMeta(type, id);
@@ -438,7 +449,7 @@ export class AIOStreams {
 
     // Find all addons that support subtitles for this type and id prefix
     const supportedAddons = [];
-    for (const [addonIndex, addonResources] of Object.entries(
+    for (const [instanceId, addonResources] of Object.entries(
       this.supportedResources
     )) {
       const resource = addonResources.find(
@@ -450,7 +461,7 @@ export class AIOStreams {
             : true)
       );
       if (resource) {
-        const addon = this.getAddon(Number(addonIndex));
+        const addon = this.getAddon(instanceId);
         if (addon) {
           supportedAddons.push(addon);
         }
@@ -501,16 +512,16 @@ export class AIOStreams {
   ): Promise<AIOStreamsResponse<AddonCatalog[]>> {
     logger.info(`getAddonCatalog: ${id}`);
     // step 1
-    // get the addon index from the id
-    const addonIndex = id.split('.', 2)[0];
-    const addon = this.getAddon(Number(addonIndex));
+    // get the addon instance id from the id
+    const addonInstanceId = id.split('.', 2)[0];
+    const addon = this.getAddon(addonInstanceId);
     if (!addon) {
       return {
         success: false,
         data: [],
         errors: [
           {
-            title: `Addon ${addonIndex} not found`,
+            title: `Addon ${addonInstanceId} not found`,
             description: 'Addon not found',
           },
         ],
@@ -556,15 +567,15 @@ export class AIOStreams {
     }
 
     for (const preset of this.userData.presets.filter((p) => p.enabled)) {
-      const addons = await PresetManager.fromId(preset.id).generateAddons(
+      const addons = await PresetManager.fromId(preset.type).generateAddons(
         this.userData,
         preset.options
       );
-
       this.addons.push(
         ...addons.map((a) => ({
           ...a,
-          id: JSON.stringify(preset),
+          presetInstanceId: preset.instanceId,
+          instanceId: `${preset.instanceId}${getSimpleTextHash(`${a.manifestUrl}`).slice(0, 4)}`,
         }))
       );
     }
@@ -579,10 +590,10 @@ export class AIOStreams {
   private async fetchManifests() {
     this.manifests = Object.fromEntries(
       await Promise.all(
-        this.addons.map(async (addon, index) => {
+        this.addons.map(async (addon) => {
           try {
             this.validateAddon(addon);
-            return [index, await new Wrapper(addon).getManifest()];
+            return [addon.instanceId, await new Wrapper(addon).getManifest()];
           } catch (error: any) {
             await this.handlePossibleRecursiveError(error);
             if (this.skipFailedAddons) {
@@ -591,7 +602,7 @@ export class AIOStreams {
                 error: error.message,
               });
               logger.error(`${error.message}, skipping`);
-              return [index, null];
+              return [addon.instanceId, null];
             }
             throw error;
           }
@@ -601,7 +612,7 @@ export class AIOStreams {
   }
 
   private async fetchResources() {
-    for (const [index, manifest] of Object.entries(this.manifests)) {
+    for (const [instanceId, manifest] of Object.entries(this.manifests)) {
       if (!manifest) continue;
 
       // Convert string resources to StrictManifestResource objects
@@ -616,10 +627,15 @@ export class AIOStreams {
         return resource;
       });
 
-      const addon = this.addons[Number(index)];
+      const addon = this.getAddon(instanceId);
+
+      if (!addon) {
+        logger.error(`Addon with instanceId ${instanceId} not found`);
+        continue;
+      }
 
       logger.verbose(
-        `Determined that ${addon.identifyingName} (Index: ${index}) has support for the following resources: ${JSON.stringify(
+        `Determined that ${addon.identifyingName} (Instance ID: ${instanceId}) has support for the following resources: ${JSON.stringify(
           addonResources
         )}`
       );
@@ -655,7 +671,7 @@ export class AIOStreams {
         }
       }
 
-      // Add catalogs with prefixed IDs (ensure to check that if addon.resources is defined and does not have catalog
+      // Add catalogs with prefixed  IDs (ensure to check that if addon.resources is defined and does not have catalog
       // then we do not add the catalogs)
 
       if (
@@ -665,7 +681,7 @@ export class AIOStreams {
         this.finalCatalogs.push(
           ...manifest.catalogs.map((catalog) => ({
             ...catalog,
-            id: `${index}.${catalog.id}`,
+            id: `${addon.instanceId}.${catalog.id}`,
           }))
         );
       }
@@ -675,12 +691,12 @@ export class AIOStreams {
         this.finalAddonCatalogs!.push(
           ...(manifest.addonCatalogs || []).map((catalog) => ({
             ...catalog,
-            id: `${index}.${catalog.id}`,
+            id: `${addon.instanceId}.${catalog.id}`,
           }))
         );
       }
 
-      this.supportedResources[Number(index)] = addonResources;
+      this.supportedResources[instanceId] = addonResources;
     }
 
     logger.verbose(
@@ -780,8 +796,8 @@ export class AIOStreams {
     return this.finalAddonCatalogs;
   }
 
-  public getAddon(index: number): Addon {
-    return this.addons[index];
+  public getAddon(instanceId: string): Addon | undefined {
+    return this.addons.find((a) => a.instanceId === instanceId);
   }
 
   private shouldProxyStream(stream: ParsedStream): boolean {
@@ -793,7 +809,7 @@ export class AIOStreams {
 
     const proxyAddon =
       !proxy.proxiedAddons?.length ||
-      proxy.proxiedAddons.includes(stream.addon.id || '');
+      proxy.proxiedAddons.includes(stream.addon.presetInstanceId);
     const proxyService =
       !proxy.proxiedServices?.length ||
       proxy.proxiedServices.includes(streamService);
@@ -857,7 +873,9 @@ export class AIOStreams {
       const proxy =
         this.userData.proxy &&
         (!this.userData.proxy?.proxiedAddons?.length ||
-          this.userData.proxy.proxiedAddons.includes(addon.id || ''));
+          this.userData.proxy.proxiedAddons.includes(
+            addon.presetInstanceId || ''
+          ));
       logger.debug(
         `Using ${proxy ? 'proxy' : 'user'} ip for ${addon.identifyingName}: ${
           proxy
@@ -876,7 +894,7 @@ export class AIOStreams {
   private async getStreamsFromAddons(type: string, id: string) {
     // get a list of all addons that support the stream resource with the given type and id.
     const supportedAddons = [];
-    for (const [index, addonResources] of Object.entries(
+    for (const [instanceId, addonResources] of Object.entries(
       this.supportedResources
     )) {
       const resource = addonResources.find(
@@ -888,7 +906,7 @@ export class AIOStreams {
             : true) // if no id prefixes are defined, assume it supports all IDs
       );
       if (resource) {
-        const addon = this.getAddon(Number(index));
+        const addon = this.getAddon(instanceId);
         if (addon) {
           supportedAddons.push(addon);
         }
@@ -1006,7 +1024,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       // Always fetch from first group
       const firstGroupAddons = supportedAddons.filter(
         (addon) =>
-          addon.id && this.userData.groups![0].addons.includes(addon.id)
+          addon.presetInstanceId &&
+          this.userData.groups![0].addons.includes(addon.presetInstanceId)
       );
 
       logger.info(
@@ -1039,7 +1058,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             logger.info(`Condition met for group ${i + 1}, fetching streams`);
 
             const groupAddons = supportedAddons.filter(
-              (addon) => addon.id && group.addons.includes(addon.id)
+              (addon) =>
+                addon.presetInstanceId &&
+                group.addons.includes(addon.presetInstanceId)
             );
 
             const groupResult = await fetchFromGroup(groupAddons);
@@ -1085,12 +1106,12 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       );
     }
     if (
-      addon.fromPresetId &&
-      FeatureControl.disabledAddons.has(addon.fromPresetId)
+      addon.presetInstanceId &&
+      FeatureControl.disabledAddons.has(addon.presetInstanceId)
     ) {
       throw new Error(
         `Addon ${addon.identifyingName} is disabled: ${FeatureControl.disabledAddons.get(
-          addon.fromPresetId
+          addon.presetType
         )}`
       );
     } else if (
@@ -1187,9 +1208,10 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       ) {
         return true;
       }
+
       if (
         titleMatchingOptions.addons?.length &&
-        !titleMatchingOptions.addons.includes(stream.addon.id!)
+        !titleMatchingOptions.addons.includes(stream.addon.presetInstanceId)
       ) {
         return true;
       }
@@ -1238,7 +1260,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       if (
         seasonEpisodeMatchingOptions.addons?.length &&
-        !seasonEpisodeMatchingOptions.addons.includes(stream.addon.id!)
+        !seasonEpisodeMatchingOptions.addons.includes(
+          stream.addon.presetInstanceId
+        )
       ) {
         return true;
       }
@@ -1267,7 +1291,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     };
 
     const excludedRegexPatterns =
-      isRegexAllowed && this.userData.excludedRegexPatterns
+      isRegexAllowed &&
+      this.userData.excludedRegexPatterns &&
+      this.userData.excludedRegexPatterns.length > 0
         ? await Promise.all(
             this.userData.excludedRegexPatterns.map(
               async (pattern) => await compileRegex(pattern)
@@ -1276,7 +1302,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         : undefined;
 
     const requiredRegexPatterns =
-      isRegexAllowed && this.userData.requiredRegexPatterns
+      isRegexAllowed &&
+      this.userData.requiredRegexPatterns &&
+      this.userData.requiredRegexPatterns.length > 0
         ? await Promise.all(
             this.userData.requiredRegexPatterns.map(
               async (pattern) => await compileRegex(pattern)
@@ -1285,7 +1313,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         : undefined;
 
     const includedRegexPatterns =
-      isRegexAllowed && this.userData.includedRegexPatterns
+      isRegexAllowed &&
+      this.userData.includedRegexPatterns &&
+      this.userData.includedRegexPatterns.length > 0
         ? await Promise.all(
             this.userData.includedRegexPatterns.map(
               async (pattern) => await compileRegex(pattern)
@@ -1337,7 +1367,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       const isAddonFilteredOut =
         addonIds &&
         addonIds.length > 0 &&
-        addonIds.some((addonId) => stream.addon.id === addonId) &&
+        addonIds.some((addonId) => stream.addon.presetInstanceId === addonId) &&
         stream.service?.cached === cached;
       const isServiceFilteredOut =
         serviceIds &&
@@ -1835,6 +1865,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       }
       if (
         requiredRegexPatterns &&
+        requiredRegexPatterns.length > 0 &&
         !(await testRegexes(stream, requiredRegexPatterns))
       ) {
         skipReasons.requiredRegex.total++;
@@ -2131,11 +2162,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
               const aAddonIndex =
                 this.userData.presets.findIndex(
-                  (preset) => JSON.stringify(preset) === a.addon.id
+                  (preset) => preset.instanceId === a.addon.presetInstanceId
                 ) ?? -1;
               const bAddonIndex =
                 this.userData.presets.findIndex(
-                  (preset) => JSON.stringify(preset) === b.addon.id
+                  (preset) => preset.instanceId === b.addon.presetInstanceId
                 ) ?? -1;
 
               // the addon index MUST exist, its not possible for it to not exist
@@ -2183,11 +2214,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
               return serviceStreams.sort((a, b) => {
                 const aAddonIndex =
                   this.userData.presets.findIndex(
-                    (preset) => JSON.stringify(preset) === a.addon.id
+                    (preset) => preset.instanceId === a.addon.presetInstanceId
                   ) ?? -1;
                 const bAddonIndex =
                   this.userData.presets.findIndex(
-                    (preset) => JSON.stringify(preset) === b.addon.id
+                    (preset) => preset.instanceId === b.addon.presetInstanceId
                   ) ?? -1;
                 if (aAddonIndex !== bAddonIndex) {
                   return aAddonIndex - bAddonIndex;
@@ -2227,8 +2258,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             let perAddonStreams = Object.values(
               typeStreams.reduce(
                 (acc, stream) => {
-                  acc[stream.addon.id!] = acc[stream.addon.id!] || [];
-                  acc[stream.addon.id!].push(stream);
+                  acc[stream.addon.presetInstanceId] =
+                    acc[stream.addon.presetInstanceId] || [];
+                  acc[stream.addon.presetInstanceId].push(stream);
                   return acc;
                 },
                 {} as Record<string, ParsedStream[]>
@@ -2278,6 +2310,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             this.userData.preferredRegexPatterns.map(async (pattern) => {
               return {
                 name: pattern.name,
+                negate: parseRegex(pattern.pattern).flags.includes('n'),
                 pattern: await compileRegex(pattern.pattern),
               };
             })
@@ -2302,24 +2335,48 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           isMatch(preferredKeywordsPatterns, stream.indexer || '');
       });
     }
+    const determineMatch = (
+      stream: ParsedStream,
+      regexPattern: { pattern: RegExp; negate: boolean },
+      attribute?: string
+    ) => {
+      if (regexPattern.negate) {
+        return attribute ? !isMatch(regexPattern.pattern, attribute) : true;
+      }
+      return attribute ? isMatch(regexPattern.pattern, attribute) : false;
+    };
     if (preferredRegexPatterns) {
       streams.forEach((stream) => {
         for (let i = 0; i < preferredRegexPatterns.length; i++) {
+          // if negate, then the pattern must not match any of the attributes
+          // and if the attribute is undefined, then we can consider that as a non-match so true
           const regexPattern = preferredRegexPatterns[i];
-          if (
-            regexPattern &&
-            !stream.regexMatched &&
-            ((stream.filename &&
-              isMatch(regexPattern.pattern, stream.filename)) ||
-              (stream.folderName &&
-                isMatch(regexPattern.pattern, stream.folderName)) ||
-              (stream.parsedFile?.releaseGroup &&
-                isMatch(
-                  regexPattern.pattern,
-                  stream.parsedFile?.releaseGroup || ''
-                )) ||
-              (stream.indexer && isMatch(regexPattern.pattern, stream.indexer)))
-          ) {
+          const filenameMatch = determineMatch(
+            stream,
+            regexPattern,
+            stream.filename
+          );
+          const folderNameMatch = determineMatch(
+            stream,
+            regexPattern,
+            stream.folderName
+          );
+          const releaseGroupMatch = determineMatch(
+            stream,
+            regexPattern,
+            stream.parsedFile?.releaseGroup
+          );
+          const indexerMatch = determineMatch(
+            stream,
+            regexPattern,
+            stream.indexer
+          );
+          let match =
+            filenameMatch ||
+            folderNameMatch ||
+            releaseGroupMatch ||
+            indexerMatch;
+          if (match) {
             stream.regexMatched = {
               name: regexPattern.name,
               pattern: regexPattern.pattern.source,
@@ -2452,7 +2509,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         case 'addon':
           // find the first occurence of the stream.addon.id in the addons array
           const idx = userData.presets.findIndex(
-            (p) => JSON.stringify(p) === stream.addon.id
+            (p) => p.instanceId === stream.addon.presetInstanceId
           );
           return multiplier * (idx !== -1 ? -idx : 0);
 
@@ -2671,13 +2728,13 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       }
 
       // Check addon limit
-      if (addon && stream.addon.id) {
-        const count = counts.addon.get(stream.addon.id) || 0;
+      if (addon) {
+        const count = counts.addon.get(stream.addon.presetInstanceId) || 0;
         if (count >= addon) {
           indexesToRemove.add(index);
           return;
         }
-        counts.addon.set(stream.addon.id, count + 1);
+        counts.addon.set(stream.addon.presetInstanceId, count + 1);
       }
 
       // Check stream type limit

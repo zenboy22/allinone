@@ -142,7 +142,8 @@ export class AIOStreamsPreset extends Preset {
       library: false,
       resources: options.resources || undefined,
       timeout: options.timeout || this.METADATA.TIMEOUT,
-      fromPresetId: this.METADATA.ID,
+      presetType: this.METADATA.ID,
+      presetInstanceId: '',
       headers: {
         'User-Agent': this.METADATA.USER_AGENT,
       },

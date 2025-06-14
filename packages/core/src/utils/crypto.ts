@@ -15,6 +15,25 @@ const logger = createLogger('crypto');
 
 const saltRounds = 10;
 
+function base64UrlSafe(data: string): string {
+  return Buffer.from(data)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+function fromUrlSafeBase64(data: string): string {
+  // Add padding if needed
+  const padding = data.length % 4;
+  const paddedData = padding ? data + '='.repeat(4 - padding) : data;
+
+  return Buffer.from(
+    paddedData.replace(/-/g, '+').replace(/_/g, '/'),
+    'base64'
+  ).toString('utf-8');
+}
+
 const compressData = (data: string): Buffer => {
   return deflateSync(Buffer.from(data, 'utf-8'), {
     level: 9,
@@ -72,8 +91,15 @@ type ErrorResponse = {
 export type Response = SuccessResponse | ErrorResponse;
 
 export function isEncrypted(data: string): boolean {
-  return data?.startsWith('aioEncrypt:') ?? false;
+  try {
+    // parse the data as json
+    const json = JSON.parse(fromUrlSafeBase64(data));
+    return json.type === 'aioEncrypt';
+  } catch (error) {
+    return false;
+  }
 }
+
 /**
  * Encrypts a string using AES-256-CBC encryption, returns a string in the format "iv:encrypted" where
  * iv and encrypted are url encoded.
@@ -90,7 +116,9 @@ export function encryptString(data: string, secretKey?: Buffer): Response {
     const { iv, data: encrypted } = encryptData(secretKey, compressed);
     return {
       success: true,
-      data: encodeURIComponent(`aioEncrypt:${iv}:${encrypted}`),
+      data: base64UrlSafe(
+        JSON.stringify({ iv, encrypted, type: 'aioEncrypt' })
+      ),
       error: null,
     };
   } catch (error: any) {
@@ -114,13 +142,12 @@ export function decryptString(data: string, secretKey?: Buffer): Response {
     secretKey = Buffer.from(Env.SECRET_KEY, 'hex');
   }
   try {
-    data = decodeURIComponent(data);
     if (!isEncrypted(data)) {
       throw new Error('The data was not in an expected encrypted format');
     }
-    const [_, ivHex, encryptedHex] = data.split(':');
-    const iv = Buffer.from(ivHex, 'base64');
-    const encrypted = Buffer.from(encryptedHex, 'base64');
+    const json = JSON.parse(fromUrlSafeBase64(data));
+    const iv = Buffer.from(json.iv, 'base64');
+    const encrypted = Buffer.from(json.encrypted, 'base64');
     const decrypted = decryptData(secretKey, encrypted, iv);
     const decompressed = decompressData(decrypted);
     return {

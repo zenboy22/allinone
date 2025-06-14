@@ -40,7 +40,7 @@ import {
   LuChevronsDown,
   LuShuffle,
 } from 'react-icons/lu';
-import { TbSmartHomeOff } from 'react-icons/tb';
+import { TbSmartHome, TbSmartHomeOff } from 'react-icons/tb';
 import { AnimatePresence } from 'framer-motion';
 import { PageControls } from '../shared/page-controls';
 import Image from 'next/image';
@@ -54,6 +54,14 @@ import {
 import { MdRefresh } from 'react-icons/md';
 import { Alert } from '../ui/alert';
 import MarkdownLite from '../shared/markdown-lite';
+import {
+  Accordion,
+  AccordionTrigger,
+  AccordionContent,
+  AccordionItem,
+} from '../ui/accordion';
+import { FaArrowRightLong, FaRankingStar, FaShuffle } from 'react-icons/fa6';
+import { PiStarFill, PiStarBold } from 'react-icons/pi';
 
 interface CatalogModification {
   id: string;
@@ -143,17 +151,31 @@ function Content() {
     setEditingAddonId(null);
     setModalOpen(true);
   }
+  function getUniqueId() {
+    // generate a 3 character long hex string, ensuring it doesn't already exist in the user's presets
+    const id = Math.floor(Math.random() * 0xfff)
+      .toString(16)
+      .padStart(3, '0');
+    if (userData.presets.some((a) => a.instanceId === id)) {
+      return getUniqueId();
+    }
+    return id;
+  }
 
   function handleModalSubmit(values: Record<string, any>) {
     if (modalMode === 'add' && modalPreset) {
       // Always add a new preset with default values, never edit
       const newPreset = {
-        id: modalPreset.ID,
+        type: modalPreset.ID,
+        instanceId: getUniqueId(),
         enabled: true,
         options: values.options,
       };
       const newKey = getPresetUniqueKey(newPreset);
       // Prevent adding if a preset with the same unique key already exists
+      // dont use instanceId here, as that will always be unique
+      // only prevent adding the same preset type with the same options
+      // so we use getPresetUniqueKey here.
       if (userData.presets.some((a) => getPresetUniqueKey(a) === newKey)) {
         toast.error('You already have an addon with the same options added.');
         setModalOpen(false);
@@ -170,7 +192,7 @@ function Content() {
       setUserData((prev) => ({
         ...prev,
         presets: prev.presets.map((a) =>
-          getPresetUniqueKey(a) === editingAddonId
+          a.instanceId === editingAddonId
             ? { ...a, options: values.options }
             : a
         ),
@@ -186,10 +208,10 @@ function Content() {
     if (!over) return;
     if (active.id !== over.id) {
       const oldIndex = userData.presets.findIndex(
-        (a) => getPresetUniqueKey(a) === active.id
+        (a) => a.instanceId === active.id
       );
       const newIndex = userData.presets.findIndex(
-        (a) => getPresetUniqueKey(a) === over.id
+        (a) => a.instanceId === over.id
       );
       const newPresets = arrayMove(userData.presets, oldIndex, newIndex);
       setUserData((prev) => ({
@@ -321,7 +343,7 @@ function Content() {
                 sensors={sensors}
               >
                 <SortableContext
-                  items={userData.presets.map((a) => getPresetUniqueKey(a))}
+                  items={userData.presets.map((a) => a.instanceId)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
@@ -337,42 +359,39 @@ function Content() {
                           </div>
                         </li>
                       ) : (
-                        userData.presets.map((addon) => {
-                          const preset = status?.settings?.presets.find(
-                            (p: any) => p.ID === addon.id
+                        userData.presets.map((preset) => {
+                          const presetMetadata = status?.settings?.presets.find(
+                            (p: any) => p.ID === preset.type
                           );
                           return (
                             <SortableAddonItem
-                              key={getPresetUniqueKey(addon)}
-                              addon={addon}
+                              key={getPresetUniqueKey(preset)}
                               preset={preset}
+                              presetMetadata={presetMetadata}
                               onEdit={() => {
-                                setModalPreset(preset);
+                                setModalPreset(presetMetadata);
                                 setModalInitialValues({
-                                  options: { ...addon.options },
+                                  options: { ...preset.options },
                                 });
                                 setModalMode('edit');
-                                setEditingAddonId(getPresetUniqueKey(addon));
+                                setEditingAddonId(preset.instanceId);
                                 setModalOpen(true);
                               }}
                               onRemove={() => {
                                 setUserData((prev) => ({
                                   ...prev,
                                   presets: prev.presets.filter(
-                                    (a) =>
-                                      getPresetUniqueKey(a) !==
-                                      getPresetUniqueKey(addon)
+                                    (a) => a.instanceId !== preset.instanceId
                                   ),
                                 }));
                               }}
                               onToggleEnabled={(v: boolean) => {
                                 setUserData((prev) => ({
                                   ...prev,
-                                  presets: prev.presets.map((a) =>
-                                    getPresetUniqueKey(a) ===
-                                    getPresetUniqueKey(addon)
-                                      ? { ...a, enabled: v }
-                                      : a
+                                  presets: prev.presets.map((p) =>
+                                    p.instanceId === preset.instanceId
+                                      ? { ...p, enabled: v }
+                                      : p
                                   ),
                                 }));
                               }}
@@ -477,14 +496,16 @@ function Content() {
   );
 }
 
-// Helper to generate a unique key for a user preset
+// Helper to generate a key based on an addons id and options
 function getPresetUniqueKey(preset: {
-  id: string;
+  type: string;
+  instanceId: string;
   enabled: boolean;
   options: Record<string, any>;
 }) {
+  // dont include the unique instanceId
   return JSON.stringify({
-    id: preset.id,
+    type: preset.type,
     enabled: preset.enabled,
     options: preset.options,
   });
@@ -492,14 +513,14 @@ function getPresetUniqueKey(preset: {
 
 // Sortable Addon Item for DND (handles both preset and custom addon)
 function SortableAddonItem({
-  addon,
   preset,
+  presetMetadata,
   onEdit,
   onRemove,
   onToggleEnabled,
 }: {
-  addon: any;
   preset: any;
+  presetMetadata: any;
   onEdit: () => void;
   onRemove: () => void;
   onToggleEnabled: (v: boolean) => void;
@@ -512,7 +533,7 @@ function SortableAddonItem({
     transition,
     isDragging,
   } = useSortable({
-    id: getPresetUniqueKey(addon),
+    id: preset.instanceId,
   });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -529,12 +550,12 @@ function SortableAddonItem({
         />
         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
           <div className="relative flex-shrink-0 h-8 w-8 hidden sm:block">
-            {preset.ID === 'custom' ? (
+            {presetMetadata.ID === 'custom' ? (
               <PlusIcon className="w-full h-full object-contain" />
             ) : (
               <Image
-                src={preset.LOGO}
-                alt={preset.NAME}
+                src={presetMetadata.LOGO}
+                alt={presetMetadata.NAME}
                 fill
                 className="w-full h-full object-contain rounded-md"
               />
@@ -542,13 +563,13 @@ function SortableAddonItem({
           </div>
 
           <p className="text-base line-clamp-1 truncate block">
-            {addon.options.name}
+            {preset.options.name}
           </p>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
           <Switch
-            value={!!addon.enabled}
+            value={!!preset.enabled}
             onValueChange={onToggleEnabled}
             size="sm"
           />
@@ -913,12 +934,11 @@ function AddonGroupCard() {
 
     return userData.presets
       .filter((preset) => {
-        const presetStr = JSON.stringify(preset);
-        return !presetsInOtherGroups.has(presetStr);
+        return !presetsInOtherGroups.has(preset.instanceId);
       })
       .map((preset) => ({
         label: preset.options.name,
-        value: JSON.stringify(preset),
+        value: preset.instanceId,
         textValue: preset.options.name,
       }));
   };
@@ -1056,8 +1076,22 @@ function CatalogSettingsCard() {
             existingMods.map((mod) => `${mod.id}-${mod.type}`)
           );
 
-          // Keep existing modifications with their settings
-          const modifications = [...existingMods];
+          // first we need to handle existing modifications, to ensure that they keep their order
+          const modifications = existingMods.map((eMod) => {
+            const nMod = response.data!.find(
+              (c) => c.id === eMod.id && c.type === eMod.type
+            );
+            if (nMod) {
+              return {
+                // keep all the existing attributes, except addonName, type, hideable
+                ...eMod,
+                addonName: nMod.addonName,
+                type: nMod.type,
+                hideable: nMod.hideable,
+              };
+            }
+            return eMod;
+          });
 
           // Add new catalogs at the bottom
           response.data!.forEach((catalog) => {
@@ -1069,7 +1103,6 @@ function CatalogSettingsCard() {
                 enabled: true,
                 shuffle: false,
                 rpdb: userData.rpdbApiKey ? true : false,
-                // Store these properties directly in the modification object
                 hideable: catalog.hideable,
                 addonName: catalog.addonName,
               });
@@ -1099,19 +1132,6 @@ function CatalogSettingsCard() {
       setLoading(false);
     }
   };
-
-  const [editingCatalog, setEditingCatalog] = useState<{
-    id: string;
-    type: string;
-    name?: string;
-    shuffle: boolean;
-    rpdb: boolean;
-    onlyOnDiscover: boolean;
-    hideable?: boolean;
-    addonName?: string;
-  } | null>(null);
-
-  const [modalOpen, setModalOpen] = useState(false);
 
   const capitalise = (str: string | undefined) => {
     if (!str) return '';
@@ -1192,16 +1212,6 @@ function CatalogSettingsCard() {
     setIsDragging(true);
   };
 
-  // const confirmClearConfig = useConfirmationDialog({
-  //   title: 'Sign Out',
-  //   description: 'Are you sure you want to sign out?',
-  //   onConfirm: () => {
-  //     user.setUserData(null);
-  //     user.setUuid(null);
-  //     user.setPassword(null);
-  //   },
-  // });
-
   const confirmRefreshCatalogs = useConfirmationDialog({
     title: 'Refresh Catalogs',
     description:
@@ -1261,25 +1271,12 @@ function CatalogSettingsCard() {
               )}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-2">
+              <ul className="space-y-2">
                 {(userData.catalogModifications || []).map(
                   (catalog: CatalogModification) => (
                     <SortableCatalogItem
                       key={`${catalog.id}-${catalog.type}`}
                       catalog={catalog}
-                      onEdit={() => {
-                        setEditingCatalog({
-                          id: catalog.id,
-                          type: catalog.type,
-                          name: catalog.name,
-                          shuffle: catalog.shuffle ?? false,
-                          rpdb: catalog.rpdb ?? false,
-                          onlyOnDiscover: catalog.onlyOnDiscover ?? false,
-                          hideable: catalog.hideable,
-                          addonName: catalog.addonName,
-                        });
-                        setModalOpen(true);
-                      }}
                       onToggleEnabled={(enabled) => {
                         setUserData((prev) => ({
                           ...prev,
@@ -1295,98 +1292,11 @@ function CatalogSettingsCard() {
                     />
                   )
                 )}
-              </div>
+              </ul>
             </SortableContext>
           </DndContext>
         )}
 
-      <Modal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        title={
-          <div className="max-w-[calc(100vw-4rem)] sm:max-w-[400px] truncate">
-            Edit Catalog: {editingCatalog?.name || editingCatalog?.id} -{' '}
-            {capitalise(editingCatalog?.type)} - {editingCatalog?.addonName}
-          </div>
-        }
-      >
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!editingCatalog) return;
-
-            setUserData((prev) => ({
-              ...prev,
-              catalogModifications: prev.catalogModifications?.map((c) =>
-                c.id === editingCatalog.id && c.type === editingCatalog.type
-                  ? {
-                      ...c,
-                      name: editingCatalog.name,
-                      shuffle: editingCatalog.shuffle,
-                      rpdb: editingCatalog.rpdb,
-                      onlyOnDiscover: editingCatalog.onlyOnDiscover,
-                    }
-                  : c
-              ),
-            }));
-            setModalOpen(false);
-          }}
-        >
-          <div className="flex flex-col gap-4">
-            <TextInput
-              label="Name"
-              placeholder="Enter catalog name"
-              value={editingCatalog?.name || ''}
-              onValueChange={(name) => {
-                setEditingCatalog((prev) => (prev ? { ...prev, name } : null));
-              }}
-            />
-
-            <Switch
-              label="Shuffle Results"
-              help="This will shuffle the items in the catalog on each request"
-              side="right"
-              className="ml-2"
-              value={editingCatalog?.shuffle ?? false}
-              onValueChange={(shuffle) => {
-                setEditingCatalog((prev) =>
-                  prev ? { ...prev, shuffle } : null
-                );
-              }}
-            />
-
-            <Switch
-              label="Use RPDB"
-              help="Replace posters with RPDB posters if supported"
-              side="right"
-              className="ml-2"
-              value={editingCatalog?.rpdb ?? false}
-              onValueChange={(rpdb) => {
-                setEditingCatalog((prev) => (prev ? { ...prev, rpdb } : null));
-              }}
-            />
-            {editingCatalog?.hideable && (
-              <Switch
-                label="Only show on Discover"
-                help="This will prevent the catalog from showing on the home page, and only show it on the 'Discover' page"
-                moreHelp="This can potentially break the catalog!"
-                side="right"
-                className="ml-2"
-                value={editingCatalog?.onlyOnDiscover ?? false}
-                onValueChange={(onlyOnDiscover) => {
-                  setEditingCatalog((prev) =>
-                    prev ? { ...prev, onlyOnDiscover } : null
-                  );
-                }}
-              />
-            )}
-          </div>
-          <Button className="w-full mt-4" type="submit">
-            Save Changes
-          </Button>
-        </form>
-      </Modal>
       <ConfirmationDialog {...confirmRefreshCatalogs} />
     </div>
   );
@@ -1395,12 +1305,10 @@ function CatalogSettingsCard() {
 // Add the SortableCatalogItem component
 function SortableCatalogItem({
   catalog,
-  onEdit,
   onToggleEnabled,
   capitalise,
 }: {
   catalog: CatalogModification;
-  onEdit: () => void;
   onToggleEnabled: (enabled: boolean) => void;
   capitalise: (str: string | undefined) => string;
 }) {
@@ -1451,52 +1359,305 @@ function SortableCatalogItem({
     });
   };
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [newName, setNewName] = useState(catalog.name || '');
+
+  const dynamicIconSize = `text-xl h-8 w-8 lg:text-2xl lg:h-10 lg:w-10`;
+
+  const handleNameEdit = () => {
+    setUserData((prev) => ({
+      ...prev,
+      catalogModifications: prev.catalogModifications?.map((c) =>
+        c.id === catalog.id && c.type === catalog.type
+          ? { ...c, name: newName }
+          : c
+      ),
+    }));
+    setModalOpen(false);
+  };
+
   return (
-    <div ref={setNodeRef} style={style}>
-      <div className="px-2.5 py-2 bg-[var(--background)] rounded-[--radius-md] border flex gap-2 sm:gap-3 relative">
+    <li ref={setNodeRef} style={style}>
+      <div className="relative px-2.5 py-2 bg-[var(--background)] rounded-[--radius-md] border overflow-hidden">
+        {/* Full-height drag handle - rounded vertical oval with spacing */}
         <div
-          className="rounded-full w-6 h-auto bg-[--muted] md:bg-[--subtle] md:hover:bg-[--subtle-highlight] cursor-move flex-shrink-0"
+          className="absolute top-2 bottom-2 left-2 w-5 bg-[var(--muted)] md:bg-[var(--subtle)] md:hover:bg-[var(--subtle-highlight)] cursor-move flex-shrink-0 rounded-full"
           {...attributes}
           {...listeners}
         />
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <p className="text-base line-clamp-1 truncate block">
-            {catalog.name ?? catalog.id} - {capitalise(catalog.type)}
-          </p>
-        </div>
 
-        <div className="flex items-center gap-1 md:gap-2">
-          {catalog.shuffle && (
-            <LuShuffle className="text-md text-[--brand] h-4 w-4 md:h-6 md:w-6 hidden md:flex" />
-          )}
-          {catalog.onlyOnDiscover && (
-            <TbSmartHomeOff className="text-md text-[--brand] h-4 w-4 md:h-6 md:w-6 hidden md:flex" />
-          )}
-          <Switch
-            value={catalog.enabled ?? true}
-            onValueChange={onToggleEnabled}
-            size="sm"
-          />
-          <IconButton
-            className="rounded-full h-8 w-8 md:h-10 md:w-10"
-            icon={<BiEdit />}
-            intent="primary-subtle"
-            onClick={onEdit}
-          />
-          <IconButton
-            className="rounded-full h-8 w-8 md:h-10 md:w-10"
-            icon={<LuChevronsUp />}
-            intent="primary-subtle"
-            onClick={moveToTop}
-          />
-          <IconButton
-            className="rounded-full h-8 w-8 md:h-10 md:w-10"
-            icon={<LuChevronsDown />}
-            intent="primary-subtle"
-            onClick={moveToBottom}
-          />
+        {/* Content wrapper */}
+        <div className="pl-8 pr-3 py-3">
+          {/* Header section */}
+          <div className="mb-4 md:mb-6 md:pr-40">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-sm md:text-base font-medium line-clamp-1 truncate text-ellipsis">
+                {catalog.addonName} - {catalog.name ?? catalog.id}
+              </h3>
+              <IconButton
+                className="rounded-full h-5 w-5 md:h-6 md:w-6 flex-shrink-0"
+                icon={<BiEdit />}
+                intent="primary-subtle"
+                onClick={() => setModalOpen(true)}
+              />
+            </div>
+            <p className="text-xs md:text-sm text-[var(--muted-foreground)] capitalize mb-2 md:mb-0">
+              {catalog.type}
+            </p>
+
+            {/* Mobile Controls Row - only visible on small screens */}
+            <div className="flex md:hidden items-center justify-between">
+              {/* Position controls - aligned left */}
+              <div className="flex items-center gap-1">
+                <IconButton
+                  rounded
+                  className={dynamicIconSize}
+                  icon={<LuChevronsUp />}
+                  intent="primary-subtle"
+                  onClick={moveToTop}
+                  title="Move to top"
+                />
+                <IconButton
+                  rounded
+                  className={dynamicIconSize}
+                  icon={<LuChevronsDown />}
+                  intent="primary-subtle"
+                  onClick={moveToBottom}
+                  title="Move to bottom"
+                />
+              </div>
+
+              {/* Enable/disable toggle - aligned right */}
+              <Switch
+                value={catalog.enabled ?? true}
+                onValueChange={onToggleEnabled}
+                moreHelp="Enable or disable this catalog from being used"
+              />
+            </div>
+
+            {/* Desktop Controls - only visible on medium screens and up */}
+            <div className="hidden md:flex items-center justify-end gap-2 absolute top-4 right-4">
+              <Switch
+                value={catalog.enabled ?? true}
+                onValueChange={onToggleEnabled}
+                moreHelp="Enable or disable this catalog from being used"
+              />
+              <div className="flex items-center gap-1">
+                <IconButton
+                  rounded
+                  icon={<LuChevronsUp />}
+                  intent="primary-subtle"
+                  onClick={moveToTop}
+                  title="Move to top"
+                />
+                <IconButton
+                  rounded
+                  icon={<LuChevronsDown />}
+                  intent="primary-subtle"
+                  onClick={moveToBottom}
+                  title="Move to bottom"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Settings section */}
+          <Accordion type="single" collapsible>
+            <AccordionItem value="settings">
+              <AccordionTrigger>
+                <div className="flex items-center justify-between w-full">
+                  <h4 className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wide">
+                    Settings
+                  </h4>
+
+                  {/* Active modifier icons */}
+                  <div className="flex items-center gap-2 mr-2">
+                    <Tooltip
+                      trigger={
+                        <IconButton
+                          className={dynamicIconSize}
+                          icon={
+                            catalog.shuffle ? (
+                              <FaShuffle />
+                            ) : (
+                              <FaArrowRightLong />
+                            )
+                          }
+                          intent="primary-subtle"
+                          rounded
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setUserData((prev) => ({
+                              ...prev,
+                              catalogModifications:
+                                prev.catalogModifications?.map((c) =>
+                                  c.id === catalog.id && c.type === catalog.type
+                                    ? { ...c, shuffle: !c.shuffle }
+                                    : c
+                                ),
+                            }));
+                          }}
+                        />
+                      }
+                    >
+                      Shuffle
+                    </Tooltip>
+                    <Tooltip
+                      trigger={
+                        <IconButton
+                          className={dynamicIconSize}
+                          icon={catalog.rpdb ? <PiStarFill /> : <PiStarBold />}
+                          intent="primary-subtle"
+                          rounded
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setUserData((prev) => ({
+                              ...prev,
+                              catalogModifications:
+                                prev.catalogModifications?.map((c) =>
+                                  c.id === catalog.id && c.type === catalog.type
+                                    ? { ...c, rpdb: !c.rpdb }
+                                    : c
+                                ),
+                            }));
+                          }}
+                        />
+                      }
+                    >
+                      RPDB
+                    </Tooltip>
+
+                    {catalog.hideable && (
+                      <Tooltip
+                        trigger={
+                          <IconButton
+                            className={dynamicIconSize}
+                            icon={
+                              catalog.onlyOnDiscover ? (
+                                <TbSmartHomeOff />
+                              ) : (
+                                <TbSmartHome />
+                              )
+                            }
+                            intent="primary-subtle"
+                            rounded
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUserData((prev) => ({
+                                ...prev,
+                                catalogModifications:
+                                  prev.catalogModifications?.map((c) =>
+                                    c.id === catalog.id &&
+                                    c.type === catalog.type
+                                      ? {
+                                          ...c,
+                                          onlyOnDiscover: !c.onlyOnDiscover,
+                                        }
+                                      : c
+                                  ),
+                              }));
+                            }}
+                          />
+                        }
+                      >
+                        Discover Only
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4">
+                  {/* Large screens: horizontal layout, Medium and below: vertical layout */}
+                  <div className="flex flex-col gap-4">
+                    <Switch
+                      label="Shuffle"
+                      help="Randomize the order of catalog items on each request"
+                      side="right"
+                      value={catalog.shuffle ?? false}
+                      onValueChange={(shuffle) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          catalogModifications: prev.catalogModifications?.map(
+                            (c) =>
+                              c.id === catalog.id && c.type === catalog.type
+                                ? { ...c, shuffle }
+                                : c
+                          ),
+                        }));
+                      }}
+                    />
+
+                    <Switch
+                      label="RPDB"
+                      help="Replace movie/show posters with RPDB posters when supported"
+                      side="right"
+                      value={catalog.rpdb ?? false}
+                      onValueChange={(rpdb) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          catalogModifications: prev.catalogModifications?.map(
+                            (c) =>
+                              c.id === catalog.id && c.type === catalog.type
+                                ? { ...c, rpdb }
+                                : c
+                          ),
+                        }));
+                      }}
+                    />
+
+                    {catalog.hideable && (
+                      <Switch
+                        label="Discover Only"
+                        help="Hide this catalog from the home page and only show it on the Discover page"
+                        moreHelp="This can potentially break the catalog!"
+                        side="right"
+                        value={catalog.onlyOnDiscover ?? false}
+                        onValueChange={(onlyOnDiscover) => {
+                          setUserData((prev) => ({
+                            ...prev,
+                            catalogModifications:
+                              prev.catalogModifications?.map((c) =>
+                                c.id === catalog.id && c.type === catalog.type
+                                  ? { ...c, onlyOnDiscover }
+                                  : c
+                              ),
+                          }));
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </div>
-    </div>
+
+      {/* Name edit modal */}
+      <Modal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title="Edit Catalog Name"
+      >
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleNameEdit();
+          }}
+        >
+          <TextInput
+            label="Name"
+            placeholder="Enter catalog name"
+            value={newName}
+            onValueChange={setNewName}
+          />
+          <Button className="w-full" type="submit">
+            Save Changes
+          </Button>
+        </form>
+      </Modal>
+    </li>
   );
 }

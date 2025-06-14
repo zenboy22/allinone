@@ -99,7 +99,8 @@ export class CustomPreset extends Preset {
       library: options.libraryAddon ?? false,
       resources: options.resources || undefined,
       timeout: options.timeout || this.METADATA.TIMEOUT,
-      fromPresetId: this.METADATA.ID,
+      presetType: this.METADATA.ID,
+      presetInstanceId: '',
       streamPassthrough: options.streamPassthrough ?? false,
       headers: {
         'User-Agent': this.METADATA.USER_AGENT,

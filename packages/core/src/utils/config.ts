@@ -367,22 +367,18 @@ function ensureDecrypted(config: UserData): UserData {
     if (!service.credentials) continue;
     for (const [credential, value] of Object.entries(service.credentials)) {
       service.credentials[credential] = tryDecrypt(
-        decodeURIComponent(value),
+        value,
         `credential ${credential}`
       );
     }
   }
-
   // Decrypt proxy config
   if (decryptedConfig.proxy) {
     decryptedConfig.proxy.credentials = decryptedConfig.proxy.credentials
-      ? tryDecrypt(
-          decodeURIComponent(decryptedConfig.proxy.credentials),
-          'proxy credentials'
-        )
+      ? tryDecrypt(decryptedConfig.proxy.credentials, 'proxy credentials')
       : undefined;
     decryptedConfig.proxy.url = decryptedConfig.proxy.url
-      ? tryDecrypt(decodeURIComponent(decryptedConfig.proxy.url), 'proxy URL')
+      ? tryDecrypt(decryptedConfig.proxy.url, 'proxy URL')
       : undefined;
   }
 
@@ -422,7 +418,7 @@ function validateService(
 }
 
 function validatePreset(preset: PresetObject) {
-  const presetMeta = PresetManager.fromId(preset.id).METADATA;
+  const presetMeta = PresetManager.fromId(preset.type).METADATA;
 
   const optionMetas = presetMeta.OPTIONS;
 
@@ -521,9 +517,9 @@ function validateOption(
     }
 
     if (option.forced) {
-      value = encryptString(option.forced).data;
+      // option.forced is already encrypted
+      value = option.forced;
     }
-    value = decodeURIComponent(value);
     if (isEncrypted(value) && decryptValues) {
       const { success, data, error } = decryptString(value);
       if (!success) {

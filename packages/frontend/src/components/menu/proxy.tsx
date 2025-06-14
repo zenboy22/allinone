@@ -64,8 +64,8 @@ function Content() {
 
   const addonOptions = userData.presets.map((preset) => {
     return {
-      label: preset.options.name,
-      value: JSON.stringify(preset),
+      label: preset.options.name || preset.type,
+      value: preset.instanceId,
       textValue: preset.options.name,
     };
   });

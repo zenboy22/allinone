@@ -1,4 +1,4 @@
-import { PresetMetadata } from '../db';
+import { PresetMetadata, PresetMinimalMetadata } from '../db';
 import { CometPreset } from './comet';
 import { CustomPreset } from './custom';
 import { MediaFusionPreset } from './mediafusion';
@@ -64,8 +64,20 @@ const PRESET_LIST: string[] = [
 ];
 
 export class PresetManager {
-  static getPresetList(): PresetMetadata[] {
-    return PRESET_LIST.map((presetId) => this.fromId(presetId).METADATA);
+  static getPresetList(): PresetMinimalMetadata[] {
+    return PRESET_LIST.map((presetId) => this.fromId(presetId).METADATA).map(
+      (metadata) => ({
+        ID: metadata.ID,
+        NAME: metadata.NAME,
+        LOGO: metadata.LOGO,
+        DESCRIPTION: metadata.DESCRIPTION,
+        URL: metadata.URL,
+        SUPPORTED_RESOURCES: metadata.SUPPORTED_RESOURCES,
+        SUPPORTED_STREAM_TYPES: metadata.SUPPORTED_STREAM_TYPES,
+        SUPPORTED_SERVICES: metadata.SUPPORTED_SERVICES,
+        OPTIONS: metadata.OPTIONS,
+      })
+    );
   }
 
   static fromId(id: string) {

@@ -45,8 +45,7 @@ class DebridioWatchtowerStreamParser extends StreamParser {
         ])
       );
     }
-
-    parsedStream.filename = undefined;
+    parsedStream.filename = stream.behaviorHints?.filename;
     parsedStream.folderName = undefined;
 
     parsedStream.message = stream.description?.replace(/\d+p?/g, '');
@@ -149,7 +148,8 @@ export class DebridioWatchtowerPreset extends Preset {
       library: false,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
       timeout: options.timeout || this.METADATA.TIMEOUT,
-      fromPresetId: this.METADATA.ID,
+      presetType: this.METADATA.ID,
+      presetInstanceId: '',
       headers: {
         'User-Agent': this.METADATA.USER_AGENT,
       },

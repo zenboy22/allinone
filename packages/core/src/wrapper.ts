@@ -160,8 +160,8 @@ export class Wrapper {
       { type, id },
       validator
     );
-    const Parser = this.addon.fromPresetId
-      ? PresetManager.fromId(this.addon.fromPresetId).getParser()
+    const Parser = this.addon.presetType
+      ? PresetManager.fromId(this.addon.presetType).getParser()
       : StreamParser;
     const parser = new Parser(this.addon);
     return streams.map((stream: Stream) => parser.parse(stream));
