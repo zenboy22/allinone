@@ -500,16 +500,16 @@ const MetaLinkSchema = z.object({
 
 const MetaVideoSchema = z.object({
   id: z.string().min(1),
-  title: z.string().optional(),
-  name: z.string().optional(),
+  title: z.string().or(z.null()).optional(),
+  name: z.string().or(z.null()).optional(),
   released: z.string().datetime().optional(),
   thumbnail: z.string().url().or(z.null()).optional(),
   streams: z.array(StreamSchema).optional(),
-  available: z.boolean().optional(),
-  episode: z.number().optional(),
-  season: z.number().optional(),
+  available: z.boolean().or(z.null()).optional(),
+  episode: z.number().or(z.null()).optional(),
+  season: z.number().or(z.null()).optional(),
   trailers: z.array(TrailerSchema).optional(),
-  overview: z.string().optional(),
+  overview: z.string().or(z.null()).optional(),
 });
 
 export const MetaPreviewSchema = z.object({
