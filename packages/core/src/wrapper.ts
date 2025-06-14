@@ -34,6 +34,7 @@ import {
   makeUrlLogSafe,
   formatZodError,
   PossibleRecursiveRequestError,
+  Env,
 } from './utils';
 import { PresetManager } from './presets';
 import { StreamParser } from './parser';
@@ -45,7 +46,6 @@ const manifestCache = Cache.getInstance<string, Manifest>('manifest');
 const resourceCache = Cache.getInstance<string, any>('resources');
 
 const RESOURCE_TTL = 5 * 60;
-const MANIFEST_TTL = 10 * 60;
 
 type ResourceParams = {
   type: string;
@@ -146,7 +146,7 @@ export class Wrapper {
         }
       },
       this.manifestUrl,
-      MANIFEST_TTL
+      Env.MANIFEST_CACHE_TTL
     );
   }
 
@@ -158,7 +158,9 @@ export class Wrapper {
     const streams = await this.makeResourceRequest(
       'stream',
       { type, id },
-      validator
+      validator,
+      Env.STREAM_CACHE_TTL != -1,
+      Env.STREAM_CACHE_TTL
     );
     const Parser = this.addon.presetType
       ? PresetManager.fromId(this.addon.presetType).getParser()
@@ -180,7 +182,8 @@ export class Wrapper {
       'catalog',
       { type, id, extras },
       validator,
-      true
+      Env.CATALOG_CACHE_TTL != -1,
+      Env.CATALOG_CACHE_TTL
     );
   }
 
@@ -199,7 +202,8 @@ export class Wrapper {
       'meta',
       { type, id },
       validator,
-      true
+      Env.META_CACHE_TTL != -1,
+      Env.META_CACHE_TTL
     );
     return meta;
   }
@@ -217,7 +221,8 @@ export class Wrapper {
       'subtitles',
       { type, id, extras },
       validator,
-      true
+      Env.SUBTITLE_CACHE_TTL != -1,
+      Env.SUBTITLE_CACHE_TTL
     );
   }
 
@@ -233,7 +238,9 @@ export class Wrapper {
     return await this.makeResourceRequest(
       'addon_catalog',
       { type, id },
-      validator
+      validator,
+      Env.ADDON_CATALOG_CACHE_TTL != -1,
+      Env.ADDON_CATALOG_CACHE_TTL
     );
   }
 
@@ -250,7 +257,8 @@ export class Wrapper {
     resource: Resource,
     params: ResourceParams,
     validator: (data: unknown) => T,
-    cache: boolean = false
+    cache: boolean = false,
+    cacheTtl: number = RESOURCE_TTL
   ) {
     const { type, id, extras } = params;
     const url = this.buildResourceUrl(resource, type, id, extras);
@@ -285,7 +293,7 @@ export class Wrapper {
       const validated = validator(data);
 
       if (cache) {
-        resourceCache.set(url, validated, RESOURCE_TTL);
+        resourceCache.set(url, validated, cacheTtl);
       }
       return validated;
     } catch (error: any) {

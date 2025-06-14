@@ -28,7 +28,7 @@ export class Cache<K, V> {
    */
   public static getInstance<K, V>(
     name: string,
-    maxSize: number = Env.MAX_CACHE_SIZE
+    maxSize: number = Env.DEFAULT_MAX_CACHE_SIZE
   ): Cache<K, V> {
     if (!this.instances.has(name)) {
       logger.debug(`Creating new cache instance: ${name}`);

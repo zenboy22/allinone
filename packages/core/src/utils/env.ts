@@ -308,17 +308,36 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default user agent for the addon',
   }),
 
-  CACHE_MEDIAFLOW_IP_TTL: num({
-    default: 900,
-    desc: 'Cache TTL for MediaFlow IPs',
-  }),
-  CACHE_STREMTHRU_IP_TTL: num({
-    default: 900,
-    desc: 'Cache TTL for StremThru IPs',
-  }),
-  MAX_CACHE_SIZE: num({
+  DEFAULT_MAX_CACHE_SIZE: num({
     default: 100000,
-    desc: 'Max cache size for the addon',
+    desc: 'Default max cache size for a cache instance',
+  }),
+  PROXY_IP_CACHE_TTL: num({
+    default: 900,
+    desc: 'Cache TTL for proxy IPs',
+  }),
+  MANIFEST_CACHE_TTL: num({
+    default: 300,
+    desc: 'Cache TTL for manifest files',
+  }),
+  SUBTITLE_CACHE_TTL: num({
+    default: 300,
+    desc: 'Cache TTL for subtitle files',
+  }),
+  STREAM_CACHE_TTL: num({
+    default: -1,
+    desc: 'Cache TTL for stream files. If -1, no caching will be done.',
+  }),
+  CATALOG_CACHE_TTL: num({
+    default: 300,
+    desc: 'Cache TTL for catalog files',
+  }),
+  META_CACHE_TTL: num({
+    default: 300,
+  }),
+  ADDON_CATALOG_CACHE_TTL: num({
+    default: 300,
+    desc: 'Cache TTL for addon catalog files',
   }),
 
   // configuration settings

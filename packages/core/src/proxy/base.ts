@@ -98,7 +98,7 @@ export abstract class BaseProxy {
     const publicIp = this.getPublicIpFromResponse(data);
 
     if (publicIp && cache) {
-      cache.set(cacheKey, publicIp, 900); // 15 minute cache
+      cache.set(cacheKey, publicIp, Env.PROXY_IP_CACHE_TTL);
     } else {
       logger.error(
         `Proxy did not respond with a public IP. Response: ${JSON.stringify(data)}`
