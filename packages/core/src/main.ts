@@ -2340,9 +2340,6 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       regexPattern: { pattern: RegExp; negate: boolean },
       attribute?: string
     ) => {
-      if (regexPattern.negate) {
-        return attribute ? !isMatch(regexPattern.pattern, attribute) : true;
-      }
       return attribute ? isMatch(regexPattern.pattern, attribute) : false;
     };
     if (preferredRegexPatterns) {
@@ -2376,6 +2373,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             folderNameMatch ||
             releaseGroupMatch ||
             indexerMatch;
+          match = regexPattern.negate ? !match : match;
           if (match) {
             stream.regexMatched = {
               name: regexPattern.name,
