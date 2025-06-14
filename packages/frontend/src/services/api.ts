@@ -25,7 +25,7 @@ export class UserConfigAPI {
   ): Promise<ApiResponse<LoadUserResponse>> {
     try {
       const response = await fetch(
-        `${this.BASE_URL}/user?uuid=${uuid}&password=${password}`,
+        `${this.BASE_URL}/user?uuid=${uuid}&password=${encodeURIComponent(password)}`,
         {
           method: 'GET',
           headers: {
