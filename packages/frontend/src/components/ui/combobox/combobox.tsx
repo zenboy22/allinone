@@ -132,6 +132,10 @@ export type ComboboxProps = Omit<
      * Ref to the input element
      */
     inputRef?: React.Ref<HTMLInputElement>;
+    /**
+     * Close the popover when an item is selected
+     */
+    keepOpenOnSelect?: boolean;
   };
 
 export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
@@ -168,6 +172,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
         multiple = false,
         defaultValue,
         inputRef,
+        keepOpenOnSelect = true,
         ...rest
       },
       {
@@ -311,7 +316,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                       onClick={(e) => {
                         e.preventDefault();
                         handleUpdateValue([]);
-                        setOpen(false);
+                        setOpen(keepOpenOnSelect);
                       }}
                     >
                       <svg
@@ -378,7 +383,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                             );
                           }
                         }
-                        setOpen(false);
+                        setOpen(keepOpenOnSelect);
                       }}
                       leftIcon={
                         <svg
