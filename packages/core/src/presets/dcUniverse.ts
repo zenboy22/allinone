@@ -82,7 +82,7 @@ export class DcUniversePreset extends Preset {
         type: 'socials',
         socials: [
           { id: 'github', url: 'https://github.com/tapframe/addon-dc' },
-          { id: 'buymeacoffee', url: 'https://buymeacoffee.com/tapframe' },
+          { id: 'ko-fi', url: 'https://ko-fi.com/tapframe' },
         ],
       },
     ];
