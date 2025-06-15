@@ -618,7 +618,7 @@ const ParsedFileSchema = z.object({
   audioTags: z.array(z.string()),
   languages: z.array(z.string()),
   title: z.string().optional(),
-  year: z.string().optional(),
+  year: z.coerce.string().optional(),
   season: z.number().optional(),
   seasons: z.array(z.number()).optional(),
   episode: z.number().optional(),
