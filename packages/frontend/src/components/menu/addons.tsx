@@ -728,7 +728,7 @@ function AddonModal({
       // so that the user doesn't see the values being reset
       setTimeout(() => {
         setValues(initialValues);
-      }, 350);
+      }, 150);
     }
   }, [open, initialValues]);
   const dynamicOptions: Option[] = presetMetadata?.OPTIONS || [];
