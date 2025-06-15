@@ -830,3 +830,8 @@ const StatusResponseSchema = z.object({
 export type StatusResponse = z.infer<typeof StatusResponseSchema>;
 export type PresetMetadata = z.infer<typeof PresetMetadataSchema>;
 export type PresetMinimalMetadata = z.infer<typeof PresetMinimalMetadataSchema>;
+
+export const RPDBIsValidResponse = z.object({
+  valid: z.boolean(),
+});
+export type RPDBIsValidResponse = z.infer<typeof RPDBIsValidResponse>;

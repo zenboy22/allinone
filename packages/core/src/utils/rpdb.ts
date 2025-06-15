@@ -1,11 +1,15 @@
+import { Cache } from './cache';
 import { makeRequest } from './http';
-
+import { RPDBIsValidResponse } from '../db/schemas';
+import { Env } from './env';
 export type IdType = 'imdb' | 'tmdb' | 'tvdb';
 
 interface Id {
   type: IdType;
   value: string;
 }
+
+const apiKeyValidationCache = Cache.getInstance('rpdbApiKey');
 
 export class RPDB {
   private readonly apiKey: string;
@@ -18,6 +22,11 @@ export class RPDB {
   }
 
   public async validateApiKey() {
+    const cached = apiKeyValidationCache.get(this.apiKey);
+    if (cached) {
+      return cached;
+    }
+
     const response = await makeRequest(
       `https://api.ratingposterdb.com/${this.apiKey}/isValid`,
       5000,
@@ -30,6 +39,17 @@ export class RPDB {
         `Invalid RPDB API key: ${response.status} - ${response.statusText}`
       );
     }
+
+    const data = RPDBIsValidResponse.parse(await response.json());
+    if (!data.valid) {
+      throw new Error('Invalid RPDB API key');
+    }
+
+    apiKeyValidationCache.set(
+      this.apiKey,
+      data.valid,
+      Env.RPDB_API_KEY_VALIDITY_CACHE_TTL
+    );
   }
   /**
    *

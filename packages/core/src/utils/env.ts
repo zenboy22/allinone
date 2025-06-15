@@ -340,7 +340,10 @@ export const Env = cleanEnv(process.env, {
     default: 300,
     desc: 'Cache TTL for addon catalog files',
   }),
-
+  RPDB_API_KEY_VALIDITY_CACHE_TTL: num({
+    default: 604800, // 7 days
+    desc: 'Cache TTL for RPDB API key validity',
+  }),
   // configuration settings
 
   MAX_ADDONS: num({
