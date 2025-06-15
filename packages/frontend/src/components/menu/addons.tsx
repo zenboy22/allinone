@@ -1362,7 +1362,9 @@ function SortableCatalogItem({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [newName, setNewName] = useState(catalog.name || '');
-  const [newType, setNewType] = useState(catalog.type || '');
+  const [newType, setNewType] = useState(
+    catalog.overrideType || catalog.type || ''
+  );
   const dynamicIconSize = `text-xl h-8 w-8 lg:text-2xl lg:h-10 lg:w-10`;
 
   const handleNameAndTypeEdit = () => {
