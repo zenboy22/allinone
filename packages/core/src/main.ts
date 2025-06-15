@@ -267,7 +267,8 @@ export class AIOStreams {
     let modification;
     if (this.userData.catalogModifications) {
       modification = this.userData.catalogModifications.find(
-        (mod) => mod.id === id && mod.type === type
+        (mod) =>
+          mod.id === id && (mod.type === type || mod.overrideType === type)
       );
     }
     if (modification?.overrideType) {
