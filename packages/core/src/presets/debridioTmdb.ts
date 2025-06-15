@@ -38,6 +38,13 @@ export class DebridioTmdbPreset extends Preset {
         })),
         required: false,
       },
+      {
+        id: 'alert',
+        name: '',
+        description:
+          'The language selector above will not work for some languages due to the option values not being consistent. In which case, you can override the URL with a preconfigured Manifest URL.',
+        type: 'alert',
+      },
       debridioSocialOption,
     ];
 
