@@ -653,20 +653,26 @@ export class AIOStreams {
         const existing = this.finalResources.find(
           (r) => r.name === resource.name
         );
+        // NOTE: we cannot push idPrefixes in the scenario that the user adds multiple addons that provide meta for example,
+        // and one of them has defined idPrefixes, while the other hasn't
+        // in this case, stremio assumes we only support that resource for the specified id prefix and then
+        // will not send a request to AIOStreams for other id prefixes even though our other addon that didn't specify
+        // an id prefix technically says it supports all ids
         if (existing) {
           existing.types = [...new Set([...existing.types, ...resource.types])];
-          if (resource.idPrefixes) {
-            existing.idPrefixes = existing.idPrefixes || [];
-            existing.idPrefixes = [
-              ...new Set([...existing.idPrefixes, ...resource.idPrefixes]),
-            ];
-          }
+          // if (resource.idPrefixes) {
+          //   existing.idPrefixes = existing.idPrefixes || [];
+          //   existing.idPrefixes = [
+          //     ...new Set([...existing.idPrefixes, ...resource.idPrefixes]),
+          //   ];
+          // }
         } else {
           this.finalResources.push({
             ...resource,
-            idPrefixes: resource.idPrefixes
-              ? [...resource.idPrefixes]
-              : undefined,
+            idPrefixes: undefined,
+            // idPrefixes: resource.idPrefixes
+            //   ? [...resource.idPrefixes]
+            //   : undefined,
           });
         }
       }
