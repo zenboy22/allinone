@@ -67,6 +67,7 @@ interface CatalogModification {
   id: string;
   type: string;
   name?: string;
+  overrideType?: string;
   enabled?: boolean;
   shuffle?: boolean;
   rpdb?: boolean;
@@ -1361,15 +1362,19 @@ function SortableCatalogItem({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [newName, setNewName] = useState(catalog.name || '');
-
+  const [newType, setNewType] = useState(catalog.type || '');
   const dynamicIconSize = `text-xl h-8 w-8 lg:text-2xl lg:h-10 lg:w-10`;
 
-  const handleNameEdit = () => {
+  const handleNameAndTypeEdit = () => {
     setUserData((prev) => ({
       ...prev,
       catalogModifications: prev.catalogModifications?.map((c) =>
         c.id === catalog.id && c.type === catalog.type
-          ? { ...c, name: newName }
+          ? {
+              ...c,
+              name: newName,
+              overrideType: newType,
+            }
           : c
       ),
     }));
@@ -1402,7 +1407,10 @@ function SortableCatalogItem({
               />
             </div>
             <p className="text-xs md:text-sm text-[var(--muted-foreground)] capitalize mb-2 md:mb-0">
-              {catalog.type}
+              {catalog.overrideType !== undefined &&
+              catalog.overrideType !== catalog.type
+                ? `${catalog.overrideType} (${catalog.type})`
+                : catalog.type}
             </p>
 
             {/* Mobile Controls Row - only visible on small screens */}
@@ -1644,7 +1652,7 @@ function SortableCatalogItem({
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            handleNameEdit();
+            handleNameAndTypeEdit();
           }}
         >
           <TextInput
@@ -1653,6 +1661,16 @@ function SortableCatalogItem({
             value={newName}
             onValueChange={setNewName}
           />
+
+          <TextInput
+            label="Type"
+            placeholder="Enter catalog type"
+            value={newType}
+            onValueChange={setNewType}
+            required
+            help="Override the type of the catalog. This can break the catalog and its behaviour."
+          />
+
           <Button className="w-full" type="submit">
             Save Changes
           </Button>

@@ -264,6 +264,16 @@ export class AIOStreams {
     // step 2
     // get the actual catalog id from the id
     const actualCatalogId = id.split('.').slice(1).join('.');
+    let modification;
+    if (this.userData.catalogModifications) {
+      modification = this.userData.catalogModifications.find(
+        (mod) => mod.id === id && mod.type === type
+      );
+    }
+    if (modification?.overrideType) {
+      // reset the type from the request (which is the overriden type) to the actual type
+      type = modification.type;
+    }
     // step 3
     // get the catalog from the addon
     let catalog;
@@ -292,28 +302,24 @@ export class AIOStreams {
     );
 
     // apply catalog modifications
-    if (this.userData.catalogModifications) {
-      const modification = this.userData.catalogModifications.find(
-        (mod) => mod.id === id && mod.type === type
-      );
-      if (modification) {
-        if (modification.shuffle && !(extras && extras.includes('search'))) {
-          // shuffle the catalog array  if it is not a search
-          catalog = catalog.sort(() => Math.random() - 0.5);
-        }
-        if (modification.rpdb && this.userData.rpdbApiKey) {
-          const rpdb = new RPDB(this.userData.rpdbApiKey);
-          catalog = catalog.map((item) => {
-            const posterUrl = rpdb.getPosterUrl(
-              type,
-              (item as any).imdb_id || item.id
-            );
-            if (posterUrl) {
-              item.poster = posterUrl;
-            }
-            return item;
-          });
-        }
+
+    if (modification) {
+      if (modification.shuffle && !(extras && extras.includes('search'))) {
+        // shuffle the catalog array  if it is not a search
+        catalog = catalog.sort(() => Math.random() - 0.5);
+      }
+      if (modification.rpdb && this.userData.rpdbApiKey) {
+        const rpdb = new RPDB(this.userData.rpdbApiKey);
+        catalog = catalog.map((item) => {
+          const posterUrl = rpdb.getPosterUrl(
+            type,
+            (item as any).imdb_id || item.id
+          );
+          if (posterUrl) {
+            item.poster = posterUrl;
+          }
+          return item;
+        });
       }
     }
 
@@ -804,6 +810,9 @@ export class AIOStreams {
             if (genreExtra) {
               genreExtra.isRequired = true;
             }
+          }
+          if (modification?.overrideType !== undefined) {
+            catalog.type = modification.overrideType;
           }
           return catalog;
         });
