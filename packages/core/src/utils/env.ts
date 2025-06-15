@@ -296,11 +296,11 @@ export const Env = cleanEnv(process.env, {
   }),
 
   RECURSION_THRESHOLD_LIMIT: num({
-    default: 30,
+    default: 60,
     desc: 'Maximum number of requests to the same URL',
   }),
   RECURSION_THRESHOLD_WINDOW: num({
-    default: 5,
+    default: 10,
     desc: 'Time window for recursion threshold in seconds',
   }),
 
