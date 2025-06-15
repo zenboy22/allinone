@@ -75,6 +75,16 @@ export class DcUniversePreset extends Preset {
         options: this.catalogs,
         default: this.catalogs.map((catalog) => catalog.value),
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          { id: 'github', url: 'https://github.com/tapframe/addon-dc' },
+          { id: 'buymeacoffee', url: 'https://buymeacoffee.com/tapframe' },
+        ],
+      },
     ];
 
     return {

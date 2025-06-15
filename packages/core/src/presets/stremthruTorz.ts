@@ -61,6 +61,20 @@ export class StremthruTorzPreset extends Preset {
         type: 'boolean',
         default: false,
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          {
+            id: 'github',
+            url: 'https://github.com/MunifTanjim/stremthru',
+          },
+          { id: 'buymeacoffee', url: 'https://buymeacoffee.com/muniftanjim' },
+          { id: 'patreon', url: 'https://patreon.com/MunifTanjim' },
+        ],
+      },
     ];
 
     return {

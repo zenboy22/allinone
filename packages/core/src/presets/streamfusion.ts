@@ -95,6 +95,19 @@ export class StreamFusionPreset extends Preset {
         default: undefined,
         emptyIsUndefined: true,
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          {
+            id: 'github',
+            url: 'https://github.com/Telkaoss/stream-fusion',
+          },
+          { id: 'discord', url: 'https://discord.gg/ZhWvKVmTuh' },
+        ],
+      },
     ];
 
     return {

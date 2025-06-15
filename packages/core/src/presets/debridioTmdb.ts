@@ -1,6 +1,7 @@
 import { Addon, Option, UserData } from '../db';
 import { Preset, baseOptions } from './preset';
 import { constants, Env, FULL_LANGUAGE_MAPPING } from '../utils';
+import { debridioSocialOption } from './debridio';
 
 export class DebridioTmdbPreset extends Preset {
   static override get METADATA() {
@@ -37,6 +38,7 @@ export class DebridioTmdbPreset extends Preset {
         })),
         required: false,
       },
+      debridioSocialOption,
     ];
 
     return {

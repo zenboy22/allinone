@@ -89,6 +89,13 @@ export class TorboxAddonPreset extends Preset {
 
     const options: Option[] = [
       ...baseOptions('TorBox', supportedResources, Env.DEFAULT_TORBOX_TIMEOUT),
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [{ id: 'website', url: 'https://torbox.app' }],
+      },
     ];
 
     return {

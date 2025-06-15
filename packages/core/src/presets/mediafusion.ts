@@ -222,6 +222,15 @@ export class MediaFusionPreset extends Preset {
         default: undefined,
         emptyIsUndefined: true,
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          { id: 'github', url: 'https://github.com/mhdzumair/MediaFusion' },
+        ],
+      },
     ];
 
     return {

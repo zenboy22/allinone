@@ -1,6 +1,7 @@
 import { Addon, Option, UserData } from '../db';
 import { Preset, baseOptions } from './preset';
 import { constants, Env } from '../utils';
+import { debridioSocialOption } from './debridio';
 
 export class DebridioTvdbPreset extends Preset {
   static override get METADATA() {
@@ -23,6 +24,7 @@ export class DebridioTvdbPreset extends Preset {
         type: 'password',
         required: true,
       },
+      debridioSocialOption,
     ];
 
     return {

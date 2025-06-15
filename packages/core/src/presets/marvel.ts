@@ -51,6 +51,16 @@ export class MarvelPreset extends Preset {
         options: this.catalogs,
         default: this.catalogs.map((catalog) => catalog.value),
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          { id: 'github', url: 'https://github.com/joaogonp/addon-marvel' },
+          { id: 'buymeacoffee', url: 'https://buymeacoffee.com/joaogonp' },
+        ],
+      },
     ];
 
     return {

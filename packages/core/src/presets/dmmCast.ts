@@ -95,6 +95,13 @@ export class DMMCastPreset extends Preset {
           value: resource,
         })),
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [{ id: 'website', url: 'https://debridmediamanager.com' }],
+      },
     ];
 
     return {

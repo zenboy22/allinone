@@ -4,6 +4,14 @@ import { Env, SERVICE_DETAILS } from '../utils';
 import { constants, ServiceId } from '../utils';
 import { StreamParser } from '../parser';
 
+export const debridioSocialOption: Option = {
+  id: 'socials',
+  name: '',
+  description: '',
+  type: 'socials',
+  socials: [{ id: 'website', url: 'https://debridio.com' }],
+};
+
 export class DebridioPreset extends Preset {
   static override get METADATA() {
     const supportedServices: ServiceId[] = [constants.EASYDEBRID_SERVICE];
@@ -15,6 +23,7 @@ export class DebridioPreset extends Preset {
         supportedResources,
         Env.DEFAULT_DEBRIDIO_TIMEOUT
       ),
+      debridioSocialOption,
       // {
       //   id: 'services',
       //   name: 'Services',

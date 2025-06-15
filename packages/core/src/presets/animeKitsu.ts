@@ -15,6 +15,18 @@ export class AnimeKitsuPreset extends Preset {
         supportedResources,
         Env.DEFAULT_ANIME_KITSU_TIMEOUT
       ),
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          {
+            id: 'github',
+            url: 'https://github.com/TheBeastLT/stremio-kitsu-anime',
+          },
+        ],
+      },
     ];
 
     return {

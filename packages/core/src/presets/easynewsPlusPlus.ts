@@ -58,6 +58,22 @@ export class EasynewsPlusPlusPreset extends EasynewsPreset {
           required: true,
           default: false,
         },
+        {
+          id: 'socials',
+          name: '',
+          description: '',
+          type: 'socials',
+          socials: [
+            {
+              id: 'github',
+              url: 'https://github.com/panteLx/easynews-plus-plus',
+            },
+            {
+              id: 'buymeacoffee',
+              url: 'https://buymeacoffee.com/pantel',
+            },
+          ],
+        },
       ],
     };
   }

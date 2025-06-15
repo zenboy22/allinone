@@ -51,6 +51,16 @@ export class TmdbCollectionsPreset extends Preset {
           })),
         required: false,
       },
+      // https://github.com/youchi1/tmdb-collections/
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          { id: 'github', url: 'https://github.com/youchi1/tmdb-collections' },
+        ],
+      },
     ];
 
     return {

@@ -115,6 +115,19 @@ export class StreamingCatalogsPreset extends Preset {
         options: this.catalogs,
         default: ['nfx', 'hbm', 'dnp', 'amp', 'atp'],
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          {
+            id: 'github',
+            url: 'https://github.com/rleroi/Stremio-Streaming-Catalogs-Addon',
+          },
+          { id: 'ko-fi', url: 'https://ko-fi.com/rab1t' },
+        ],
+      },
     ];
 
     return {

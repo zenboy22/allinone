@@ -78,6 +78,16 @@ export class StarWarsUniversePreset extends Preset {
         options: this.catalogs,
         default: this.catalogs.map((catalog) => catalog.value),
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          { id: 'github', url: 'https://github.com/tapframe/addon-star-wars' },
+          { id: 'ko-fi', url: 'https://ko-fi.com/tapframe' },
+        ],
+      },
     ];
 
     return {

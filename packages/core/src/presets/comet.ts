@@ -82,6 +82,22 @@ export class CometPreset extends Preset {
         default: undefined,
         emptyIsUndefined: true,
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          {
+            id: 'github',
+            url: 'https://github.com/g0ldyy/comet',
+          },
+          {
+            id: 'ko-fi',
+            url: 'https://ko-fi.com/g0ldyy',
+          },
+        ],
+      },
     ];
 
     return {

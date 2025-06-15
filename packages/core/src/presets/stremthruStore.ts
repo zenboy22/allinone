@@ -49,6 +49,20 @@ export class StremthruStorePreset extends Preset {
         description: 'Enable web DL',
         type: 'boolean',
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          {
+            id: 'github',
+            url: 'https://github.com/MunifTanjim/stremthru',
+          },
+          { id: 'buymeacoffee', url: 'https://buymeacoffee.com/muniftanjim' },
+          { id: 'patreon', url: 'https://patreon.com/MunifTanjim' },
+        ],
+      },
     ];
 
     return {

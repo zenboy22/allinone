@@ -30,6 +30,26 @@ export class EasynewsPlusPreset extends EasynewsPreset {
           ],
           Env.DEFAULT_EASYNEWS_PLUS_TIMEOUT || Env.DEFAULT_TIMEOUT
         ),
+        {
+          id: 'socials',
+          name: '',
+          description: '',
+          type: 'socials',
+          socials: [
+            {
+              id: 'github',
+              url: 'https://github.com/sleeyax/stremio-easynews-addon',
+            },
+            {
+              id: 'patreon',
+              url: 'https://patreon.com/sleeyax',
+            },
+            {
+              id: 'buymeacoffee',
+              url: 'https://buymeacoffee.com/sleeyax',
+            },
+          ],
+        },
       ],
     };
   }

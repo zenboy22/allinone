@@ -1,6 +1,7 @@
 import { Addon, Option, UserData } from '../db';
 import { Preset, baseOptions } from './preset';
 import { constants, Env } from '../utils';
+import { debridioSocialOption } from './debridio';
 
 export class DebridioTvPreset extends Preset {
   static override get METADATA() {
@@ -55,6 +56,7 @@ export class DebridioTvPreset extends Preset {
         options: channels,
         default: channels.map((channel) => channel.value),
       },
+      debridioSocialOption,
     ];
 
     return {

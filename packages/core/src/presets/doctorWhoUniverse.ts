@@ -32,6 +32,15 @@ export class DoctorWhoUniversePreset extends Preset {
         supportedResources,
         Env.DEFAULT_DOCTOR_WHO_UNIVERSE_TIMEOUT
       ),
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          { id: 'github', url: 'https://github.com/nubblyn/whoniverse' },
+        ],
+      },
     ];
 
     return {

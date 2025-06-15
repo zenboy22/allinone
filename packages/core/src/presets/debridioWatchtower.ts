@@ -2,6 +2,7 @@ import { Addon, Option, ParsedStream, Stream, UserData } from '../db';
 import { Preset, baseOptions } from './preset';
 import { constants, Env } from '../utils';
 import { FileParser, StreamParser } from '../parser';
+import { debridioSocialOption } from './debridio';
 
 class DebridioWatchtowerStreamParser extends StreamParser {
   parse(stream: Stream): ParsedStream {
@@ -86,6 +87,7 @@ export class DebridioWatchtowerPreset extends Preset {
         type: 'password',
         required: true,
       },
+      debridioSocialOption,
     ];
 
     return {

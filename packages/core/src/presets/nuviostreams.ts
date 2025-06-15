@@ -139,6 +139,16 @@ export class NuvioStreamsPreset extends Preset {
         required: false,
         default: true,
       },
+      {
+        id: 'socials',
+        name: '',
+        description: '',
+        type: 'socials',
+        socials: [
+          { id: 'github', url: 'https://github.com/tapframe/NuvioStreaming' },
+          { id: 'ko-fi', url: 'https://ko-fi.com/tapframe' },
+        ],
+      },
     ];
 
     return {
