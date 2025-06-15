@@ -255,7 +255,18 @@ export async function validateConfig(
   // now, validate preset options and service credentials.
 
   if (config.presets) {
+    // ensure uniqenesss of instanceIds
+    const instanceIds = new Set<string>();
     for (const preset of config.presets) {
+      if (preset.instanceId && instanceIds.has(preset.instanceId)) {
+        throw new Error(`Preset instanceId ${preset.instanceId} is not unique`);
+      }
+      if (preset.instanceId.includes('.')) {
+        throw new Error(
+          `Preset instanceId ${preset.instanceId} cannot contain a dot`
+        );
+      }
+      instanceIds.add(preset.instanceId);
       validatePreset(preset);
     }
   }
