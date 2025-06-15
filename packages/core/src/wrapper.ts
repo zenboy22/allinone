@@ -265,13 +265,13 @@ export class Wrapper {
     if (cache) {
       const cached = resourceCache.get(url);
       if (cached) {
-        logger.debug(
+        logger.info(
           `Returning cached ${resource} for ${this.addon.name} (${makeUrlLogSafe(url)})`
         );
         return cached;
       }
     }
-    logger.debug(
+    logger.info(
       `Fetching ${resource} of type ${type} with id ${id} and extras ${extras} (${makeUrlLogSafe(url)})`
     );
     try {
