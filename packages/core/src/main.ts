@@ -1168,7 +1168,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     const isRegexAllowed = FeatureControl.isRegexAllowed(this.userData);
 
     let titles: string[] = [];
-    if (this.userData.titleMatching && TYPES.includes(type as any)) {
+    if (this.userData.titleMatching?.enabled && TYPES.includes(type as any)) {
       try {
         titles = await new TMDBMetadata(
           this.userData.tmdbAccessToken
