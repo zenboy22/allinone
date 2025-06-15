@@ -162,6 +162,12 @@ function Content() {
       const dataStr = JSON.stringify(
         {
           ...userData,
+          tmdbAccessToken: filterCredentialsInExport
+            ? undefined
+            : userData.tmdbAccessToken,
+          rpdbApiKey: filterCredentialsInExport
+            ? undefined
+            : userData.rpdbApiKey,
           addonPassword: filterCredentialsInExport
             ? undefined
             : userData.addonPassword,
@@ -169,6 +175,24 @@ function Content() {
             ...service,
             credentials: filterCredentialsInExport ? {} : service.credentials,
           })),
+          presets: userData?.presets?.map((preset) => {
+            const presetMeta = status?.settings.presets.find(
+              (p) => p.ID === preset.type
+            );
+            return {
+              ...preset,
+              options: filterCredentialsInExport
+                ? Object.fromEntries(
+                    Object.entries(preset.options || {}).filter(([key]) => {
+                      const optionMeta = presetMeta?.OPTIONS?.find(
+                        (opt) => opt.id === key
+                      );
+                      return optionMeta?.type !== 'password';
+                    })
+                  )
+                : preset.options,
+            };
+          }),
         },
         null,
         2
