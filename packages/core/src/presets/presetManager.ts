@@ -30,6 +30,7 @@ import { DcUniversePreset } from './dcUniverse';
 import { DebridioTvPreset } from './debridioTv';
 import { TorrentCatalogsPreset } from './torrentCatalogs';
 import { StreamingCatalogsPreset } from './streamingCatalogs';
+import { AnimeCatalogsPreset } from './animeCatalogs';
 
 const PRESET_LIST: string[] = [
   'custom',
@@ -55,6 +56,7 @@ const PRESET_LIST: string[] = [
   'debridio-tmdb',
   'debridio-tvdb',
   'streaming-catalogs',
+  'anime-catalogs',
   'torrent-catalogs',
   'rpdb-catalogs',
   'tmdb-collections',
@@ -136,6 +138,8 @@ export class PresetManager {
         return NuvioStreamsPreset;
       case 'streaming-catalogs':
         return StreamingCatalogsPreset;
+      case 'anime-catalogs':
+        return AnimeCatalogsPreset;
       case 'torrent-catalogs':
         return TorrentCatalogsPreset;
       case 'rpdb-catalogs':

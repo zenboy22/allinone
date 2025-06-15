@@ -1007,6 +1007,18 @@ export const Env = cleanEnv(process.env, {
     default: undefined,
     desc: 'Default Streaming Catalogs user agent',
   }),
+  ANIME_CATALOGS_URL: url({
+    default: 'https://1fe84bc728af-stremio-anime-catalogs.baby-beamup.club',
+    desc: 'Default Anime Catalogs URL',
+  }),
+  DEFAULT_ANIME_CATALOGS_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Anime Catalogs timeout',
+  }),
+  DEFAULT_ANIME_CATALOGS_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Anime Catalogs user agent',
+  }),
 
   // Rate limiting settings
   DISABLE_RATE_LIMITS: bool({
