@@ -574,7 +574,7 @@ export const MetaSchema = MetaPreviewSchema.extend({
   background: z.string().min(1).optional(),
   logo: z.string().optional(),
   videos: z.array(MetaVideoSchema).optional(),
-  runtime: z.string().optional(),
+  runtime: z.coerce.string().optional(),
   language: z.string().min(1).optional(),
   country: z.string().optional(),
   awards: z.string().min(1).optional(),
