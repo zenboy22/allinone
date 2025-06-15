@@ -1020,6 +1020,19 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default Anime Catalogs user agent',
   }),
 
+  DOCTOR_WHO_UNIVERSE_URL: url({
+    default: 'https://new-who.onrender.com',
+    desc: 'Default Doctor Who Universe URL',
+  }),
+  DEFAULT_DOCTOR_WHO_UNIVERSE_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Doctor Who Universe timeout',
+  }),
+  DEFAULT_DOCTOR_WHO_UNIVERSE_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Doctor Who Universe user agent',
+  }),
+
   // Rate limiting settings
   DISABLE_RATE_LIMITS: bool({
     default: false,

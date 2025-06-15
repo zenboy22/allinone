@@ -31,6 +31,7 @@ import { DebridioTvPreset } from './debridioTv';
 import { TorrentCatalogsPreset } from './torrentCatalogs';
 import { StreamingCatalogsPreset } from './streamingCatalogs';
 import { AnimeCatalogsPreset } from './animeCatalogs';
+import { DoctorWhoUniversePreset } from './doctorWhoUniverse';
 
 const PRESET_LIST: string[] = [
   'custom',
@@ -64,6 +65,7 @@ const PRESET_LIST: string[] = [
   'marvel-universe',
   'star-wars-universe',
   'dc-universe',
+  'doctor-who-universe',
   'aiostreams',
 ];
 
@@ -150,6 +152,8 @@ export class PresetManager {
         return StarWarsUniversePreset;
       case 'dc-universe':
         return DcUniversePreset;
+      case 'doctor-who-universe':
+        return DoctorWhoUniversePreset;
       default:
         throw new Error(`Preset ${id} not found`);
     }
