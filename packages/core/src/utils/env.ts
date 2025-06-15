@@ -994,6 +994,19 @@ export const Env = cleanEnv(process.env, {
     default: undefined,
     desc: 'Default RPDB Catalogs user agent',
   }),
+  STREAMING_CATALOGS_URL: url({
+    default:
+      'https://7a82163c306e-stremio-netflix-catalog-addon.baby-beamup.club',
+    desc: 'Default Streaming Catalogs URL',
+  }),
+  DEFAULT_STREAMING_CATALOGS_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default Streaming Catalogs timeout',
+  }),
+  DEFAULT_STREAMING_CATALOGS_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default Streaming Catalogs user agent',
+  }),
 
   // Rate limiting settings
   DISABLE_RATE_LIMITS: bool({

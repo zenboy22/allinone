@@ -29,6 +29,7 @@ import { DebridioTvdbPreset } from './debridioTvdb';
 import { DcUniversePreset } from './dcUniverse';
 import { DebridioTvPreset } from './debridioTv';
 import { TorrentCatalogsPreset } from './torrentCatalogs';
+import { StreamingCatalogsPreset } from './streamingCatalogs';
 
 const PRESET_LIST: string[] = [
   'custom',
@@ -53,6 +54,7 @@ const PRESET_LIST: string[] = [
   'opensubtitles',
   'debridio-tmdb',
   'debridio-tvdb',
+  'streaming-catalogs',
   'torrent-catalogs',
   'rpdb-catalogs',
   'tmdb-collections',
@@ -132,6 +134,8 @@ export class PresetManager {
         return AnimeKitsuPreset;
       case 'nuvio-streams':
         return NuvioStreamsPreset;
+      case 'streaming-catalogs':
+        return StreamingCatalogsPreset;
       case 'torrent-catalogs':
         return TorrentCatalogsPreset;
       case 'rpdb-catalogs':
