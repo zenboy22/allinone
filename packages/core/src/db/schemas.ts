@@ -176,6 +176,8 @@ const OptionDefinition = z.object({
     'select',
     'multi-select',
     'url',
+    'alert',
+    'socials',
   ]),
   required: z.boolean().optional(),
   default: z.any().optional(),
@@ -186,6 +188,34 @@ const OptionDefinition = z.object({
       z.object({
         value: z.any(),
         label: z.string().min(1),
+      })
+    )
+    .optional(),
+  intent: z
+    .enum([
+      'alert',
+      'info',
+      'success',
+      'warning',
+      'info-basic',
+      'success-basic',
+      'warning-basic',
+      'alert-basic',
+    ])
+    .optional(),
+  socials: z
+    .array(
+      z.object({
+        id: z.enum([
+          'website',
+          'github',
+          'discord',
+          'ko-fi',
+          'patreon',
+          'buymeacoffee',
+          'github-sponsors',
+        ]),
+        url: z.string().url(),
       })
     )
     .optional(),

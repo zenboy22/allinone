@@ -6,6 +6,8 @@ import { Combobox } from '../ui/combobox';
 import { Option } from '@aiostreams/core';
 import React from 'react';
 import MarkdownLite from './markdown-lite';
+import { Alert } from '../ui/alert';
+import { SocialIcon } from './social-icon';
 // this component, accepts an option and returns a component that renders the option.
 // string - TextInput
 // number - NumberInput
@@ -38,12 +40,30 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
     constraints,
     forced,
     default: defaultValue,
+    intent,
+    socials,
     emptyIsUndefined = false,
   } = option;
 
   const isDisabled = disabled || !!forced;
 
   switch (type) {
+    case 'socials':
+      return (
+        <div className="flex items-center justify-center w-full gap-6 mt-2">
+          {socials?.map((social) => (
+            <SocialIcon key={social.id} id={social.id} url={social.url} />
+          ))}
+        </div>
+      );
+    case 'alert':
+      return (
+        <Alert
+          intent={intent}
+          title={name}
+          description={<MarkdownLite>{description}</MarkdownLite>}
+        />
+      );
     case 'password':
       return (
         <div>
