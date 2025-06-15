@@ -344,8 +344,15 @@ export class AIOStreams {
     id: string
   ): Promise<AIOStreamsResponse<Meta | null>> {
     logger.info(`Handling meta request`, { type, id });
-    // step 1
-    // First try to find an addon that has a matching idPrefix
+
+    // Build prioritized list of candidate addons (naturally ordered by priority)
+    const candidates: Array<{
+      instanceId: string;
+      addon: any;
+      reason: string;
+    }> = [];
+
+    // Step 1: Find addons with matching idPrefix (added first = higher priority)
     for (const [instanceId, resources] of Object.entries(
       this.supportedResources
     )) {
@@ -355,90 +362,106 @@ export class AIOStreams {
           r.types.includes(type) &&
           r.idPrefixes?.some((prefix) => id.startsWith(prefix))
       );
+
       if (resource) {
         const addon = this.getAddon(instanceId);
-        if (!addon) {
-          continue;
-        }
-        logger.info(`Found addon with matching id prefix for meta resource`, {
-          addonName: addon.name,
-          addonInstanceId: instanceId,
-        });
-        try {
-          const meta = await new Wrapper(addon).getMeta(type, id);
-          return {
-            success: true,
-            data: meta,
-            errors: [],
-          };
-        } catch (error) {
-          await this.handlePossibleRecursiveError(error);
-          logger.error(`Error getting meta from addon ${addon.name}`, {
-            error: error instanceof Error ? error.message : String(error),
+        if (addon) {
+          candidates.push({
+            instanceId,
+            addon,
+            reason: 'matching id prefix',
           });
-          return {
-            success: false,
-            data: null,
-            errors: [
-              {
-                title: `[❌] ${addon.name}`,
-                description:
-                  error instanceof Error ? error.message : String(error),
-              },
-            ],
-          };
         }
       }
     }
 
-    // step 2
-    // If no matching prefix found, use any addon that supports meta for this type
+    // Step 2: Find addons that support meta for this type (added second = lower priority)
     for (const [instanceId, resources] of Object.entries(
       this.supportedResources
     )) {
+      // Skip if already added with higher priority
+      if (candidates.some((c) => c.instanceId === instanceId)) {
+        continue;
+      }
+
       const resource = resources.find(
         (r) => r.name === 'meta' && r.types.includes(type)
       );
+
       if (resource) {
         const addon = this.getAddon(instanceId);
-        if (!addon) {
-          continue;
-        }
-        logger.info(`Using fallback addon for meta resource`, {
-          addonName: addon.name,
-          addonInstanceId: instanceId,
-        });
-        try {
-          const meta = await new Wrapper(addon).getMeta(type, id);
-          return {
-            success: true,
-            data: meta,
-            errors: [],
-          };
-        } catch (error) {
-          await this.handlePossibleRecursiveError(error);
-          logger.error(`Error getting meta from addon ${addon.name}`, {
-            error: error instanceof Error ? error.message : String(error),
+        if (addon) {
+          candidates.push({
+            instanceId,
+            addon,
+            reason: 'general type support',
           });
-          return {
-            success: false,
-            data: null,
-            errors: [
-              {
-                title: `[❌] ${addon.name}`,
-                description:
-                  error instanceof Error ? error.message : String(error),
-              },
-            ],
-          };
         }
       }
     }
 
-    logger.error(`No addon found supporting meta resource for type ${type}`);
-    throw new Error(`No addon found supporting meta resource for type ${type}`);
-  }
+    if (candidates.length === 0) {
+      logger.error(`No addon found supporting meta resource for type ${type}`);
+      throw new Error(
+        `No addon found supporting meta resource for type ${type}`
+      );
+    }
 
+    // Try each candidate in order, collecting errors
+    const errors: Array<{ title: string; description: string }> = [];
+
+    for (const candidate of candidates) {
+      logger.info(`Trying addon for meta resource`, {
+        addonName: candidate.addon.name,
+        addonInstanceId: candidate.instanceId,
+        reason: candidate.reason,
+      });
+
+      try {
+        const meta = await new Wrapper(candidate.addon).getMeta(type, id);
+        logger.info(`Successfully got meta from addon`, {
+          addonName: candidate.addon.name,
+          addonInstanceId: candidate.instanceId,
+        });
+
+        return {
+          success: true,
+          data: meta,
+          errors: [], // Clear errors on success
+        };
+      } catch (error) {
+        await this.handlePossibleRecursiveError(error);
+
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        logger.warn(`Failed to get meta from addon ${candidate.addon.name}`, {
+          error: errorMessage,
+          reason: candidate.reason,
+        });
+
+        errors.push({
+          title: `[❌] ${candidate.addon.name}`,
+          description: errorMessage,
+        });
+      }
+    }
+
+    // If we reach here, all addons failed
+    logger.error(
+      `All ${candidates.length} candidate addons failed for meta request`,
+      {
+        type,
+        id,
+        candidateCount: candidates.length,
+      }
+    );
+
+    return {
+      success: false,
+      data: null,
+      errors,
+    };
+  }
   // subtitle resource
   public async getSubtitles(
     type: string,
