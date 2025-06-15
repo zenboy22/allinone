@@ -391,8 +391,10 @@ export class AIOStreams {
         continue;
       }
 
+      // look for addons that support the type, but don't have an id prefix
       const resource = resources.find(
-        (r) => r.name === 'meta' && r.types.includes(type)
+        (r) =>
+          r.name === 'meta' && r.types.includes(type) && !r.idPrefixes?.length
       );
 
       if (resource) {
