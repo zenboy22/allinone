@@ -224,7 +224,8 @@ export const Env = cleanEnv(process.env, {
     example: 'Generate using: openssl rand -hex 32',
   }),
   ADDON_PASSWORD: str({
-    default: undefined,
+    default:
+      typeof process.env.API_KEY === 'string' ? process.env.API_KEY : undefined,
     desc: 'Password required to create and modify addon configurations',
   }),
   DATABASE_URI: str({
