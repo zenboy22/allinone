@@ -24,6 +24,7 @@ class AIOStreamsStreamParser extends StreamParser {
       throw new Error('Invalid stream');
     }
     return {
+      id: this.getRandomId(),
       addon: {
         ...this.addon,
         name: `${this.addon.name} | ${aioStream.streamData?.addon ?? ''}`,

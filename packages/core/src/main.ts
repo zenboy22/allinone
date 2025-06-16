@@ -2045,20 +2045,20 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
     if (this.userData.excludedFilterConditions) {
       const parser = new SelectConditionParser();
+      const streamsToRemove = new Set<string>(); // Track actual stream objects to be removed
 
       for (const condition of this.userData.excludedFilterConditions) {
         try {
+          // Always select from the current filteredStreams (not yet modified by this loop)
           const selectedStreams = await parser.select(
-            filteredStreams,
+            filteredStreams.filter((stream) => !streamsToRemove.has(stream.id)),
             condition
           );
 
-          // Remove these streams from filteredStreams
-          filteredStreams = filteredStreams.filter(
-            (stream) => !selectedStreams.includes(stream)
-          );
+          // Track these stream objects for removal
+          selectedStreams.forEach((stream) => streamsToRemove.add(stream.id));
 
-          // Update skip reasons for this condition
+          // Update skip reasons for this condition (only count newly selected streams)
           if (selectedStreams.length > 0) {
             skipReasons.excludedFilterCondition.total += selectedStreams.length;
             skipReasons.excludedFilterCondition.details[condition] =
@@ -2071,6 +2071,13 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           // Continue with the next condition instead of breaking the entire loop
         }
       }
+
+      logger.verbose(`Streams to remove: ${streamsToRemove.size}`);
+
+      // Remove all marked streams at once, after processing all conditions
+      filteredStreams = filteredStreams.filter(
+        (stream) => !streamsToRemove.has(stream.id)
+      );
     }
 
     // Log filter summary

@@ -629,6 +629,7 @@ const ParsedFileSchema = z.object({
 export type ParsedFile = z.infer<typeof ParsedFileSchema>;
 
 export const ParsedStreamSchema = z.object({
+  id: z.string().min(1),
   proxied: z.boolean().optional(),
   addon: AddonSchema,
   parsedFile: ParsedFileSchema.optional(),

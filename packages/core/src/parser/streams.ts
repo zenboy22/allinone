@@ -1,6 +1,7 @@
 import { Stream, ParsedStream, Addon } from '../db';
 import { constants, createLogger, FULL_LANGUAGE_MAPPING } from '../utils';
 import FileParser from './file';
+import crypto from 'crypto';
 const logger = createLogger('parser');
 class StreamParser {
   get errorRegexes(): { pattern: RegExp; message: string }[] | undefined {
@@ -52,6 +53,7 @@ class StreamParser {
 
   parse(stream: Stream): ParsedStream {
     let parsedStream: ParsedStream = {
+      id: this.getRandomId(),
       addon: this.addon,
       type: 'http',
       url: this.applyUrlModifications(stream.url),
@@ -120,6 +122,10 @@ class StreamParser {
     };
 
     return parsedStream;
+  }
+
+  protected getRandomId(): string {
+    return crypto.randomUUID();
   }
 
   protected applyUrlModifications(url: string | undefined): string | undefined {

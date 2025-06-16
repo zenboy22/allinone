@@ -187,6 +187,7 @@ function Content() {
       setIsFormatting(true);
       const parsedFile = FileParser.parse(filename);
       const stream: ParsedStream = {
+        id: 'preview',
         type,
         addon: {
           name: addonName,

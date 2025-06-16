@@ -7,6 +7,7 @@ import { debridioSocialOption } from './debridio';
 class DebridioWatchtowerStreamParser extends StreamParser {
   parse(stream: Stream): ParsedStream {
     let parsedStream: ParsedStream = {
+      id: this.getRandomId(),
       addon: this.addon,
       type: 'http',
       url: this.applyUrlModifications(stream.url),
