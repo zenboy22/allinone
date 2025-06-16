@@ -1241,15 +1241,12 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       if (!titleMatchingOptions || !titleMatchingOptions.enabled) {
         return true;
       }
+
       if (titles.length === 0) {
         // don't filter out streams if no titles could be found
         return true;
       }
       const streamTitle = stream.parsedFile?.title;
-      if (!streamTitle) {
-        // if a specific stream doesn't have a title, filter it out.
-        return false;
-      }
 
       // now check if we need to check this stream based on the addon and request type
       if (
@@ -1266,6 +1263,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return true;
       }
 
+      if (!streamTitle) {
+        // if a specific stream doesn't have a title, filter it out.
+        return false;
+      }
+
       if (titleMatchingOptions.mode === 'exact') {
         // the stream title should be an exact match of a valid title
         return titles.some(
@@ -1273,10 +1275,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         );
       } else {
         // a valid title should be present somewhere in the stream title
-        const valid = titles.some((title) =>
+        return titles.some((title) =>
           normaliseTitle(streamTitle).includes(normaliseTitle(title))
         );
-        return valid;
       }
     };
 
