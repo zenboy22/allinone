@@ -2643,7 +2643,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             (encode) => encode === (stream.parsedFile?.encode || 'Unknown')
           );
           if (index === -1) {
-            return multiplier * Infinity;
+            return multiplier * -Infinity;
           } else {
             return multiplier * -index;
           }
@@ -2658,7 +2658,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             (p) => p.instanceId === stream.addon.presetInstanceId
           );
           if (idx === -1) {
-            return multiplier * Infinity;
+            return multiplier * -Infinity;
           } else {
             return multiplier * -idx;
           }
