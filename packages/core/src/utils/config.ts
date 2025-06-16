@@ -15,7 +15,10 @@ import { isEncrypted, decryptString, encryptString } from './crypto';
 import { Env } from './env';
 import { createLogger, maskSensitiveInfo } from './logger';
 import { ZodError } from 'zod';
-import { ConditionParser } from '../parser/conditions';
+import {
+  GroupConditionParser,
+  SelectConditionParser,
+} from '../parser/conditions';
 import { RPDB } from './rpdb';
 import { FeatureControl } from './feature';
 import { compileRegex } from './regex';
@@ -277,6 +280,17 @@ export async function validateConfig(
     }
   }
 
+  // validate excluded filter condition
+  if (config.excludedFilterConditions) {
+    for (const condition of config.excludedFilterConditions) {
+      try {
+        await SelectConditionParser.testSelect([], condition);
+      } catch (error) {
+        throw new Error(`Invalid excluded filter condition: ${error}`);
+      }
+    }
+  }
+
   if (config.services) {
     config.services = config.services.map((service: Service) =>
       validateService(service, decryptValues)
@@ -462,7 +476,7 @@ async function validateGroup(group: Group) {
   // we must be able to parse the condition
   let result;
   try {
-    result = await ConditionParser.testParse(group.condition);
+    result = await GroupConditionParser.testParse(group.condition);
   } catch (error: any) {
     throw new Error(
       `Your group condition - '${group.condition}' - is invalid: ${error.message}`

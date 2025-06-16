@@ -42,7 +42,10 @@ import {
   safeRegexTest,
 } from './utils/regex';
 import { isMatch } from 'super-regex';
-import { ConditionParser } from './parser/conditions';
+import {
+  GroupConditionParser,
+  SelectConditionParser,
+} from './parser/conditions';
 import { RPDB } from './utils/rpdb';
 import { FeatureControl } from './utils/feature';
 const logger = createLogger('core');
@@ -1092,7 +1095,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         if (!group.condition || !group.addons.length) continue;
 
         try {
-          const parser = new ConditionParser(
+          const parser = new GroupConditionParser(
             previousGroupStreams,
             parsedStreams,
             previousGroupTimeTaken,
@@ -1207,6 +1210,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       requiredKeywords: { total: 0, details: {} },
       requiredSeeders: { total: 0, details: {} },
       excludedSeeders: { total: 0, details: {} },
+      excludedFilterCondition: { total: 0, details: {} },
       size: { total: 0, details: {} },
     };
 
@@ -2035,7 +2039,38 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     };
 
     const filterResults = await Promise.all(streams.map(shouldKeepStream));
-    const filteredStreams = streams.filter((_, index) => filterResults[index]);
+
+    let filteredStreams = streams.filter((_, index) => filterResults[index]);
+
+    if (this.userData.excludedFilterConditions) {
+      const parser = new SelectConditionParser();
+
+      for (const condition of this.userData.excludedFilterConditions) {
+        try {
+          const selectedStreams = await parser.select(
+            filteredStreams,
+            condition
+          );
+
+          // Remove these streams from filteredStreams
+          filteredStreams = filteredStreams.filter(
+            (stream) => !selectedStreams.includes(stream)
+          );
+
+          // Update skip reasons for this condition
+          if (selectedStreams.length > 0) {
+            skipReasons.excludedFilterCondition.total += selectedStreams.length;
+            skipReasons.excludedFilterCondition.details[condition] =
+              selectedStreams.length;
+          }
+        } catch (error) {
+          logger.error(
+            `Failed to apply excluded filter condition "${condition}": ${error instanceof Error ? error.message : String(error)}`
+          );
+          // Continue with the next condition instead of breaking the entire loop
+        }
+      }
+    }
 
     // Log filter summary
     const totalFiltered = streams.length - filteredStreams.length;

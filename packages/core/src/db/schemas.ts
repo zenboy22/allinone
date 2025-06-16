@@ -331,6 +331,7 @@ export const UserDataSchema = z.object({
   excludeUncachedFromServices: z.array(z.string().min(1)).optional(),
   excludeUncachedFromStreamTypes: z.array(StreamTypes).optional(),
   excludeUncachedMode: z.enum(['or', 'and']).optional(),
+  excludedFilterConditions: z.array(z.string().min(1).max(1000)).optional(),
   groups: z
     .array(
       z.object({
@@ -683,7 +684,10 @@ export const ParsedStreamSchema = z.object({
   originalDescription: z.string().optional(),
 });
 
+export const ParsedStreams = z.array(ParsedStreamSchema);
+
 export type ParsedStream = z.infer<typeof ParsedStreamSchema>;
+export type ParsedStreams = z.infer<typeof ParsedStreams>;
 
 export const AIOStream = StreamSchema.extend({
   streamData: z.object({

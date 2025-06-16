@@ -24,6 +24,7 @@ import {
   MdMovieFilter,
   MdPerson,
   MdSurroundSound,
+  MdTextFields,
   MdVideoLibrary,
 } from 'react-icons/md';
 import { BiSolidCameraMovie } from 'react-icons/bi';
@@ -76,6 +77,7 @@ import { Modal } from '../ui/modal';
 import { useDisclosure } from '@/hooks/disclosure';
 import { toast } from 'sonner';
 import { Slider } from '../ui/slider/slider';
+import { TbFilterCode } from 'react-icons/tb';
 
 type Resolution = (typeof RESOLUTIONS)[number];
 type Quality = (typeof QUALITIES)[number];
@@ -274,8 +276,12 @@ function Content() {
                 Matching
               </TabsTrigger>
               <TabsTrigger value="keyword">
-                <FaTextSlash className="text-lg mr-3" />
+                <MdTextFields className="text-lg mr-3" />
                 Keyword
+              </TabsTrigger>
+              <TabsTrigger value="condition">
+                <TbFilterCode className="text-lg mr-3" />
+                Condition
               </TabsTrigger>
               {status?.settings.regexFilterAccess !== 'none' && (
                 <TabsTrigger value="regex">
@@ -1305,6 +1311,103 @@ function Content() {
                     </div>
                   </div>
                 </SettingsCard>
+              </div>
+            </PageWrapper>
+          </TabsContent>
+          <TabsContent value="condition" className="space-y-4">
+            <PageWrapper>
+              <HeadingWithPageControls heading="Condition" />
+              <div className="mb-4">
+                <p className="text-sm text-[--muted]">
+                  Create advanced filters to exclude specific streams from your
+                  results using condition expressions. Write conditions that
+                  evaluate which streams to remove based on properties like
+                  addon type, quality, size, or any other stream attributes.
+                  Multiple conditions can be combined using logical operators
+                  for precise filtering control.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <SettingsCard title="Help">
+                  <div className="space-y-3">
+                    <p className="text-sm text-[--muted]">
+                      This filter uses the same expression syntax as the Group
+                      Condition Parser, but operates on a single{' '}
+                      <code>streams</code> constant containing all available
+                      streams.
+                    </p>
+                    <div className="text-sm text-[--muted]">
+                      <p className="font-medium mb-2">How it works:</p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>
+                          Your condition should return an array of streams
+                        </li>
+                        <li>
+                          Streams returned by the condition will be{' '}
+                          <strong>excluded</strong> from results
+                        </li>
+                        <li>
+                          Use functions like <code>addon()</code>,{' '}
+                          <code>type()</code>, <code>quality()</code> to filter
+                          streams
+                        </li>
+                        <li>
+                          Combine conditions together by nesting functions
+                          together, for example:
+                          <code>
+                            addon(type(streams, 'debrid'), 'TorBox')
+                          </code>{' '}
+                          excludes all TorBox debrid streams and keeps its
+                          usenet streams.
+                        </li>
+                      </ul>
+                    </div>
+                    <p className="text-sm text-[--muted]">
+                      <strong>Example:</strong>{' '}
+                      <code>addon(type(streams, 'debrid'), 'TorBox')</code>{' '}
+                      excludes all TorBox debrid streams.
+                    </p>
+                    <p className="text-sm text-[--muted]">
+                      For detailed syntax and available functions, see the{' '}
+                      <a
+                        href="https://github.com/Viren070/AIOStreams/wiki/Groups"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[--brand] hover:underline"
+                      >
+                        Wiki page on Groups
+                      </a>
+                    </p>
+                  </div>
+                </SettingsCard>
+                <TextInputs
+                  label="Excluded Filter Conditions"
+                  itemName="Condition"
+                  help="The conditions to apply to the streams. Streams selected by any of these conditions will be excluded from the results."
+                  placeholder="addon(type(streams, 'debrid'), 'TorBox')"
+                  values={userData.excludedFilterConditions || []}
+                  onValuesChange={(values) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      excludedFilterConditions: values,
+                    }));
+                  }}
+                  onValueChange={(value, index) => {
+                    setUserData((prev) => ({
+                      ...prev,
+                      excludedFilterConditions: [
+                        ...(prev.excludedFilterConditions || []).slice(
+                          0,
+                          index
+                        ),
+                        value,
+                        ...(prev.excludedFilterConditions || []).slice(
+                          index + 1
+                        ),
+                      ],
+                    }));
+                  }}
+                />
               </div>
             </PageWrapper>
           </TabsContent>
