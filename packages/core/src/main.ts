@@ -1168,6 +1168,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
   }
 
   private validateAddon(addon: Addon) {
+    const manifestUrl = new URL(addon.manifestUrl);
+    const baseUrl = Env.BASE_URL ? new URL(Env.BASE_URL) : undefined;
     if (this.userData.uuid && addon.manifestUrl.includes(this.userData.uuid)) {
       logger.warn(
         `${this.userData.uuid} detected to be trying to cause infinite self scraping`
@@ -1176,8 +1178,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         `${addon.identifyingName} appears to be trying to scrape the current user's AIOStreams instance.`
       );
     } else if (
-      Env.BASE_URL &&
-      new URL(addon.manifestUrl).host === new URL(Env.BASE_URL).host &&
+      ((baseUrl && manifestUrl.host === baseUrl.host) ||
+        (manifestUrl.host.startsWith('localhost') &&
+          manifestUrl.port === Env.PORT.toString())) &&
       Env.DISABLE_SELF_SCRAPING === true
     ) {
       throw new Error(
@@ -1193,12 +1196,10 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           addon.presetType
         )}`
       );
-    } else if (
-      FeatureControl.disabledHosts.has(new URL(addon.manifestUrl).host)
-    ) {
+    } else if (FeatureControl.disabledHosts.has(manifestUrl.host)) {
       throw new Error(
         `Addon ${addon.identifyingName} is disabled: ${FeatureControl.disabledHosts.get(
-          new URL(addon.manifestUrl).host
+          manifestUrl.host
         )}`
       );
     }
