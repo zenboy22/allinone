@@ -1,9 +1,9 @@
 import { Stream, ParsedStream, Addon } from '../db';
 import { constants, createLogger, FULL_LANGUAGE_MAPPING } from '../utils';
 import FileParser from './file';
-import crypto from 'crypto';
 const logger = createLogger('parser');
 class StreamParser {
+  private count = 0;
   get errorRegexes(): { pattern: RegExp; message: string }[] | undefined {
     return [
       {
@@ -125,7 +125,7 @@ class StreamParser {
   }
 
   protected getRandomId(): string {
-    return crypto.randomUUID();
+    return `${this.count++}`;
   }
 
   protected applyUrlModifications(url: string | undefined): string | undefined {
