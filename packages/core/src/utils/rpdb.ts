@@ -13,7 +13,9 @@ const apiKeyValidationCache = Cache.getInstance('rpdbApiKey');
 
 export class RPDB {
   private readonly apiKey: string;
-
+  private readonly TMDB_ID_REGEX = /^(?:tmdb)[-:](\d+)(?::\d+:\d+)?$/;
+  private readonly TVDB_ID_REGEX = /^(?:tvdb)[-:](\d+)(?::\d+:\d+)?$/;
+  private readonly IMDB_ID_REGEX = /^(?:tt)(\d+)(?::\d+:\d+)?$/;
   constructor(apiKey: string) {
     this.apiKey = apiKey;
     if (!this.apiKey) {
@@ -56,7 +58,7 @@ export class RPDB {
    * @param id - the id of the item to get the poster for, if it is of a supported type, the rpdb poster will be returned, otherwise null
    */
   public getPosterUrl(type: string, id: string): string | null {
-    const parsedId = this.parseId(id);
+    const parsedId = this.getParsedId(id, type);
     if (!parsedId) {
       return null;
     }
@@ -68,15 +70,21 @@ export class RPDB {
     return posterUrl;
   }
 
-  private parseId(id: string): Id | null {
-    if (id.startsWith('tt')) {
-      return { type: 'imdb', value: id };
+  private getParsedId(id: string, type: string): Id | null {
+    if (this.TMDB_ID_REGEX.test(id)) {
+      const match = id.match(this.TMDB_ID_REGEX);
+      if (['movie', 'series'].includes(type)) {
+        return match ? { type: 'tmdb', value: `${type}-${match[1]}` } : null;
+      }
+      return null;
     }
-    if (id.startsWith('tmdb:')) {
-      return { type: 'tmdb', value: id.split(':')[1] };
+    if (this.IMDB_ID_REGEX.test(id)) {
+      const match = id.match(this.IMDB_ID_REGEX);
+      return match ? { type: 'imdb', value: `tt${match[1]}` } : null;
     }
-    if (id.startsWith('tvdb:')) {
-      return { type: 'tvdb', value: id.split(':')[1] };
+    if (this.TVDB_ID_REGEX.test(id)) {
+      const match = id.match(this.TVDB_ID_REGEX);
+      return match ? { type: 'tvdb', value: match[1] } : null;
     }
     return null;
   }
