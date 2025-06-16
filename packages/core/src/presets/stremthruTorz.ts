@@ -54,6 +54,14 @@ export class StremthruTorzPreset extends Preset {
         emptyIsUndefined: true,
       },
       {
+        id: 'includeP2P',
+        name: 'Include P2P',
+        description:
+          'Use this option when you want to include P2P results even when using a debrid service. If left unchecked, then P2P results will not be fetched when using a debrid service.',
+        type: 'boolean',
+        default: false,
+      },
+      {
         id: 'useMultipleInstances',
         name: 'Use Multiple Instances',
         description:
@@ -89,7 +97,10 @@ export class StremthruTorzPreset extends Preset {
       DESCRIPTION:
         'Access a crowdsourced torrent library supplemented by DMM hashlists',
       OPTIONS: options,
-      SUPPORTED_STREAM_TYPES: [constants.DEBRID_STREAM_TYPE],
+      SUPPORTED_STREAM_TYPES: [
+        constants.DEBRID_STREAM_TYPE,
+        constants.P2P_STREAM_TYPE,
+      ],
       SUPPORTED_RESOURCES: supportedResources,
     };
   }
@@ -105,38 +116,36 @@ export class StremthruTorzPreset extends Preset {
     }
 
     const usableServices = this.getUsableServices(userData, options.services);
-    // if no services are usable, throw an error
+    // if no services are usable, generate a single p2p addon
     if (!usableServices || usableServices.length === 0) {
-      throw new Error(
-        `${this.METADATA.NAME} requires at least one usable service, but none were found. Please enable at least one of the following services: ${this.METADATA.SUPPORTED_SERVICES.join(
-          ', '
-        )}`
-      );
+      return [this.generateAddon(userData, options, ['p2p'])];
+    }
+
+    let serviceIds: (ServiceId | 'p2p')[] = usableServices.map((s) => s.id);
+
+    if (options.includeP2P) {
+      serviceIds.push('p2p');
     }
 
     if (options.useMultipleInstances) {
-      return usableServices.map((service) =>
-        this.generateAddon(userData, options, [service.id])
+      return serviceIds.map((serviceId) =>
+        this.generateAddon(userData, options, [serviceId])
       );
     }
 
-    return [
-      this.generateAddon(
-        userData,
-        options,
-        usableServices.map((s) => s.id)
-      ),
-    ];
+    return [this.generateAddon(userData, options, serviceIds)];
   }
 
   private static generateAddon(
     userData: UserData,
     options: Record<string, any>,
-    serviceIds: ServiceId[]
+    serviceIds: (ServiceId | 'p2p')[]
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: `${options.name || this.METADATA.NAME} ${serviceIds.map((id) => constants.SERVICE_DETAILS[id].shortName).join(' | ')}`,
+      identifyingName: `${options.name || this.METADATA.NAME} ${serviceIds
+        .map((id) => this.getServiceDetails(id).shortName)
+        .join(' | ')}`,
       manifestUrl: this.generateManifestUrl(userData, options, serviceIds),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
@@ -152,35 +161,78 @@ export class StremthruTorzPreset extends Preset {
   private static generateManifestUrl(
     userData: UserData,
     options: Record<string, any>,
-    serviceIds: ServiceId[]
-  ) {
-    let url = options.url || this.METADATA.URL;
-    if (url.endsWith('/manifest.json')) {
-      return url;
+    serviceIds: (ServiceId | 'p2p')[]
+  ): string {
+    // If URL already points to manifest.json, return as-is
+    let baseUrl = options.url || this.METADATA.URL;
+    if (baseUrl.endsWith('/manifest.json')) {
+      return baseUrl;
     }
-    url = url.replace(/\/$/, '');
-    if (!serviceIds || serviceIds.length === 0) {
-      throw new Error(
-        `${this.METADATA.NAME} requires at least one service, but none were found. Please enable at least one of the following services: ${this.METADATA.SUPPORTED_SERVICES.join(
-          ', '
-        )}`
-      );
-    }
-    const configString = this.base64EncodeJSON({
-      stores: serviceIds.map((serviceId) => ({
-        c:
-          serviceId === constants.PIKPAK_SERVICE
-            ? 'pp'
-            : constants.SERVICE_DETAILS[serviceId].shortName.toLowerCase(),
-        t: this.getServiceCredential(serviceId, userData, {
-          [constants.OFFCLOUD_SERVICE]: (credentials: any) =>
-            `${credentials.email}:${credentials.password}`,
-          [constants.PIKPAK_SERVICE]: (credentials: any) =>
-            `${credentials.email}:${credentials.password}`,
-        }),
-      })),
-    });
 
-    return `${url}${configString ? '/' + configString : ''}/manifest.json`;
+    // Normalize URL by removing trailing slash
+    baseUrl = baseUrl.replace(/\/$/, '');
+
+    // Generate configuration string
+    const configString = this.generateConfigString(serviceIds, userData);
+
+    // Build final manifest URL
+    return `${baseUrl}${configString ? '/' + configString : ''}/manifest.json`;
+  }
+
+  private static generateConfigString(
+    serviceIds: (ServiceId | 'p2p')[],
+    userData: UserData
+  ): string {
+    const storeConfigs = serviceIds.map((serviceId) =>
+      this.createStoreConfig(serviceId, userData)
+    );
+
+    return this.base64EncodeJSON({ stores: storeConfigs });
+  }
+
+  private static createStoreConfig(
+    serviceId: ServiceId | 'p2p',
+    userData: UserData
+  ): { c: string; t: string } {
+    return {
+      c: this.getServiceDetails(serviceId).code,
+      t: this.getServiceToken(serviceId, userData),
+    };
+  }
+
+  private static getServiceDetails(serviceId: ServiceId | 'p2p'): {
+    code: string;
+    shortName: string;
+  } {
+    if (serviceId === 'p2p') {
+      return { code: 'p2p', shortName: 'P2P' };
+    }
+
+    if (serviceId === constants.PIKPAK_SERVICE) {
+      return { code: 'pp', shortName: 'PKP' };
+    }
+
+    return {
+      code: constants.SERVICE_DETAILS[serviceId].shortName.toLowerCase(),
+      shortName: constants.SERVICE_DETAILS[serviceId].shortName,
+    };
+  }
+
+  private static getServiceToken(
+    serviceId: ServiceId | 'p2p',
+    userData: UserData
+  ): string {
+    if (serviceId === 'p2p') {
+      return '';
+    }
+
+    const credentialFormatters = {
+      [constants.OFFCLOUD_SERVICE]: (credentials: any) =>
+        `${credentials.email}:${credentials.password}`,
+      [constants.PIKPAK_SERVICE]: (credentials: any) =>
+        `${credentials.email}:${credentials.password}`,
+    };
+
+    return this.getServiceCredential(serviceId, userData, credentialFormatters);
   }
 }
