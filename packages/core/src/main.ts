@@ -1623,16 +1623,14 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             this.userData.seederRangeTypes.includes(typeForSeederRange)))
       ) {
         if (
-          stream.torrent?.seeders &&
           includedSeederRange[0] &&
-          stream.torrent.seeders > includedSeederRange[0]
+          (stream.torrent?.seeders ?? 0) > includedSeederRange[0]
         ) {
           return true;
         }
         if (
-          stream.torrent?.seeders &&
           includedSeederRange[1] &&
-          stream.torrent.seeders < includedSeederRange[1]
+          (stream.torrent?.seeders ?? 0) < includedSeederRange[1]
         ) {
           return true;
         }
