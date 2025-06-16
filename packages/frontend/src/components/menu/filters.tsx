@@ -1217,7 +1217,7 @@ function Content() {
                         emptyMessage="You haven't installed any addons yet..."
                         options={userData.presets.map((preset) => ({
                           label: preset.options.name || preset.type,
-                          type: preset.options.name || preset.type,
+                          textValue: preset.options.name || preset.type,
                           value: preset.instanceId,
                         }))}
                         value={userData.titleMatching?.addons || []}
@@ -1286,7 +1286,7 @@ function Content() {
                         emptyMessage="You haven't installed any addons yet..."
                         options={userData.presets.map((preset) => ({
                           label: preset.options.name || preset.type,
-                          type: preset.options.name || preset.type,
+                          textValue: preset.options.name || preset.type,
                           value: preset.instanceId,
                         }))}
                         value={userData.seasonEpisodeMatching?.addons || []}
