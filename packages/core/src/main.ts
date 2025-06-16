@@ -190,7 +190,7 @@ export class AIOStreams {
         streamsWithExternalDownloads.push(stream);
         if (stream.url) {
           const downloadableStream: ParsedStream =
-            this.createExternalDownloadStream(stream);
+            this.createDownloadableStream(stream);
           streamsWithExternalDownloads.push(downloadableStream);
           count++;
         }
@@ -210,13 +210,22 @@ export class AIOStreams {
     };
   }
 
-  private createExternalDownloadStream(stream: ParsedStream): ParsedStream {
+  private createDownloadableStream(stream: ParsedStream): ParsedStream {
     const copy = structuredClone(stream);
     copy.url = undefined;
     copy.externalUrl = stream.url;
-    copy.message = `Download this stream via your browser`;
+    copy.message = `Download the stream above via your browser`;
     copy.id = `${stream.id}-external-download`;
     copy.type = 'external';
+    // remove uneccessary info that is already present in the original stream above
+    copy.parsedFile = undefined;
+    copy.size = undefined;
+    copy.torrent = undefined;
+    copy.indexer = undefined;
+    copy.age = undefined;
+    copy.duration = undefined;
+    copy.folderName = undefined;
+    copy.filename = undefined;
     return copy;
   }
 
