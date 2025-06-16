@@ -208,18 +208,10 @@ export abstract class BaseConditionParser {
       }
       // select streams with seeders that lie within the range.
       return streams.filter((stream) => {
-        if (
-          minSeeders &&
-          stream.torrent?.seeders &&
-          stream.torrent.seeders < minSeeders
-        ) {
+        if (minSeeders && (stream.torrent?.seeders ?? 0) < minSeeders) {
           return false;
         }
-        if (
-          maxSeeders &&
-          stream.torrent?.seeders &&
-          stream.torrent.seeders > maxSeeders
-        ) {
+        if (maxSeeders && (stream.torrent?.seeders ?? 0) > maxSeeders) {
           return false;
         }
         return true;
