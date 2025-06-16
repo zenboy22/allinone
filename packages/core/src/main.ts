@@ -1977,16 +1977,15 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             this.userData.seederRangeTypes.includes(typeForSeederRange)))
       ) {
         if (
-          stream.torrent?.seeders &&
           requiredSeederRange[0] &&
-          stream.torrent.seeders < requiredSeederRange[0]
+          (stream.torrent?.seeders ?? 0) < requiredSeederRange[0]
         ) {
           return false;
         }
         if (
-          stream.torrent?.seeders &&
+          stream.torrent?.seeders !== undefined &&
           requiredSeederRange[1] &&
-          stream.torrent.seeders > requiredSeederRange[1]
+          (stream.torrent?.seeders ?? 0) > requiredSeederRange[1]
         ) {
           return false;
         }
@@ -1999,16 +1998,14 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
             this.userData.seederRangeTypes.includes(typeForSeederRange)))
       ) {
         if (
-          stream.torrent?.seeders &&
           excludedSeederRange[0] &&
-          stream.torrent.seeders > excludedSeederRange[0]
+          (stream.torrent?.seeders ?? 0) > excludedSeederRange[0]
         ) {
           return false;
         }
         if (
-          stream.torrent?.seeders &&
           excludedSeederRange[1] &&
-          stream.torrent.seeders < excludedSeederRange[1]
+          (stream.torrent?.seeders ?? 0) < excludedSeederRange[1]
         ) {
           return false;
         }
