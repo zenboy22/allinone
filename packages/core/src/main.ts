@@ -2635,40 +2635,84 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         case 'seeders':
           return multiplier * (stream.torrent?.seeders ?? 0);
         case 'encode': {
+          if (!userData.preferredEncodes) {
+            return 0;
+          }
+
           const index = userData.preferredEncodes?.findIndex(
             (encode) => encode === (stream.parsedFile?.encode || 'Unknown')
           );
-          return multiplier * -(index === -1 ? 0 : (index ?? 0));
+          if (index === -1) {
+            return multiplier * Infinity;
+          } else {
+            return multiplier * -index;
+          }
         }
         case 'addon':
           // find the first occurence of the stream.addon.id in the addons array
+          if (!userData.presets) {
+            return 0;
+          }
+
           const idx = userData.presets.findIndex(
             (p) => p.instanceId === stream.addon.presetInstanceId
           );
-          return multiplier * (idx !== -1 ? -idx : 0);
+          if (idx === -1) {
+            return multiplier * Infinity;
+          } else {
+            return multiplier * -idx;
+          }
 
         case 'resolution': {
+          if (!userData.preferredResolutions) {
+            return 0;
+          }
+
           const index = userData.preferredResolutions?.findIndex(
             (resolution) =>
               resolution === (stream.parsedFile?.resolution || 'Unknown')
           );
-          return multiplier * -(index === -1 ? 0 : (index ?? 0));
+          if (index === -1) {
+            return multiplier * -Infinity;
+          } else {
+            return multiplier * -index;
+          }
         }
         case 'quality': {
-          const index = userData.preferredQualities?.findIndex(
-            (quality) => quality === (stream.parsedFile?.quality || 'Unknown')
+          if (!userData.preferredQualities) {
+            return 0;
+          }
+
+          const effectiveQuality = stream.parsedFile?.quality || 'Unknown';
+          const index = userData.preferredQualities.findIndex(
+            (quality) => quality === effectiveQuality
           );
-          return multiplier * -(index === -1 ? 0 : (index ?? 0));
+          if (index === -1) {
+            return multiplier * -Infinity;
+          } else {
+            return multiplier * -index;
+          }
         }
         case 'visualTag': {
+          if (!userData.preferredVisualTags) {
+            return 0;
+          }
+
+          const effectiveVisualTags = stream.parsedFile?.visualTags.length
+            ? stream.parsedFile.visualTags
+            : ['Unknown'];
+
+          if (
+            effectiveVisualTags.every(
+              (tag) => !userData.preferredVisualTags!.includes(tag as any)
+            )
+          ) {
+            return multiplier * -Infinity;
+          }
+
           let minIndex = userData.preferredVisualTags?.length;
-          if (minIndex === undefined) {
-            return 0;
-          }
-          if (!stream.parsedFile) {
-            return 0;
-          }
-          for (const tag of stream.parsedFile?.visualTags || []) {
+
+          for (const tag of effectiveVisualTags) {
             if (VISUAL_TAGS.includes(tag as any)) {
               const idx = userData.preferredVisualTags?.indexOf(tag as any);
               if (idx !== undefined && idx !== -1 && idx < minIndex) {
@@ -2679,14 +2723,24 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           return multiplier * -minIndex;
         }
         case 'audioTag': {
-          let minAudioIndex = userData.preferredAudioTags?.length;
-          if (minAudioIndex === undefined) {
+          if (!userData.preferredAudioTags) {
             return 0;
           }
-          if (!stream.parsedFile) {
-            return 0;
+
+          const effectiveAudioTags = stream.parsedFile?.audioTags.length
+            ? stream.parsedFile.audioTags
+            : ['Unknown'];
+
+          if (
+            effectiveAudioTags.every(
+              (tag) => !userData.preferredAudioTags!.includes(tag as any)
+            )
+          ) {
+            return multiplier * -Infinity;
           }
-          for (const tag of stream.parsedFile.audioTags) {
+          let minAudioIndex = userData.preferredAudioTags.length;
+
+          for (const tag of effectiveAudioTags) {
             if (AUDIO_TAGS.includes(tag as any)) {
               const idx = userData.preferredAudioTags?.indexOf(tag as any);
               if (idx !== undefined && idx !== -1 && idx < minAudioIndex) {
@@ -2697,10 +2751,17 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           return multiplier * -minAudioIndex;
         }
         case 'streamType': {
+          if (!userData.preferredStreamTypes) {
+            return 0;
+          }
           const index = userData.preferredStreamTypes?.findIndex(
             (type) => type === stream.type
           );
-          return multiplier * -(index === -1 ? 0 : (index ?? 0));
+          if (index === -1) {
+            return multiplier * -Infinity;
+          } else {
+            return multiplier * -index;
+          }
         }
         case 'language': {
           let minLanguageIndex = userData.preferredLanguages?.length;
@@ -2731,10 +2792,18 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           return multiplier * (stream.keywordMatched ? 1 : 0);
 
         case 'service': {
-          const index = userData.services?.findIndex(
+          if (!userData.services) {
+            return 0;
+          }
+
+          const index = userData.services.findIndex(
             (service) => service.id === stream.service?.id
           );
-          return multiplier * -(index === -1 ? 0 : (index ?? 0));
+          if (index === -1) {
+            return multiplier * -Infinity;
+          } else {
+            return multiplier * -index;
+          }
         }
         default:
           return 0;
