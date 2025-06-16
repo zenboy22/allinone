@@ -80,6 +80,22 @@ function Content() {
             }}
           />
         </SettingsCard>
+        <SettingsCard
+          title="External Downloads"
+          description="Adds a stream that automatically opens the stream in your browser below every stream for easier downloading"
+        >
+          <Switch
+            label="Enabled"
+            side="right"
+            value={userData.externalDownloads}
+            onValueChange={(value) => {
+              setUserData((prev) => ({
+                ...prev,
+                externalDownloads: value,
+              }));
+            }}
+          />
+        </SettingsCard>
       </div>
     </>
   );

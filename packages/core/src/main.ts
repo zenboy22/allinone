@@ -163,6 +163,8 @@ export class AIOStreams {
       await this.proxifyStreams(limitedStreams)
     );
 
+    let finalStreams = proxifiedStreams;
+
     // step 8
     // if this.userData.precacheNextEpisode is true, start a new thread to request the next episode, check if
     // all provider streams are uncached, and only if so, then send a request to the first uncached stream in the list.
@@ -178,16 +180,44 @@ export class AIOStreams {
       });
     }
 
+    if (this.userData.externalDownloads) {
+      logger.info(`Adding external downloads to streams`);
+      let count = 0;
+      // for each stream object, insert a new stream object, replacing the url with undefined, and appending its value to externalUrl instead
+      // and place it right after the original stream object
+      const streamsWithExternalDownloads: ParsedStream[] = [];
+      for (const stream of proxifiedStreams) {
+        streamsWithExternalDownloads.push(stream);
+        if (stream.url) {
+          const downloadableStream: ParsedStream =
+            this.createExternalDownloadStream(stream);
+          streamsWithExternalDownloads.push(downloadableStream);
+          count++;
+        }
+      }
+      logger.info(`Added ${count} external downloads to streams`);
+      finalStreams = streamsWithExternalDownloads;
+    }
     // step 9
     // return the final list of streams, followed by the error streams.
     logger.info(
-      `Returning ${proxifiedStreams.length} streams and ${errors.length} errors`
+      `Returning ${finalStreams.length} streams and ${errors.length} errors`
     );
     return {
       success: true,
-      data: proxifiedStreams,
+      data: finalStreams,
       errors: errors,
     };
+  }
+
+  private createExternalDownloadStream(stream: ParsedStream): ParsedStream {
+    const copy = structuredClone(stream);
+    copy.url = undefined;
+    copy.externalUrl = stream.url;
+    copy.message = `Download this stream via your browser`;
+    copy.id = `${stream.id}-external-download`;
+    copy.type = 'external';
+    return copy;
   }
 
   private async precacheNextEpisode(type: string, id: string) {

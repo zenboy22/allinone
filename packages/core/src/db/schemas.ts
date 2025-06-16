@@ -387,6 +387,7 @@ export const UserDataSchema = z.object({
   services: ServiceList.optional(),
   presets: PresetList,
   catalogModifications: z.array(CatalogModification).optional(),
+  externalDownloads: z.boolean().optional(),
 });
 
 export type UserData = z.infer<typeof UserDataSchema>;
