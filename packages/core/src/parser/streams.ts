@@ -125,7 +125,7 @@ class StreamParser {
   }
 
   protected getRandomId(): string {
-    return `${this.count++}`;
+    return `${this.addon.instanceId}-${this.count++}`;
   }
 
   protected applyUrlModifications(url: string | undefined): string | undefined {
