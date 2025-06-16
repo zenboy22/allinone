@@ -76,10 +76,10 @@ export async function compileRegex(
 export async function formRegexFromKeywords(
   keywords: string[]
 ): Promise<RegExp> {
-  const pattern = `(?<![^ [(_\\-.])(${keywords
+  const pattern = `/(?<![^ [(_\\-.])(${keywords
     .map((filter) => filter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'))
     .map((filter) => filter.replace(/\s/g, '[ .\\-_]?'))
-    .join('|')})(?=[ \\)\\]_.-]|$)`;
+    .join('|')})(?=[ \\)\\]_.-]|$)/i`;
 
   return await compileRegex(pattern);
 }
