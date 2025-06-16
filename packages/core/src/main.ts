@@ -410,10 +410,15 @@ export class AIOStreams {
     }
 
     if (candidates.length === 0) {
-      logger.error(`No addon found supporting meta resource for type ${type}`);
-      throw new Error(
-        `No addon found supporting meta resource for type ${type}`
-      );
+      logger.warn(`No supported addon was found for the requested meta`, {
+        type,
+        id,
+      });
+      return {
+        success: false,
+        data: null,
+        errors: [],
+      };
     }
 
     // Try each candidate in order, collecting errors

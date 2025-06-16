@@ -34,8 +34,12 @@ router.get(
       await aiostreams.initialise();
 
       const meta = await aiostreams.getMeta(type, id);
-
-      res.status(200).json(transformer.transformMeta(meta));
+      const transformed = transformer.transformMeta(meta);
+      if (!transformed) {
+        next();
+      } else {
+        res.status(200).json(transformed);
+      }
     } catch (error) {
       next(error);
     }

@@ -201,8 +201,14 @@ export class StremioTransformer {
     };
   }
 
-  transformMeta(response: AIOStreamsResponse<Meta | null>): MetaResponse {
+  transformMeta(
+    response: AIOStreamsResponse<Meta | null>
+  ): MetaResponse | null {
     const { data: meta, errors } = response;
+
+    if (!meta && errors.length === 0) {
+      return null;
+    }
 
     if (this.showError('meta', errors) || !meta) {
       return {
