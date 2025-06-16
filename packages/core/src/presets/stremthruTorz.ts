@@ -109,33 +109,49 @@ export class StremthruTorzPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Promise<Addon[]> {
-    // url can either be something like https://torrentio.com/ or it can be a custom manifest url.
-    // if it is a custom manifest url, return a single addon with the custom manifest url.
+    // Handle custom manifest URL
     if (options?.url?.endsWith('/manifest.json')) {
       return [this.generateAddon(userData, options, [])];
     }
 
     const usableServices = this.getUsableServices(userData, options.services);
-    // if no services are usable, generate a single p2p addon
-    if (!usableServices || usableServices.length === 0) {
+    let serviceIds: (ServiceId | 'p2p')[] =
+      usableServices?.map((s) => s.id) || [];
+
+    // If no services available, return single P2P addon
+    if (serviceIds.length === 0) {
       return [this.generateAddon(userData, options, ['p2p'])];
     }
 
-    let serviceIds: (ServiceId | 'p2p')[] = usableServices.map((s) => s.id);
-
+    // Add P2P if requested
     if (options.includeP2P) {
       serviceIds.push('p2p');
     }
 
+    const addons: Addon[] = [];
+
     if (options.useMultipleInstances) {
-      return serviceIds.map((serviceId) =>
-        this.generateAddon(userData, options, [serviceId])
+      // Generate separate addon for each service (including P2P if present)
+      addons.push(
+        ...serviceIds.map((serviceId) =>
+          this.generateAddon(userData, options, [serviceId])
+        )
       );
+    } else {
+      // P2P always gets its own addon
+      if (serviceIds.includes('p2p')) {
+        addons.push(this.generateAddon(userData, options, ['p2p']));
+      }
+
+      // Generate combined addon with all non-P2P services
+      const nonP2PServices = serviceIds.filter((id) => id !== 'p2p');
+      if (nonP2PServices.length > 0) {
+        addons.push(this.generateAddon(userData, options, nonP2PServices));
+      }
     }
 
-    return [this.generateAddon(userData, options, serviceIds)];
+    return addons;
   }
-
   private static generateAddon(
     userData: UserData,
     options: Record<string, any>,
