@@ -1,0 +1,1050 @@
+import { createLogger } from './logger';
+import { Env } from './env';
+
+const logger = createLogger('startup');
+
+const formatDuration = (seconds: number): string => {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return `${hours}h ${minutes}m ${secs}s`;
+};
+
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)}KB`;
+  if (bytes < 1073741824) return `${(bytes / 1048576).toFixed(1)}MB`;
+  return `${(bytes / 1073741824).toFixed(1)}GB`;
+};
+
+const formatMilliseconds = (ms: number): string => {
+  if (ms < 1000) return `${ms}ms`;
+  return formatDuration(ms / 1000);
+};
+
+const parseBlockedItems = (
+  envVar: string | undefined
+): Array<{ name: string; reason: string }> => {
+  if (!envVar) return [];
+
+  return envVar.split(',').map((item) => {
+    const [name, ...reasonParts] = item.split(':');
+    const reason = reasonParts.join(':') || 'No reason specified';
+    return { name: name.trim(), reason: reason.trim() };
+  });
+};
+
+const logSection = (
+  title: string,
+  icon: string,
+  content: () => void,
+  spacing = true
+) => {
+  logger.info(`${icon} ${title}`);
+  content();
+  if (spacing) logger.info('');
+};
+
+const logKeyValue = (
+  key: string,
+  value: string | number | boolean,
+  indent = '   '
+) => {
+  const formattedKey = key.padEnd(20);
+  logger.info(`${indent}${formattedKey} ${value}`);
+};
+
+const logStartupInfo = () => {
+  const currentTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
+
+  // Header
+  logger.info(
+    '╔═══════════════════════════════════════════════════════════════╗'
+  );
+  logger.info(
+    '║                    🚀 AIOStreams Starting                     ║'
+  );
+  logger.info(
+    '╚═══════════════════════════════════════════════════════════════╝'
+  );
+  logger.info('');
+
+  // Core Information
+  logSection('CORE INFORMATION', '📋', () => {
+    logKeyValue('Version:', `${Env.VERSION} (${Env.TAG})`);
+    logKeyValue('Node Environment:', Env.NODE_ENV.toUpperCase());
+    logKeyValue('Git Commit:', `${Env.GIT_COMMIT.slice(0, 8)}`);
+    logKeyValue('Build Time:', Env.BUILD_TIME);
+    logKeyValue('Commit Time:', Env.BUILD_COMMIT_TIME);
+    logKeyValue('Current Time:', `${currentTime} UTC`);
+    logKeyValue('User:', process.env.USER || 'system');
+    logKeyValue('Node Version:', process.version);
+    logKeyValue('Platform:', `${process.platform} ${process.arch}`);
+  });
+
+  // Server Configuration
+  logSection('SERVER CONFIGURATION', '🌐', () => {
+    logKeyValue('Addon Name:', Env.ADDON_NAME);
+    logKeyValue('Addon ID:', Env.ADDON_ID);
+    logKeyValue('Port:', Env.PORT.toString());
+    logKeyValue('Base URL:', Env.BASE_URL || 'Not configured');
+    if (Env.ADDON_PROXY) {
+      logKeyValue('Proxy URL:', Env.ADDON_PROXY);
+    }
+    if (Env.ADDON_PROXY_CONFIG) {
+      logKeyValue('Proxy Config:', Env.ADDON_PROXY_CONFIG);
+    }
+    if (Env.CUSTOM_HTML) {
+      logKeyValue('Custom HTML:', '✅ Configured');
+    }
+    logKeyValue(
+      'Self Scraping:',
+      Env.DISABLE_SELF_SCRAPING ? '❌ Disabled' : '✅ Enabled'
+    );
+  });
+
+  // Database & Storage
+  logSection('DATABASE & STORAGE', '💾', () => {
+    const dbType = Env.DATABASE_URI.split('://')[0].toUpperCase();
+    logKeyValue('Database Type:', dbType);
+    if (Env.DATABASE_URI.includes('sqlite')) {
+      const dbPath =
+        Env.DATABASE_URI.replace('sqlite://', '') || './data/db.sqlite';
+      logKeyValue('Database Path:', dbPath);
+    } else {
+      logKeyValue(
+        'Database URI:',
+        Env.DATABASE_URI.replace(/:\/\/.*@/, '://***@')
+      ); // Hide credentials
+    }
+  });
+
+  // Logging Configuration
+  logSection('LOGGING CONFIGURATION', '📝', () => {
+    logKeyValue('Log Level:', Env.LOG_LEVEL.toUpperCase());
+    logKeyValue('Log Format:', Env.LOG_FORMAT.toUpperCase());
+    logKeyValue('Timezone:', `${Env.TZ} (Logs: ${Env.LOG_TIMEZONE})`);
+    logKeyValue(
+      'Sensitive Info:',
+      Env.LOG_SENSITIVE_INFO ? '⚠️  ENABLED' : '❌ Disabled'
+    );
+  });
+
+  // Cache Configuration
+  logSection('⚡ CACHE CONFIGURATION', '⚡', () => {
+    logKeyValue('Max Cache Size:', formatBytes(Env.DEFAULT_MAX_CACHE_SIZE));
+
+    // Proxy IP Cache
+    if (Env.PROXY_IP_CACHE_TTL === -1) {
+      logKeyValue('Proxy IP Cache:', '❌ DISABLED');
+    } else {
+      logKeyValue('Proxy IP TTL:', formatDuration(Env.PROXY_IP_CACHE_TTL));
+    }
+
+    // Manifest Cache
+    if (Env.MANIFEST_CACHE_TTL === -1) {
+      logKeyValue('Manifest Cache:', '❌ DISABLED');
+    } else {
+      logKeyValue('Manifest TTL:', formatDuration(Env.MANIFEST_CACHE_TTL));
+    }
+
+    // Stream Cache
+    if (Env.STREAM_CACHE_TTL === -1) {
+      logKeyValue('Stream Cache:', '❌ DISABLED');
+    } else {
+      logKeyValue('Stream TTL:', formatDuration(Env.STREAM_CACHE_TTL));
+    }
+
+    // Subtitle Cache
+    if (Env.SUBTITLE_CACHE_TTL === -1) {
+      logKeyValue('Subtitle Cache:', '❌ DISABLED');
+    } else {
+      logKeyValue('Subtitle TTL:', formatDuration(Env.SUBTITLE_CACHE_TTL));
+    }
+
+    // Catalog Cache
+    if (Env.CATALOG_CACHE_TTL === -1) {
+      logKeyValue('Catalog Cache:', '❌ DISABLED');
+    } else {
+      logKeyValue('Catalog TTL:', formatDuration(Env.CATALOG_CACHE_TTL));
+    }
+
+    // Meta Cache
+    if (Env.META_CACHE_TTL === -1) {
+      logKeyValue('Meta Cache:', '❌ DISABLED');
+    } else {
+      logKeyValue('Meta TTL:', formatDuration(Env.META_CACHE_TTL));
+    }
+
+    // Addon Catalog Cache
+    if (Env.ADDON_CATALOG_CACHE_TTL === -1) {
+      logKeyValue('Addon Catalog Cache:', '❌ DISABLED');
+    } else {
+      logKeyValue(
+        'Addon Catalog TTL:',
+        formatDuration(Env.ADDON_CATALOG_CACHE_TTL)
+      );
+    }
+
+    // RPDB API Cache
+    if (Env.RPDB_API_KEY_VALIDITY_CACHE_TTL === -1) {
+      logKeyValue('RPDB API Cache:', '❌ DISABLED');
+    } else {
+      logKeyValue(
+        'RPDB API TTL:',
+        formatDuration(Env.RPDB_API_KEY_VALIDITY_CACHE_TTL)
+      );
+    }
+  });
+  // Rate Limiting
+  if (!Env.DISABLE_RATE_LIMITS) {
+    logSection('RATE LIMITING', '🛡️', () => {
+      logKeyValue(
+        'Static Files:',
+        `${Env.STATIC_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.STATIC_RATE_LIMIT_WINDOW)}`
+      );
+      logKeyValue(
+        'User API:',
+        `${Env.USER_API_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.USER_API_RATE_LIMIT_WINDOW)}`
+      );
+      logKeyValue(
+        'Stream API:',
+        `${Env.STREAM_API_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.STREAM_API_RATE_LIMIT_WINDOW)}`
+      );
+      logKeyValue(
+        'Format API:',
+        `${Env.FORMAT_API_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.FORMAT_API_RATE_LIMIT_WINDOW)}`
+      );
+      logKeyValue(
+        'Catalog API:',
+        `${Env.CATALOG_API_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.CATALOG_API_RATE_LIMIT_WINDOW)}`
+      );
+      logKeyValue(
+        'Stremio Stream:',
+        `${Env.STREMIO_STREAM_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.STREMIO_STREAM_RATE_LIMIT_WINDOW)}`
+      );
+      logKeyValue(
+        'Stremio Catalog:',
+        `${Env.STREMIO_CATALOG_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.STREMIO_CATALOG_RATE_LIMIT_WINDOW)}`
+      );
+      logKeyValue(
+        'Stremio Manifest:',
+        `${Env.STREMIO_MANIFEST_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.STREMIO_MANIFEST_RATE_LIMIT_WINDOW)}`
+      );
+      logKeyValue(
+        'Stremio Subtitle:',
+        `${Env.STREMIO_SUBTITLE_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.STREMIO_SUBTITLE_RATE_LIMIT_WINDOW)}`
+      );
+      logKeyValue(
+        'Stremio Meta:',
+        `${Env.STREMIO_META_RATE_LIMIT_MAX_REQUESTS}/${formatDuration(Env.STREMIO_META_RATE_LIMIT_WINDOW)}`
+      );
+    });
+  } else {
+    logSection(
+      'RATE LIMITING',
+      '🛡️',
+      () => {
+        logKeyValue('Status:', '❌ DISABLED');
+      },
+      true
+    );
+  }
+
+  // Security & Access
+  logSection('SECURITY & ACCESS', '🔐', () => {
+    logKeyValue('Password Protected:', Env.ADDON_PASSWORD ? '✅ YES' : '❌ NO');
+    logKeyValue('Secret Key:', Env.SECRET_KEY ? '✅ Configured' : '❌ Not set');
+    logKeyValue('Regex Access:', Env.REGEX_FILTER_ACCESS.toUpperCase());
+
+    if (Env.TRUSTED_UUIDS) {
+      const trustedCount = Env.TRUSTED_UUIDS.split(',').length;
+      logKeyValue('Trusted UUIDs:', `${trustedCount} configured`);
+    } else {
+      logKeyValue('Trusted UUIDs:', '❌ None');
+    }
+
+    if (Object.keys(Env.ALIASED_CONFIGURATIONS).length > 0) {
+      logKeyValue(
+        'Aliased Configs:',
+        `${Object.keys(Env.ALIASED_CONFIGURATIONS).length} configured`
+      );
+      Object.entries(Env.ALIASED_CONFIGURATIONS).forEach(
+        ([alias, { uuid, password }]) => {
+          logKeyValue(`  → ${alias}:`, `${uuid}:${password}`, '       ');
+        }
+      );
+    } else {
+      logKeyValue('Aliased Configs:', '❌ None');
+    }
+  });
+
+  // System Limits
+  logSection('SYSTEM LIMITS', '📊', () => {
+    logKeyValue('Max Addons:', Env.MAX_ADDONS.toString());
+    logKeyValue('Max Groups:', Env.MAX_GROUPS.toString());
+    logKeyValue('Max Keyword Filters:', Env.MAX_KEYWORD_FILTERS.toString());
+    logKeyValue('Max Condition Filters:', Env.MAX_CONDITION_FILTERS.toString());
+    logKeyValue(
+      'Timeout Range:',
+      `${formatMilliseconds(Env.MIN_TIMEOUT)} - ${formatMilliseconds(Env.MAX_TIMEOUT)}`
+    );
+    logKeyValue('Default Timeout:', formatMilliseconds(Env.DEFAULT_TIMEOUT));
+    logKeyValue('Default User Agent:', Env.DEFAULT_USER_AGENT);
+  });
+
+  // Recursion Protection
+  logSection('RECURSION PROTECTION', '🔄', () => {
+    logKeyValue('Threshold Limit:', Env.RECURSION_THRESHOLD_LIMIT.toString());
+    logKeyValue('Time Window:', formatDuration(Env.RECURSION_THRESHOLD_WINDOW));
+  });
+
+  // Blocked Items
+  const blockedHosts = parseBlockedItems(Env.DISABLED_HOSTS);
+  const blockedAddons = parseBlockedItems(Env.DISABLED_ADDONS);
+  const blockedServices = parseBlockedItems(Env.DISABLED_SERVICES);
+
+  if (
+    blockedHosts.length > 0 ||
+    blockedAddons.length > 0 ||
+    blockedServices.length > 0
+  ) {
+    logSection('BLOCKED ITEMS', '🚫', () => {
+      if (blockedHosts.length > 0) {
+        logKeyValue('Blocked Hosts:', `${blockedHosts.length} items`);
+        blockedHosts.forEach(({ name, reason }) => {
+          logKeyValue(`  → ${name}:`, reason, '       ');
+        });
+      } else {
+        logKeyValue('Blocked Hosts:', '❌ None');
+      }
+
+      if (blockedAddons.length > 0) {
+        logKeyValue('Blocked Addons:', `${blockedAddons.length} items`);
+        blockedAddons.forEach(({ name, reason }) => {
+          logKeyValue(`  → ${name}:`, reason, '       ');
+        });
+      } else {
+        logKeyValue('Blocked Addons:', '❌ None');
+      }
+
+      if (blockedServices.length > 0) {
+        logKeyValue('Blocked Services:', `${blockedServices.length} items`);
+        blockedServices.forEach(({ name, reason }) => {
+          logKeyValue(`  → ${name}:`, reason, '       ');
+        });
+      } else {
+        logKeyValue('Blocked Services:', '❌ None');
+      }
+    });
+  }
+
+  // Default Service Credentials
+  const defaultServices = [
+    { name: 'RealDebrid', key: Env.DEFAULT_REALDEBRID_API_KEY },
+    { name: 'AllDebrid', key: Env.DEFAULT_ALLDEBRID_API_KEY },
+    { name: 'Premiumize', key: Env.DEFAULT_PREMIUMIZE_API_KEY },
+    { name: 'DebridLink', key: Env.DEFAULT_DEBRIDLINK_API_KEY },
+    { name: 'TorBox', key: Env.DEFAULT_TORBOX_API_KEY },
+    { name: 'OffCloud', key: Env.DEFAULT_OFFCLOUD_API_KEY },
+    { name: 'OffCloud Email', key: Env.DEFAULT_OFFCLOUD_EMAIL },
+    { name: 'OffCloud Password', key: Env.DEFAULT_OFFCLOUD_PASSWORD },
+    { name: 'PutIO Client', key: Env.DEFAULT_PUTIO_CLIENT_ID },
+    { name: 'PutIO Secret', key: Env.DEFAULT_PUTIO_CLIENT_SECRET },
+    { name: 'EasyNews', key: Env.DEFAULT_EASYNEWS_USERNAME },
+    { name: 'EasyNews Password', key: Env.DEFAULT_EASYNEWS_PASSWORD },
+    { name: 'EasyDebrid', key: Env.DEFAULT_EASYDEBRID_API_KEY },
+    { name: 'PikPak', key: Env.DEFAULT_PIKPAK_EMAIL },
+    { name: 'PikPak Password', key: Env.DEFAULT_PIKPAK_PASSWORD },
+    { name: 'Seedr', key: Env.DEFAULT_SEEDR_ENCODED_TOKEN },
+  ];
+
+  logSection('DEFAULT SERVICE CREDENTIALS', '🔑', () => {
+    const configuredServices = defaultServices.filter((service) => service.key);
+    if (configuredServices.length > 0) {
+      configuredServices.forEach((service) => {
+        logKeyValue(service.name + ':', '✅ Configured');
+      });
+    } else {
+      logKeyValue('Status:', '❌ None configured');
+    }
+  });
+
+  // Forced Service Credentials
+  const forcedServices = [
+    { name: 'RealDebrid', key: Env.FORCED_REALDEBRID_API_KEY },
+    { name: 'AllDebrid', key: Env.FORCED_ALLDEBRID_API_KEY },
+    { name: 'Premiumize', key: Env.FORCED_PREMIUMIZE_API_KEY },
+    { name: 'DebridLink', key: Env.FORCED_DEBRIDLINK_API_KEY },
+    { name: 'TorBox', key: Env.FORCED_TORBOX_API_KEY },
+    { name: 'OffCloud', key: Env.FORCED_OFFCLOUD_API_KEY },
+    { name: 'OffCloud Email', key: Env.FORCED_OFFCLOUD_EMAIL },
+    { name: 'OffCloud Password', key: Env.FORCED_OFFCLOUD_PASSWORD },
+    { name: 'PutIO Client', key: Env.FORCED_PUTIO_CLIENT_ID },
+    { name: 'PutIO Secret', key: Env.FORCED_PUTIO_CLIENT_SECRET },
+    { name: 'EasyNews', key: Env.FORCED_EASYNEWS_USERNAME },
+    { name: 'EasyNews Password', key: Env.FORCED_EASYNEWS_PASSWORD },
+    { name: 'EasyDebrid', key: Env.FORCED_EASYDEBRID_API_KEY },
+    { name: 'PikPak', key: Env.FORCED_PIKPAK_EMAIL },
+    { name: 'PikPak Password', key: Env.FORCED_PIKPAK_PASSWORD },
+    { name: 'Seedr', key: Env.FORCED_SEEDR_ENCODED_TOKEN },
+  ];
+
+  const configuredForcedServices = forcedServices.filter(
+    (service) => service.key
+  );
+  if (configuredForcedServices.length > 0) {
+    logSection('FORCED SERVICE CREDENTIALS', '🔒', () => {
+      configuredForcedServices.forEach((service) => {
+        logKeyValue(service.name + ':', '⚠️  ENFORCED');
+      });
+    });
+  }
+
+  // Proxy Configuration
+  const hasForceProxy = Env.FORCE_PROXY_ENABLED || Env.FORCE_PROXY_URL;
+  const hasDefaultProxy = Env.DEFAULT_PROXY_ENABLED || Env.DEFAULT_PROXY_URL;
+
+  if (hasForceProxy || hasDefaultProxy) {
+    logSection('PROXY CONFIGURATION', '🌐', () => {
+      if (hasForceProxy) {
+        logKeyValue('Forced Proxy:', '⚠️  ENABLED');
+        if (Env.FORCE_PROXY_ID) {
+          logKeyValue('Force Service:', Env.FORCE_PROXY_ID);
+        }
+        if (Env.FORCE_PROXY_URL) {
+          logKeyValue('Force URL:', Env.FORCE_PROXY_URL);
+        }
+        if (Env.FORCE_PROXY_CREDENTIALS) {
+          logKeyValue('Force Credentials:', '✅ Configured');
+        }
+        if (Env.FORCE_PROXY_PUBLIC_IP) {
+          logKeyValue('Force Public IP:', Env.FORCE_PROXY_PUBLIC_IP);
+        }
+        logKeyValue(
+          'Disable Proxied:',
+          Env.FORCE_PROXY_DISABLE_PROXIED_ADDONS ? '✅ Yes' : '❌ No'
+        );
+        if (Env.FORCE_PROXY_PROXIED_SERVICES) {
+          logKeyValue(
+            'Proxied Services:',
+            JSON.stringify(Env.FORCE_PROXY_PROXIED_SERVICES)
+          );
+        }
+      }
+
+      if (hasDefaultProxy) {
+        logKeyValue('Default Proxy:', '✅ CONFIGURED');
+        if (Env.DEFAULT_PROXY_ID) {
+          logKeyValue('Default Service:', Env.DEFAULT_PROXY_ID);
+        }
+        if (Env.DEFAULT_PROXY_URL) {
+          logKeyValue('Default URL:', Env.DEFAULT_PROXY_URL);
+        }
+        if (Env.DEFAULT_PROXY_CREDENTIALS) {
+          logKeyValue('Default Credentials:', '✅ Configured');
+        }
+        if (Env.DEFAULT_PROXY_PUBLIC_IP) {
+          logKeyValue('Default Public IP:', Env.DEFAULT_PROXY_PUBLIC_IP);
+        }
+        if (Env.DEFAULT_PROXY_PROXIED_SERVICES) {
+          logKeyValue(
+            'Proxied Services:',
+            JSON.stringify(Env.DEFAULT_PROXY_PROXIED_SERVICES)
+          );
+        }
+      }
+    });
+  }
+
+  // External Services Configuration
+  logSection('EXTERNAL SERVICES', '🌍', () => {
+    // Stremio Config
+    logKeyValue('Stremio Config Issuer:', Env.STREMIO_ADDONS_CONFIG_ISSUER);
+    logKeyValue(
+      'Stremio Signature:',
+      Env.STREMIO_ADDONS_CONFIG_SIGNATURE ? '✅ Configured' : '❌ None'
+    );
+
+    // TMDB
+    logKeyValue(
+      'TMDB Access Token:',
+      Env.TMDB_ACCESS_TOKEN ? '✅ Configured' : '❌ None'
+    );
+  });
+
+  // Addon Sources
+  logSection('ADDONS', '🎬', () => {
+    // Comet
+    logKeyValue('Comet:', Env.COMET_URL);
+    if (Env.DEFAULT_COMET_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_COMET_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_COMET_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_COMET_USER_AGENT, '     ');
+    }
+    logKeyValue(
+      '  Indexers:',
+      JSON.stringify(Env.DEFAULT_COMET_INDEXERS),
+      '     '
+    );
+    if (Env.FORCE_COMET_HOSTNAME) {
+      logKeyValue(
+        '  Force Host:',
+        `${Env.FORCE_COMET_PROTOCOL || 'https'}://${Env.FORCE_COMET_HOSTNAME}:${Env.FORCE_COMET_PORT || 443}`,
+        '     '
+      );
+    }
+
+    // MediaFusion
+    logKeyValue('MediaFusion:', Env.MEDIAFUSION_URL);
+    if (Env.DEFAULT_MEDIAFUSION_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_MEDIAFUSION_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_MEDIAFUSION_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_MEDIAFUSION_USER_AGENT, '     ');
+    }
+    logKeyValue(
+      '  API Password:',
+      Env.MEDIAFUSION_API_PASSWORD ? '✅ Configured' : '❌ None',
+      '     '
+    );
+
+    // Jackettio
+    logKeyValue('Jackettio:', Env.JACKETTIO_URL);
+    if (Env.DEFAULT_JACKETTIO_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_JACKETTIO_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_JACKETTIO_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_JACKETTIO_USER_AGENT, '     ');
+    }
+    logKeyValue(
+      '  Indexers:',
+      JSON.stringify(Env.DEFAULT_JACKETTIO_INDEXERS),
+      '     '
+    );
+    logKeyValue(
+      '  StremThru URL:',
+      Env.DEFAULT_JACKETTIO_STREMTHRU_URL,
+      '     '
+    );
+    if (Env.FORCE_JACKETTIO_HOSTNAME) {
+      logKeyValue(
+        '  Force Host:',
+        `${Env.FORCE_JACKETTIO_PROTOCOL || 'https'}://${Env.FORCE_JACKETTIO_HOSTNAME}:${Env.FORCE_JACKETTIO_PORT || 443}`,
+        '     '
+      );
+    }
+
+    // Torrentio
+    logKeyValue('Torrentio:', Env.TORRENTIO_URL);
+    if (Env.DEFAULT_TORRENTIO_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_TORRENTIO_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_TORRENTIO_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_TORRENTIO_USER_AGENT, '     ');
+    }
+
+    // Orion
+    logKeyValue('Orion:', Env.ORION_STREMIO_ADDON_URL);
+    if (Env.DEFAULT_ORION_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_ORION_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_ORION_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_ORION_USER_AGENT, '     ');
+    }
+
+    // Peerflix
+    logKeyValue('Peerflix:', Env.PEERFLIX_URL);
+    if (Env.DEFAULT_PEERFLIX_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_PEERFLIX_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_PEERFLIX_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_PEERFLIX_USER_AGENT, '     ');
+    }
+
+    // Torbox Stremio
+    logKeyValue('Torbox Stremio:', Env.TORBOX_STREMIO_URL);
+    if (Env.DEFAULT_TORBOX_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_TORBOX_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_TORBOX_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_TORBOX_USER_AGENT, '     ');
+    }
+
+    // Easynews
+    logKeyValue('Easynews:', Env.EASYNEWS_URL);
+    if (Env.DEFAULT_EASYNEWS_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_EASYNEWS_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_EASYNEWS_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_EASYNEWS_USER_AGENT, '     ');
+    }
+
+    // Easynews+
+    logKeyValue('Easynews+:', Env.EASYNEWS_PLUS_URL);
+    if (Env.DEFAULT_EASYNEWS_PLUS_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_EASYNEWS_PLUS_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_EASYNEWS_PLUS_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_EASYNEWS_PLUS_USER_AGENT,
+        '     '
+      );
+    }
+
+    // Easynews++
+    logKeyValue('Easynews++:', Env.EASYNEWS_PLUS_PLUS_URL);
+    if (Env.DEFAULT_EASYNEWS_PLUS_PLUS_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_EASYNEWS_PLUS_PLUS_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_EASYNEWS_PLUS_PLUS_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_EASYNEWS_PLUS_PLUS_USER_AGENT,
+        '     '
+      );
+    }
+    if (Env.EASYNEWS_PLUS_PLUS_PUBLIC_URL) {
+      logKeyValue('  Public URL:', Env.EASYNEWS_PLUS_PLUS_PUBLIC_URL, '     ');
+    }
+
+    // Debridio (Main)
+    logKeyValue('Debridio:', Env.DEBRIDIO_URL);
+    if (Env.DEFAULT_DEBRIDIO_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_DEBRIDIO_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_DEBRIDIO_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_DEBRIDIO_USER_AGENT, '     ');
+    }
+
+    // Debridio TVDB
+    logKeyValue('Debridio TVDB:', Env.DEBRIDIO_TVDB_URL);
+    if (Env.DEFAULT_DEBRIDIO_TVDB_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_DEBRIDIO_TVDB_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_DEBRIDIO_TVDB_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_DEBRIDIO_TVDB_USER_AGENT,
+        '     '
+      );
+    }
+
+    // Debridio TMDB
+    logKeyValue('Debridio TMDB:', Env.DEBRIDIO_TMDB_URL);
+    if (Env.DEFAULT_DEBRIDIO_TMDB_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_DEBRIDIO_TMDB_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_DEBRIDIO_TMDB_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_DEBRIDIO_TMDB_USER_AGENT,
+        '     '
+      );
+    }
+
+    // Debridio TV
+    logKeyValue('Debridio TV:', Env.DEBRIDIO_TV_URL);
+    if (Env.DEFAULT_DEBRIDIO_TV_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_DEBRIDIO_TV_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_DEBRIDIO_TV_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_DEBRIDIO_TV_USER_AGENT, '     ');
+    }
+
+    // Debridio Watchtower
+    logKeyValue('Debridio Watchtower:', Env.DEBRIDIO_WATCHTOWER_URL);
+    if (Env.DEFAULT_DEBRIDIO_WATCHTOWER_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_DEBRIDIO_WATCHTOWER_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_DEBRIDIO_WATCHTOWER_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_DEBRIDIO_WATCHTOWER_USER_AGENT,
+        '     '
+      );
+    }
+
+    // StremThru Store
+    logKeyValue('StremThru Store:', Env.STREMTHRU_STORE_URL);
+    if (Env.DEFAULT_STREMTHRU_STORE_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_STREMTHRU_STORE_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_STREMTHRU_STORE_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_STREMTHRU_STORE_USER_AGENT,
+        '     '
+      );
+    }
+
+    // StremThru Torz
+    logKeyValue('StremThru Torz:', Env.STREMTHRU_TORZ_URL);
+    if (Env.DEFAULT_STREMTHRU_TORZ_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_STREMTHRU_TORZ_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_STREMTHRU_TORZ_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_STREMTHRU_TORZ_USER_AGENT,
+        '     '
+      );
+    }
+
+    // StreamFusion
+    logKeyValue('StreamFusion:', Env.DEFAULT_STREAMFUSION_URL);
+    if (Env.DEFAULT_STREAMFUSION_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_STREAMFUSION_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_STREAMFUSION_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_STREAMFUSION_USER_AGENT,
+        '     '
+      );
+    }
+    logKeyValue(
+      '  StremThru URL:',
+      Env.DEFAULT_STREAMFUSION_STREMTHRU_URL,
+      '     '
+    );
+
+    // DMM Cast (Note: no URL env var, only timeout and user agent)
+    if (Env.DEFAULT_DMM_CAST_TIMEOUT || Env.DEFAULT_DMM_CAST_USER_AGENT) {
+      logKeyValue('DMM Cast:', 'Configuration only');
+      if (Env.DEFAULT_DMM_CAST_TIMEOUT) {
+        logKeyValue(
+          '  Timeout:',
+          formatMilliseconds(Env.DEFAULT_DMM_CAST_TIMEOUT),
+          '     '
+        );
+      }
+      if (Env.DEFAULT_DMM_CAST_USER_AGENT) {
+        logKeyValue('  User Agent:', Env.DEFAULT_DMM_CAST_USER_AGENT, '     ');
+      }
+    }
+
+    // OpenSubtitles
+    logKeyValue('OpenSubtitles:', Env.OPENSUBTITLES_URL);
+    if (Env.DEFAULT_OPENSUBTITLES_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_OPENSUBTITLES_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_OPENSUBTITLES_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_OPENSUBTITLES_USER_AGENT,
+        '     '
+      );
+    }
+
+    // Marvel Universe
+    logKeyValue('Marvel Universe:', Env.MARVEL_UNIVERSE_URL);
+    if (Env.DEFAULT_MARVEL_CATALOG_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_MARVEL_CATALOG_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_MARVEL_CATALOG_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_MARVEL_CATALOG_USER_AGENT,
+        '     '
+      );
+    }
+
+    // DC Universe
+    logKeyValue('DC Universe:', Env.DC_UNIVERSE_URL);
+    if (Env.DEFAULT_DC_UNIVERSE_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_DC_UNIVERSE_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_DC_UNIVERSE_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_DC_UNIVERSE_USER_AGENT, '     ');
+    }
+
+    // Star Wars Universe
+    logKeyValue('Star Wars Universe:', Env.DEFAULT_STAR_WARS_UNIVERSE_URL);
+    if (Env.DEFAULT_STAR_WARS_UNIVERSE_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_STAR_WARS_UNIVERSE_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_STAR_WARS_UNIVERSE_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_STAR_WARS_UNIVERSE_USER_AGENT,
+        '     '
+      );
+    }
+
+    // Anime Kitsu
+    logKeyValue('Anime Kitsu:', Env.ANIME_KITSU_URL);
+    if (Env.DEFAULT_ANIME_KITSU_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_ANIME_KITSU_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_ANIME_KITSU_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_ANIME_KITSU_USER_AGENT, '     ');
+    }
+
+    // NuvioStreams
+    logKeyValue('NuvioStreams:', Env.NUVIOSTREAMS_URL);
+    if (Env.DEFAULT_NUVIOSTREAMS_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_NUVIOSTREAMS_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_NUVIOSTREAMS_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_NUVIOSTREAMS_USER_AGENT,
+        '     '
+      );
+    }
+
+    // Torrent Catalogs
+    logKeyValue('Torrent Catalogs:', Env.TORRENT_CATALOGS_URL);
+    if (Env.DEFAULT_TORRENT_CATALOGS_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_TORRENT_CATALOGS_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_TORRENT_CATALOGS_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_TORRENT_CATALOGS_USER_AGENT,
+        '     '
+      );
+    }
+
+    // TMDB Collections
+    logKeyValue('TMDB Collections:', Env.TMDB_COLLECTIONS_URL);
+    if (Env.DEFAULT_TMDB_COLLECTIONS_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_TMDB_COLLECTIONS_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_TMDB_COLLECTIONS_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_TMDB_COLLECTIONS_USER_AGENT,
+        '     '
+      );
+    }
+
+    // RPDB Catalogs
+    logKeyValue('RPDB Catalogs:', Env.RPDB_CATALOGS_URL);
+    if (Env.DEFAULT_RPDB_CATALOGS_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_RPDB_CATALOGS_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_RPDB_CATALOGS_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_RPDB_CATALOGS_USER_AGENT,
+        '     '
+      );
+    }
+
+    // Streaming Catalogs
+    logKeyValue('Streaming Catalogs:', Env.STREAMING_CATALOGS_URL);
+    if (Env.DEFAULT_STREAMING_CATALOGS_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_STREAMING_CATALOGS_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_STREAMING_CATALOGS_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_STREAMING_CATALOGS_USER_AGENT,
+        '     '
+      );
+    }
+
+    // Anime Catalogs
+    logKeyValue('Anime Catalogs:', Env.ANIME_CATALOGS_URL);
+    if (Env.DEFAULT_ANIME_CATALOGS_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_ANIME_CATALOGS_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_ANIME_CATALOGS_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_ANIME_CATALOGS_USER_AGENT,
+        '     '
+      );
+    }
+
+    // Doctor Who Universe
+    logKeyValue('Doctor Who Universe:', Env.DOCTOR_WHO_UNIVERSE_URL);
+    if (Env.DEFAULT_DOCTOR_WHO_UNIVERSE_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_DOCTOR_WHO_UNIVERSE_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_DOCTOR_WHO_UNIVERSE_USER_AGENT) {
+      logKeyValue(
+        '  User Agent:',
+        Env.DEFAULT_DOCTOR_WHO_UNIVERSE_USER_AGENT,
+        '     '
+      );
+    }
+
+    // WebStreamr
+    logKeyValue('WebStreamr:', Env.WEBSTREAMR_URL);
+    if (Env.DEFAULT_WEBSTREAMR_TIMEOUT) {
+      logKeyValue(
+        '  Timeout:',
+        formatMilliseconds(Env.DEFAULT_WEBSTREAMR_TIMEOUT),
+        '     '
+      );
+    }
+    if (Env.DEFAULT_WEBSTREAMR_USER_AGENT) {
+      logKeyValue('  User Agent:', Env.DEFAULT_WEBSTREAMR_USER_AGENT, '     ');
+    }
+  });
+
+  // Additional Features
+  const features: string[] = [];
+  if (Env.TMDB_ACCESS_TOKEN) features.push('TMDB Integration');
+  if (Env.CUSTOM_HTML) features.push('Custom HTML');
+  if (Env.ENCRYPT_MEDIAFLOW_URLS) features.push('MediaFlow URL Encryption');
+  if (Env.ENCRYPT_STREMTHRU_URLS) features.push('StremThru URL Encryption');
+
+  if (features.length > 0) {
+    logSection('ADDITIONAL FEATURES', '✨', () => {
+      features.forEach((feature) => {
+        logKeyValue(feature + ':', '✅ ENABLED');
+      });
+    });
+  }
+
+  // Maintenance & Cleanup
+  logSection('MAINTENANCE', '🧹', () => {
+    logKeyValue('Prune Interval:', formatDuration(Env.PRUNE_INTERVAL));
+    logKeyValue('Prune Max Age:', `${Env.PRUNE_MAX_DAYS} days`);
+  });
+
+  // Footer
+  logger.info(
+    '╔═══════════════════════════════════════════════════════════════╗'
+  );
+  logger.info(
+    '║                  🎬 AIOStreams Ready!                         ║'
+  );
+  logger.info(
+    '║           All systems initialized successfully                ║'
+  );
+  logger.info(
+    '╚═══════════════════════════════════════════════════════════════╝'
+  );
+  logger.info('');
+};
+
+export { logStartupInfo };

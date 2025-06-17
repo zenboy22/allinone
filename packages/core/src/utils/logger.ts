@@ -14,6 +14,7 @@ const levelMap: { [key: string]: string } = {
 };
 
 const moduleMap: { [key: string]: string } = {
+  startup: '🚀  STARTUP',
   server: '🌐  SERVER',
   wrappers: '📦  WRAPPERS',
   crypto: '🔒  CRYPTO',
