@@ -24,6 +24,7 @@ export class DebridioPreset extends Preset {
         Env.DEFAULT_DEBRIDIO_TIMEOUT
       ),
       debridioSocialOption,
+      // for when debridio supports multiple services
       // {
       //   id: 'services',
       //   name: 'Services',
