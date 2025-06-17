@@ -33,8 +33,8 @@ const Formatter = z.object({
   id: z.enum(constants.FORMATTERS),
   definition: z
     .object({
-      name: z.string().min(1).max(5000),
-      description: z.string().min(1).max(5000),
+      name: z.string().max(5000),
+      description: z.string().max(5000),
     })
     .optional(),
 });
