@@ -496,6 +496,13 @@ export class AIOStreams {
           reason: candidate.reason,
         });
 
+        // don't push errors if the reason for trying was general type support
+        // this is to ensure that we don't block stremio from making requests to other addons
+        // which may potentially be the intended addon
+        if (candidate.reason === 'general type support') {
+          continue;
+        }
+
         errors.push({
           title: `[❌] ${candidate.addon.name}`,
           description: errorMessage,
