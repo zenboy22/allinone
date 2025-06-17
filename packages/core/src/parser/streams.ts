@@ -93,15 +93,18 @@ class StreamParser {
     parsedStream.age = this.getAge(stream, parsedStream);
     parsedStream.message = this.getMessage(stream, parsedStream);
 
-    if (parsedStream.filename) {
-      parsedStream.parsedFile = FileParser.parse(parsedStream.filename);
-      parsedStream.parsedFile.languages = Array.from(
+    parsedStream.parsedFile = {
+      visualTags: [],
+      audioTags: [],
+      audioChannels: [],
+      ...(parsedStream.filename ? FileParser.parse(parsedStream.filename) : {}),
+      languages: Array.from(
         new Set([
-          ...parsedStream.parsedFile.languages,
+          ...(parsedStream.parsedFile?.languages ?? []),
           ...this.getLanguages(stream, parsedStream),
         ])
-      );
-    }
+      ),
+    };
 
     if (parsedStream.folderName && parsedStream.parsedFile) {
       const parsedFolder = FileParser.parse(parsedStream.folderName);

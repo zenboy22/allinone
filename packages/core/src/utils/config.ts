@@ -10,7 +10,7 @@ import {
 import { AIOStreams } from '../main';
 import { Preset, PresetManager } from '../presets';
 import { createProxy } from '../proxy';
-import { constants } from '.';
+import { constants, TMDBMetadata } from '.';
 import { isEncrypted, decryptString, encryptString } from './crypto';
 import { Env } from './env';
 import { createLogger, maskSensitiveInfo } from './logger';
@@ -342,6 +342,11 @@ export async function validateConfig(
     } catch (error) {
       throw new Error(`Invalid RPDB API key: ${error}`);
     }
+  }
+
+  if (config.titleMatching?.enabled === true) {
+    const tmdb = new TMDBMetadata(config.tmdbAccessToken);
+    await tmdb.validateAccessToken();
   }
 
   if (FeatureControl.disabledServices.size > 0) {

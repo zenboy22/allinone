@@ -1,10 +1,69 @@
-import { Addon, Option, UserData, Resource, Stream } from '../db';
+import { Addon, Option, UserData, Resource, Stream, ParsedStream } from '../db';
 import { Preset, baseOptions } from './preset';
 import { Env, SERVICE_DETAILS } from '../utils';
 import { constants, ServiceId } from '../utils';
-import { StreamParser } from '../parser';
+import { FileParser, StreamParser } from '../parser';
+
+class NuvioStreamsStreamParser extends StreamParser {
+  parse(stream: Stream): ParsedStream {
+    let parsedStream: ParsedStream = {
+      id: this.getRandomId(),
+      addon: this.addon,
+      type: 'http',
+      url: this.applyUrlModifications(stream.url ?? undefined),
+      externalUrl: stream.externalUrl ?? undefined,
+      ytId: stream.ytId ?? undefined,
+      requestHeaders: stream.behaviorHints?.proxyHeaders?.request,
+      responseHeaders: stream.behaviorHints?.proxyHeaders?.response,
+      notWebReady: stream.behaviorHints?.notWebReady ?? undefined,
+      videoHash: stream.behaviorHints?.videoHash ?? undefined,
+      originalName: stream.name ?? undefined,
+      originalDescription: (stream.description || stream.title) ?? undefined,
+    };
+
+    stream.description = stream.description || stream.title;
+
+    parsedStream.type = this.getStreamType(
+      stream,
+      parsedStream.service,
+      parsedStream
+    );
+
+    parsedStream.parsedFile = FileParser.parse(
+      `${stream.name}\n${stream.description}`
+    );
+    parsedStream.filename = stream.description?.split('\n')[0];
+    parsedStream.folderName = undefined;
+
+    parsedStream.message = stream.name
+      ?.replace(/\d+p?/gi, '')
+      ?.trim()
+      ?.replace(/-$/, '')
+      ?.trim();
+
+    if (stream.description?.split('\n')?.[-1]?.includes('⚠️')) {
+      parsedStream.message += `\n${stream.description?.split('\n')?.[-1]}`;
+    }
+
+    parsedStream.torrent = {
+      infoHash:
+        parsedStream.type === 'p2p'
+          ? (stream.infoHash ?? undefined)
+          : this.getInfoHash(stream, parsedStream),
+      seeders: this.getSeeders(stream, parsedStream),
+      sources: stream.sources ?? undefined,
+      fileIdx: stream.fileIdx ?? undefined,
+    };
+
+    return parsedStream;
+  }
+}
 
 export class NuvioStreamsPreset extends Preset {
+  static override getParser(): typeof StreamParser {
+    return NuvioStreamsStreamParser;
+  }
+
   static override get METADATA() {
     const supportedResources = [constants.STREAM_RESOURCE];
     const regions = [
@@ -131,15 +190,6 @@ export class NuvioStreamsPreset extends Preset {
         default: providers.map((provider) => provider.value),
       },
       {
-        id: 'streamPassthrough',
-        name: 'Stream Passthrough',
-        description:
-          'Whether to use the original stream name and description. Recommended to be left on in order to get all the information.',
-        type: 'boolean',
-        required: false,
-        default: true,
-      },
-      {
         id: 'socials',
         name: '',
         description: '',
@@ -182,7 +232,6 @@ export class NuvioStreamsPreset extends Preset {
       identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: this.generateManifestUrl(userData, options),
       enabled: true,
-      streamPassthrough: options.streamPassthrough ?? true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
       timeout: options.timeout || this.METADATA.TIMEOUT,
       presetType: this.METADATA.ID,

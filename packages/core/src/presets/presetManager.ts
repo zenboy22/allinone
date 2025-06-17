@@ -32,6 +32,7 @@ import { TorrentCatalogsPreset } from './torrentCatalogs';
 import { StreamingCatalogsPreset } from './streamingCatalogs';
 import { AnimeCatalogsPreset } from './animeCatalogs';
 import { DoctorWhoUniversePreset } from './doctorWhoUniverse';
+import { WebStreamrPreset } from './webstreamr';
 
 const PRESET_LIST: string[] = [
   'custom',
@@ -47,6 +48,7 @@ const PRESET_LIST: string[] = [
   'easynewsPlus',
   'easynewsPlusPlus',
   'nuvio-streams',
+  'webstreamr',
   'debridio',
   'debridio-tv',
   'debridio-watchtower',
@@ -138,6 +140,8 @@ export class PresetManager {
         return AnimeKitsuPreset;
       case 'nuvio-streams':
         return NuvioStreamsPreset;
+      case 'webstreamr':
+        return WebStreamrPreset;
       case 'streaming-catalogs':
         return StreamingCatalogsPreset;
       case 'anime-catalogs':

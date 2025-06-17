@@ -766,7 +766,7 @@ const PresetMetadataSchema = z.object({
       disabled: z.boolean(),
     })
     .optional(),
-  LOGO: z.string(),
+  LOGO: z.string().optional(),
   DESCRIPTION: z.string(),
   URL: z.string(),
   TIMEOUT: z.number(),
@@ -780,7 +780,7 @@ const PresetMetadataSchema = z.object({
 const PresetMinimalMetadataSchema = z.object({
   ID: z.string(),
   NAME: z.string(),
-  LOGO: z.string(),
+  LOGO: z.string().optional(),
   DESCRIPTION: z.string(),
   URL: z.string(),
   DISABLED: z

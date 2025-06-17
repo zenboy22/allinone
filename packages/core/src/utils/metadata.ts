@@ -18,6 +18,7 @@ const ALTERNATIVE_TITLES_PATH = '/alternative_titles';
 // Cache TTLs in seconds
 const ID_CACHE_TTL = 24 * 60 * 60; // 24 hours
 const TITLE_CACHE_TTL = 7 * 24 * 60 * 60; // 7 days
+const ACCESS_TOKEN_CACHE_TTL = 2 * 24 * 60 * 60; // 2 day
 
 export interface Metadata {
   titles: string[];
@@ -31,7 +32,7 @@ export class TMDBMetadata {
   private readonly idCache: Cache<string, string>;
   private readonly metadataCache: Cache<string, Metadata>;
   private readonly accessToken: string;
-
+  private readonly validationCache: Cache<string, boolean>;
   public constructor(accessToken?: string) {
     if (!accessToken && !Env.TMDB_ACCESS_TOKEN) {
       throw new Error('TMDB Access Token is not set');
@@ -39,6 +40,9 @@ export class TMDBMetadata {
     this.accessToken = (accessToken || Env.TMDB_ACCESS_TOKEN)!;
     this.idCache = Cache.getInstance<string, string>('tmdb_id_conversion');
     this.metadataCache = Cache.getInstance<string, Metadata>('tmdb_metadata');
+    this.validationCache = Cache.getInstance<string, boolean>(
+      'tmdb_validation'
+    );
   }
 
   private getHeaders(): Record<string, string> {
@@ -193,5 +197,27 @@ export class TMDBMetadata {
     // Cache the result
     this.metadataCache.set(cacheKey, metadata, TITLE_CACHE_TTL);
     return metadata;
+  }
+
+  public async validateAccessToken() {
+    const cacheKey = this.accessToken;
+    const cachedResult = this.validationCache.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+    const url = new URL(API_BASE_URL + '/authentication');
+    const validationResponse = await fetch(url, {
+      headers: this.getHeaders(),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!validationResponse.ok) {
+      throw new Error(
+        `Failed to validate TMDB access token: ${validationResponse.statusText}`
+      );
+    }
+    const validationData = await validationResponse.json();
+    const isValid = validationData.success;
+    this.validationCache.set(cacheKey, isValid, ACCESS_TOKEN_CACHE_TTL);
+    return isValid;
   }
 }

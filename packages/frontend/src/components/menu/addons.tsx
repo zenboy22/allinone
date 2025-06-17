@@ -62,6 +62,7 @@ import {
 } from '../ui/accordion';
 import { FaArrowRightLong, FaRankingStar, FaShuffle } from 'react-icons/fa6';
 import { PiStarFill, PiStarBold } from 'react-icons/pi';
+import { IoExtensionPuzzle } from 'react-icons/io5';
 
 interface CatalogModification {
   id: string;
@@ -610,12 +611,16 @@ function AddonCard({
           <div className="w-28 h-28 min-w-[7rem] min-h-[7rem] flex items-center justify-center rounded-lg bg-gray-900 text-[--brand] text-4xl">
             <PlusIcon className="w-12 h-12" />
           </div>
-        ) : (
+        ) : preset.LOGO ? (
           <img
             src={preset.LOGO}
             alt={preset.NAME}
             className="w-28 h-28 min-w-[7rem] min-h-[7rem] object-contain rounded-lg bg-gray-800"
           />
+        ) : (
+          <div className="w-28 h-28 min-w-[7rem] min-h-[7rem] flex items-center justify-center rounded-lg bg-gray-900 text-[--brand] text-4xl">
+            <IoExtensionPuzzle className="w-15 h-15" />
+          </div>
         )}
         <div className="flex flex-col min-w-0 flex-1">
           <div className="font-bold text-lg mb-1 truncate">{preset.NAME}</div>

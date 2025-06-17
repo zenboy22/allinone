@@ -1036,6 +1036,19 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default Doctor Who Universe user agent',
   }),
 
+  WEBSTREAMR_URL: url({
+    default: 'https://webstreamr.hayd.uk',
+    desc: 'WebStreamr URL',
+  }),
+  DEFAULT_WEBSTREAMR_TIMEOUT: num({
+    default: undefined,
+    desc: 'Default WebStreamr timeout',
+  }),
+  DEFAULT_WEBSTREAMR_USER_AGENT: userAgent({
+    default: undefined,
+    desc: 'Default WebStreamr user agent',
+  }),
+
   // Rate limiting settings
   DISABLE_RATE_LIMITS: bool({
     default: false,
