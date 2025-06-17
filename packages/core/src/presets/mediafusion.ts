@@ -343,7 +343,7 @@ export class MediaFusionPreset extends Preset {
         enable_catalogs: true,
         enable_imdb_metadata: false,
         max_size: 'inf',
-        max_streams_per_resolution: '10',
+        max_streams_per_resolution: '500',
         torrent_sorting_priority: [
           { key: 'language', direction: 'desc' },
           { key: 'cached', direction: 'desc' },
