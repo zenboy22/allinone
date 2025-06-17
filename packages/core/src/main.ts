@@ -1321,29 +1321,31 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return true;
       }
 
-      if (!streamTitle || (!streamYear && type === 'movie')) {
+      if (
+        !streamTitle ||
+        (titleMatchingOptions.matchYear && !streamYear && type === 'movie')
+      ) {
         // if a specific stream doesn't have a title or year, filter it out.
         return false;
       }
 
+      const yearMatch =
+        type === 'movie' && titleMatchingOptions.matchYear
+          ? requestedMetadata?.year === streamYear
+          : true;
+
       if (titleMatchingOptions.mode === 'exact') {
-        const titleMatch = requestedMetadata?.titles.some(
-          (title) => normaliseTitle(title) === normaliseTitle(streamTitle)
+        return (
+          requestedMetadata?.titles.some(
+            (title) => normaliseTitle(title) === normaliseTitle(streamTitle)
+          ) && yearMatch
         );
-        const yearMatch =
-          type === 'movie' && titleMatchingOptions.matchYear
-            ? requestedMetadata?.year === streamYear
-            : true;
-        return titleMatch && yearMatch;
       } else {
-        const titleMatch = requestedMetadata?.titles.some((title) =>
-          normaliseTitle(streamTitle).includes(normaliseTitle(title))
+        return (
+          requestedMetadata?.titles.some((title) =>
+            normaliseTitle(streamTitle).includes(normaliseTitle(title))
+          ) && yearMatch
         );
-        const yearMatch =
-          type === 'movie' && titleMatchingOptions.matchYear
-            ? requestedMetadata?.year === streamYear
-            : true;
-        return titleMatch && yearMatch;
       }
     };
 
