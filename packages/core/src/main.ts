@@ -21,6 +21,7 @@ import {
   PossibleRecursiveRequestError,
   decryptString,
   maskSensitiveInfo,
+  DSU,
 } from './utils';
 import { Wrapper } from './wrapper';
 import { PresetManager } from './presets';
@@ -2178,11 +2179,14 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     };
 
     // Group streams by their deduplication keys
-    const streamGroups = new Map<string, ParsedStream[]>();
+    // const streamGroups = new Map<string, ParsedStream[]>();
+    const dsu = new DSU<string>();
+    const keyToStreamIds = new Map<string, string[]>();
 
     for (const stream of streams) {
       // Create a unique key based on the selected deduplication methods
-      const keys: string[] = [];
+      dsu.makeSet(stream.id);
+      const currentStreamKeyStrings: string[] = [];
 
       if (deduplicationKeys.includes('filename') && stream.filename) {
         let normalisedFilename = stream.filename
@@ -2193,11 +2197,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
           .replace(/[^\p{L}\p{N}+]/gu, '')
           .replace(/\s+/g, '')
           .toLowerCase();
-        keys.push(`filename:${normalisedFilename}`);
+        currentStreamKeyStrings.push(`filename:${normalisedFilename}`);
       }
 
       if (deduplicationKeys.includes('infoHash') && stream.torrent?.infoHash) {
-        keys.push(`infoHash:${stream.torrent.infoHash}`);
+        currentStreamKeyStrings.push(`infoHash:${stream.torrent.infoHash}`);
       }
 
       if (deduplicationKeys.includes('smartDetect')) {
@@ -2209,27 +2213,43 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         const hash = getSimpleTextHash(
           `${roundedSize}${stream.parsedFile?.resolution}${stream.parsedFile?.quality}${stream.parsedFile?.visualTags}${stream.parsedFile?.audioTags}${stream.parsedFile?.languages}${stream.parsedFile?.encode}`
         );
-        keys.push(`smartDetect:${hash}`);
+        currentStreamKeyStrings.push(`smartDetect:${hash}`);
       }
 
-      // If no keys match, keep the stream
-      if (keys.length === 0) {
-        streamGroups.set(`unique_${Math.random()}`, [stream]);
-        continue;
-      }
-
-      // Add stream to all matching key groups
-      for (const key of keys) {
-        const group = streamGroups.get(key) || [];
-        group.push(stream);
-        streamGroups.set(key, group);
+      if (currentStreamKeyStrings.length > 0) {
+        for (const key of currentStreamKeyStrings) {
+          if (!keyToStreamIds.has(key)) {
+            keyToStreamIds.set(key, []);
+          }
+          keyToStreamIds.get(key)!.push(stream.id);
+        }
       }
     }
 
-    // Process each group based on stream types and deduplication modes
+    // Perform union operations based on shared keys
+    for (const streamIdsSharingCommonKey of keyToStreamIds.values()) {
+      if (streamIdsSharingCommonKey.length > 1) {
+        const firstStreamId = streamIdsSharingCommonKey[0];
+        for (let i = 1; i < streamIdsSharingCommonKey.length; i++) {
+          dsu.union(firstStreamId, streamIdsSharingCommonKey[i]);
+        }
+      }
+    }
+    // Group actual stream objects by their DSU representative ID
+    const idToStreamMap = new Map(streams.map((s) => [s.id, s])); // For quick lookup
+    const finalDuplicateGroupsMap = new Map<string, ParsedStream[]>(); // Maps representative ID to stream objects
+
+    for (const stream of streams) {
+      const representativeId = dsu.find(stream.id);
+      if (!finalDuplicateGroupsMap.has(representativeId)) {
+        finalDuplicateGroupsMap.set(representativeId, []);
+      }
+      finalDuplicateGroupsMap.get(representativeId)!.push(stream);
+    }
+
     const processedStreams = new Set<ParsedStream>();
 
-    for (const group of streamGroups.values()) {
+    for (const group of finalDuplicateGroupsMap.values()) {
       // Group streams by type
       const streamsByType = new Map<string, ParsedStream[]>();
       for (const stream of group) {
