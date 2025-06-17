@@ -33,8 +33,8 @@ const Formatter = z.object({
   id: z.enum(constants.FORMATTERS),
   definition: z
     .object({
-      name: z.string().min(1),
-      description: z.string().min(1),
+      name: z.string().min(1).max(5000),
+      description: z.string().min(1).max(5000),
     })
     .optional(),
 });
@@ -262,7 +262,7 @@ export const UserDataSchema = z.object({
   trusted: z.boolean().optional(),
   addonPassword: z.string().min(1).optional(),
   ip: z.string().ip().optional(),
-  addonName: z.string().min(1).optional(),
+  addonName: z.string().min(1).max(300).optional(),
   addonLogo: z.string().url().optional(),
   addonBackground: z.string().url().optional(),
   addonDescription: z.string().min(1).optional(),
@@ -306,11 +306,9 @@ export const UserDataSchema = z.object({
   includedKeywords: z.array(z.string().min(1)).optional(),
   excludedKeywords: z.array(z.string().min(1)).optional(),
   preferredKeywords: z.array(z.string().min(1)).optional(),
-
   randomiseResults: z.boolean().optional(),
   enhanceResults: z.boolean().optional(),
   enhancePosters: z.boolean().optional(),
-
   excludeSeederRange: z
     .tuple([z.number().min(0), z.number().min(0)])
     .optional(),

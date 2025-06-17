@@ -262,7 +262,25 @@ export async function validateConfig(
       'The password in the config does not match the password in the environment variables'
     );
   }
+  const validations = {
+    'excluded filter conditions': [
+      config.excludedFilterConditions,
+      Env.MAX_CONDITION_FILTERS,
+    ],
+    'excluded keywords': [config.excludedKeywords, Env.MAX_KEYWORD_FILTERS],
+    'included keywords': [config.includedKeywords, Env.MAX_KEYWORD_FILTERS],
+    'required keywords': [config.requiredKeywords, Env.MAX_KEYWORD_FILTERS],
+    'preferred keywords': [config.preferredKeywords, Env.MAX_KEYWORD_FILTERS],
+    groups: [config.groups, Env.MAX_GROUPS],
+  };
 
+  for (const [name, [items, max]] of Object.entries(validations)) {
+    if (items && max && (items as any[]).length > (max as number)) {
+      throw new Error(
+        `You have ${(items as any[]).length} ${name}, but the maximum is ${max}`
+      );
+    }
+  }
   // now, validate preset options and service credentials.
 
   if (config.presets) {

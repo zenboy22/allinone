@@ -355,15 +355,15 @@ export const Env = cleanEnv(process.env, {
     default: 30,
     desc: 'Max number of keyword filters',
   }),
+  MAX_CONDITION_FILTERS: num({
+    default: 30,
+    desc: 'Max number of condition filters',
+  }),
+  MAX_GROUPS: num({
+    default: 20,
+    desc: 'Max number of groups',
+  }),
 
-  MAX_MOVIE_SIZE: num({
-    default: 161061273600,
-    desc: 'Max movie size in bytes',
-  }),
-  MAX_EPISODE_SIZE: num({
-    default: 161061273600,
-    desc: 'Max episode size in bytes',
-  }),
   MAX_TIMEOUT: num({
     default: 50000,
     desc: 'Max timeout for the addon',
