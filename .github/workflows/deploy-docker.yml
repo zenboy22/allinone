@@ -160,7 +160,7 @@ jobs:
                   },
                   {
                     "name": "🔗 View Build",
-                    "value": "[GitHub Actions](https://github.com/Viren070/aiostreams/actions/runs/${GITHUB_RUN_ID:-0})",
+                    "value": "[GitHub Actions](https://github.com/Viren070/aiostreams/actions/runs/${{ github.run_id }})",
                     "inline": false
                   }
                 ],
@@ -181,7 +181,7 @@ jobs:
           http_response=$(curl -s -w "\n%{http_code}" -H "Content-Type: application/json" \
             -X POST \
             -d @discord_payload.json \
-            "$DISCORD_WEBHOOK_URL")
+            "${{ secrets.DISCORD_WEBHOOK_URL }}")
 
           http_body=$(echo "$http_response" | sed '$d')
           http_code=$(echo "$http_response" | tail -n1)
