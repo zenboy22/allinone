@@ -340,13 +340,23 @@ export async function validateConfig(
       const rpdb = new RPDB(config.rpdbApiKey);
       await rpdb.validateApiKey();
     } catch (error) {
-      throw new Error(`Invalid RPDB API key: ${error}`);
+      if (!skipErrorsFromAddonsOrProxies) {
+        throw new Error(`Invalid RPDB API key: ${error}`);
+      }
+      logger.warn(`Invalid RPDB API key: ${error}`);
     }
   }
 
   if (config.titleMatching?.enabled === true) {
-    const tmdb = new TMDBMetadata(config.tmdbAccessToken);
-    await tmdb.validateAccessToken();
+    try {
+      const tmdb = new TMDBMetadata(config.tmdbAccessToken);
+      await tmdb.validateAccessToken();
+    } catch (error) {
+      if (!skipErrorsFromAddonsOrProxies) {
+        throw new Error(`Invalid TMDB access token: ${error}`);
+      }
+      logger.warn(`Invalid TMDB access token: ${error}`);
+    }
   }
 
   if (FeatureControl.disabledServices.size > 0) {
