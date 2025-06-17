@@ -1906,16 +1906,15 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       // languages
       if (
-        this.userData.excludedLanguages?.some((lang) =>
-          (file?.languages.length ? file.languages : ['Unknown']).includes(lang)
+        this.userData.excludedLanguages?.length &&
+        (file?.languages.length ? file.languages : ['Unknown']).every((lang) =>
+          this.userData.excludedLanguages!.includes(lang as any)
         )
       ) {
-        const lang = this.userData.excludedLanguages.find((lang) =>
-          (file?.languages.length ? file.languages : ['Unknown']).includes(lang)
-        );
+        const lang = file?.languages[0] || 'Unknown';
         skipReasons.excludedLanguage.total++;
-        skipReasons.excludedLanguage.details[lang!] =
-          (skipReasons.excludedLanguage.details[lang!] || 0) + 1;
+        skipReasons.excludedLanguage.details[lang] =
+          (skipReasons.excludedLanguage.details[lang] || 0) + 1;
         return false;
       }
 
