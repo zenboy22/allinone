@@ -120,13 +120,20 @@ jobs:
             TITLE="🌙 Nightly Build"
           fi
 
-          # Format tags for display
-          FORMATTED_TAGS=$(for tag in $TAGS; do echo "• \`$tag\`"; done | tr '\n' '\\n')
+          # Format tags for display (each tag on a new line with bullet points)
+          FORMATTED_TAGS=""
+          for tag in $TAGS; do
+            if [ -z "$FORMATTED_TAGS" ]; then
+              FORMATTED_TAGS="• \`$tag\`"
+            else
+              FORMATTED_TAGS="$FORMATTED_TAGS\n• \`$tag\`"
+            fi
+          done
 
-          # Get current timestamp
+          # Get current timestamp in ISO 8601 format UTC
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-          # Create JSON payload
+          # Create JSON payload file
           cat << EOF > discord_payload.json
           {
             "content": "$ROLE_ID",
@@ -138,7 +145,7 @@ jobs:
                 "fields": [
                   {
                     "name": "📦 Channel",
-                    "value": "\`$CHANNEL\`",
+                    "value": "• \`$CHANNEL\`",
                     "inline": true
                   },
                   {
@@ -148,17 +155,17 @@ jobs:
                   },
                   {
                     "name": "📍 View Images",
-                    "value": "[Docker Hub](https://hub.docker.com/r/viren070/aiostreams) · [GHCR](https://github.com/users/viren070/packages/container/aiostreams)",
+                    "value": "[Docker Hub](https://hub.docker.com/r/viren070/aiostreams) · [GHCR](https://github.com/Viren070/AIOStreams/pkgs/container/aiostreams)",
                     "inline": false
                   },
                   {
                     "name": "🔗 View Build",
-                    "value": "[GitHub Actions](https://github.com/Viren070/aiostreams/actions/runs/${{ github.run_id }})",
+                    "value": "[GitHub Actions](https://github.com/Viren070/aiostreams/actions/runs/${GITHUB_RUN_ID:-0})",
                     "inline": false
                   }
                 ],
                 "footer": {
-                  "text": "AIOStreams CI/CD",
+                  "text": "AIOStreams CI",
                   "icon_url": "https://github.com/Viren070.png"
                 },
                 "timestamp": "$TIMESTAMP"
@@ -167,8 +174,24 @@ jobs:
           }
           EOF
 
-          # Send to Discord
-          curl --fail --show-error -H "Content-Type: application/json" \
+          echo "Sending to Discord:"
+          cat discord_payload.json
+
+          # Send payload to Discord and capture response and status code
+          http_response=$(curl -s -w "\n%{http_code}" -H "Content-Type: application/json" \
             -X POST \
             -d @discord_payload.json \
-            ${{ secrets.DISCORD_WEBHOOK_URL }}
+            "$DISCORD_WEBHOOK_URL")
+
+          http_body=$(echo "$http_response" | sed '$d')
+          http_code=$(echo "$http_response" | tail -n1)
+
+          echo "HTTP Status Code: $http_code"
+          echo "Discord Response Body: $http_body"
+
+          if [ "$http_code" != "204" ]; then
+            echo "Error sending to Discord webhook."
+            exit 1
+          fi
+
+          echo "Message sent successfully!"
