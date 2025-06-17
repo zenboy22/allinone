@@ -111,8 +111,8 @@ const AddonSchema = z.object({
   manifestUrl: z.string().url(),
   enabled: z.boolean(),
   resources: ResourceList.optional(),
-  name: z.string().min(1),
-  identifyingName: z.string().min(1),
+  name: z.string(),
+  identifyingName: z.string(),
   timeout: z.number().min(1),
   library: z.boolean().optional(),
   streamPassthrough: z.boolean().optional(),
@@ -448,9 +448,9 @@ export const ManifestSchema = z.object({
   resources: z.array(ManifestResourceSchema),
   catalogs: z.array(ManifestCatalogSchema),
   addonCatalogs: z.array(AddonCatalogDefinitionSchema).optional(),
-  background: z.string().min(1).optional(),
-  logo: z.string().optional(),
-  contactEmail: z.string().min(1).optional(),
+  background: z.string().min(1).or(z.null()).optional(),
+  logo: z.string().or(z.null()).optional(),
+  contactEmail: z.string().min(1).or(z.null()).optional(),
   behaviorHints: z
     .object({
       adult: z.boolean().optional(),
@@ -486,30 +486,30 @@ export type Subtitle = z.infer<typeof SubtitleSchema>;
 
 export const StreamSchema = z
   .object({
-    url: z.string().url().optional(),
-    ytId: z.string().min(1).optional(),
+    url: z.string().url().or(z.null()).optional(),
+    ytId: z.string().min(1).or(z.null()).optional(),
     infoHash: z.string().min(1).or(z.null()).optional(),
     fileIdx: z.number().or(z.null()).optional(),
-    externalUrl: z.string().min(1).optional(),
-    name: z.string().min(1).optional(),
-    title: z.string().min(1).optional(),
-    description: z.string().min(1).optional(),
-    subtitles: z.array(SubtitleSchema).optional(),
-    sources: z.array(z.string().min(1)).optional(),
+    externalUrl: z.string().min(1).or(z.null()).optional(),
+    name: z.string().min(1).or(z.null()).optional(),
+    title: z.string().min(1).or(z.null()).optional(),
+    description: z.string().min(1).or(z.null()).optional(),
+    subtitles: z.array(SubtitleSchema).or(z.null()).optional(),
+    sources: z.array(z.string().min(1)).or(z.null()).optional(),
     behaviorHints: z
       .object({
-        countryWhitelist: z.array(z.string().length(3)).optional(),
-        notWebReady: z.boolean().optional(),
-        bingeGroup: z.string().min(1).optional(),
+        countryWhitelist: z.array(z.string().length(3)).or(z.null()).optional(),
+        notWebReady: z.boolean().or(z.null()).optional(),
+        bingeGroup: z.string().min(1).or(z.null()).optional(),
         proxyHeaders: z
           .object({
             request: z.record(z.string().min(1), z.string().min(1)).optional(),
             response: z.record(z.string().min(1), z.string().min(1)).optional(),
           })
           .optional(),
-        videoHash: z.string().min(1).optional(),
-        videoSize: z.number().optional(),
-        filename: z.string().min(1).optional(),
+        videoHash: z.string().min(1).or(z.null()).optional(),
+        videoSize: z.number().or(z.null()).optional(),
+        filename: z.string().min(1).or(z.null()).optional(),
       })
       .optional(),
   })
@@ -540,23 +540,23 @@ const MetaVideoSchema = z.object({
   name: z.string().or(z.null()).optional(),
   released: z.string().datetime().optional(),
   thumbnail: z.string().url().or(z.null()).optional(),
-  streams: z.array(StreamSchema).optional(),
+  streams: z.array(StreamSchema).or(z.null()).optional(),
   available: z.boolean().or(z.null()).optional(),
   episode: z.number().or(z.null()).optional(),
   season: z.number().or(z.null()).optional(),
-  trailers: z.array(TrailerSchema).optional(),
+  trailers: z.array(TrailerSchema).or(z.null()).optional(),
   overview: z.string().or(z.null()).optional(),
 });
 
 export const MetaPreviewSchema = z.object({
   id: z.string().min(1),
   type: z.string().min(1),
-  name: z.string().optional(),
-  poster: z.string().optional(),
+  name: z.string().or(z.null()).optional(),
+  poster: z.string().or(z.null()).optional(),
   posterShape: z.enum(['square', 'poster', 'landscape', 'regular']).optional(),
   // discover sidebar
   //@deprecated use links instead
-  genres: z.array(z.string()).optional(),
+  genres: z.array(z.string()).or(z.null()).optional(),
   imdbRating: z.string().or(z.null()).or(z.number()).optional(),
   releaseInfo: z.string().or(z.number()).or(z.null()).optional(),
   //@deprecated
@@ -566,21 +566,21 @@ export const MetaPreviewSchema = z.object({
   // background: z.string().min(1).optional(),
   // logo: z.string().min(1).optional(),
   description: z.string().or(z.null()).optional(),
-  trailers: z.array(TrailerSchema).optional(),
-  links: z.array(MetaLinkSchema).optional(),
+  trailers: z.array(TrailerSchema).or(z.null()).optional(),
+  links: z.array(MetaLinkSchema).or(z.null()).optional(),
   // released: z.string().datetime().optional(),
 });
 
 export const MetaSchema = MetaPreviewSchema.extend({
-  poster: z.string().min(1).optional(),
-  background: z.string().min(1).optional(),
-  logo: z.string().optional(),
-  videos: z.array(MetaVideoSchema).optional(),
-  runtime: z.coerce.string().optional(),
-  language: z.string().min(1).optional(),
-  country: z.string().optional(),
-  awards: z.string().min(1).optional(),
-  website: z.string().url().optional(),
+  poster: z.string().or(z.null()).optional(),
+  background: z.string().or(z.null()).optional(),
+  logo: z.string().or(z.null()).optional(),
+  videos: z.array(MetaVideoSchema).or(z.null()).optional(),
+  runtime: z.coerce.string().or(z.null()).optional(),
+  language: z.string().or(z.null()).optional(),
+  country: z.string().or(z.null()).optional(),
+  awards: z.string().or(z.null()).optional(),
+  website: z.string().url().or(z.null()).optional(),
   behaviorHints: z
     .object({
       defaultVideoId: z.string().or(z.null()).optional(),
@@ -650,8 +650,8 @@ export const ParsedStreamSchema = z.object({
   age: z.string().optional(),
   torrent: z
     .object({
-      infoHash: z.string().min(1).or(z.null()).optional(),
-      fileIdx: z.number().or(z.null()).optional(),
+      infoHash: z.string().min(1).optional(),
+      fileIdx: z.number().optional(),
       seeders: z.number().optional(),
       sources: z.array(z.string().min(1)).optional(), // array of tracker urls and DHT nodes
     })
@@ -726,8 +726,8 @@ export const AIOStream = StreamSchema.extend({
     age: z.string().optional(),
     torrent: z
       .object({
-        infoHash: z.string().min(1).or(z.null()).optional(),
-        fileIdx: z.number().or(z.null()).optional(),
+        infoHash: z.string().min(1).optional(),
+        fileIdx: z.number().optional(),
         seeders: z.number().optional(),
         sources: z.array(z.string().min(1)).optional(), // array of tracker urls and DHT nodes
       })

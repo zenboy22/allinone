@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import MarkdownLite from '../shared/markdown-lite';
 import { PageControls } from '../shared/page-controls';
+import { PasswordInput } from '../ui/password-input';
 type ProxyServiceId = keyof typeof constants.PROXY_SERVICE_DETAILS;
 
 type ProxyConfig = {
@@ -137,10 +138,9 @@ function Content() {
           </div>
 
           <div className="space-y-2">
-            <TextInput
+            <PasswordInput
               label="URL"
               value={userData.proxy?.url ?? ''}
-              type="password"
               onValueChange={(v) => {
                 setUserData((prev) => ({
                   ...prev,
@@ -156,9 +156,8 @@ function Content() {
           </div>
 
           <div className="space-y-2">
-            <TextInput
+            <PasswordInput
               label="Credentials"
-              type="password"
               value={userData.proxy?.credentials ?? ''}
               onValueChange={(v) => {
                 setUserData((prev) => ({

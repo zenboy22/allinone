@@ -231,9 +231,9 @@ function Content() {
   const serviceOptions = Object.values(constants.SERVICE_DETAILS).map(
     (service) => ({ label: service.name, value: service.id })
   );
-  const streamTypeOptions = (constants.STREAM_TYPES || []).map(
-    (type: string) => ({ label: type, value: type })
-  );
+  const streamTypeOptions = (constants.STREAM_TYPES || [])
+    .filter((type) => type !== 'error')
+    .map((type: string) => ({ label: type, value: type }));
   const resourceOptions = (constants.RESOURCES || []).map((res: string) => ({
     label: res,
     value: res,

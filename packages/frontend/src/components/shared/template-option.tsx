@@ -8,6 +8,7 @@ import React from 'react';
 import MarkdownLite from './markdown-lite';
 import { Alert } from '../ui/alert';
 import { SocialIcon } from './social-icon';
+import { PasswordInput } from '../ui/password-input';
 // this component, accepts an option and returns a component that renders the option.
 // string - TextInput
 // number - NumberInput
@@ -67,8 +68,7 @@ const TemplateOption: React.FC<TemplateOptionProps> = ({
     case 'password':
       return (
         <div>
-          <TextInput
-            type="password"
+          <PasswordInput
             label={name}
             value={forced || defaultValue || value}
             onValueChange={(value: string) =>

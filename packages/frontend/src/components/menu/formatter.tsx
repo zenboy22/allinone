@@ -117,7 +117,7 @@ function Content() {
     'Movie.Title.2023.2160p.BluRay.HEVC.DV.TrueHD.Atmos.7.1.iTA.ENG-GROUP'
   );
   const [indexer, setIndexer] = useState('RARBG');
-  const [seeders, setSeeders] = useState(125);
+  const [seeders, setSeeders] = useState<number | undefined>(125);
   const [age, setAge] = useState<string>('10d');
   const [addonName, setAddonName] = useState('Torrentio');
   const [providerId, setProviderId] = useState<constants.ServiceId | 'none'>(
@@ -136,6 +136,7 @@ function Content() {
   const [regexMatched, setRegexMatched] = useState<string | undefined>(
     undefined
   );
+  const [message, setMessage] = useState('This is a message');
 
   // Custom formatter state (to avoid losing one field when editing the other)
   const [customName, setCustomName] = useState(
@@ -175,7 +176,8 @@ function Content() {
                 name: userData.formatter?.definition?.name || '',
                 description: userData.formatter?.definition?.description || '',
               }
-            : undefined,
+            : // keep definitions even when switching to a non-custom formatter
+              prev.formatter?.definition,
       },
     }));
   };
@@ -223,6 +225,7 @@ function Content() {
         duration,
         size: fileSize,
         proxied,
+        message,
       };
       let data;
       if (selectedFormatter === constants.CUSTOM_FORMATTER) {
@@ -280,6 +283,7 @@ function Content() {
     customName,
     customDescription,
     regexMatched,
+    message,
   ]);
 
   useEffect(() => {
@@ -303,6 +307,7 @@ function Content() {
     customName,
     regexMatched,
     customDescription,
+    message,
   ]);
 
   return (
@@ -404,7 +409,7 @@ function Content() {
             />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextInput
               label={<span className="truncate block">Filename</span>}
               value={filename}
@@ -429,7 +434,7 @@ function Content() {
             <NumberInput
               label={<span className="truncate block">Seeders</span>}
               value={seeders}
-              onValueChange={(value) => setSeeders(value)}
+              onValueChange={(value) => setSeeders(value || undefined)}
               className="w-full"
               min={0}
               defaultValue={0}
@@ -473,7 +478,6 @@ function Content() {
             />
           </div>
 
-          {/* Service, Addon Name, and Stream Type on the same row */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <Select
               label={<span className="truncate block">Service</span>}
@@ -515,6 +519,14 @@ function Content() {
               className="w-full"
             />
           </div>
+
+          <TextInput
+            label={<span className="truncate block">Message</span>}
+            value={message}
+            onValueChange={(value) => setMessage(value || '')}
+            className="w-full"
+            placeholder="This is a message"
+          />
 
           {/* Centralized Switches Container - flex row, wraps on small width, centered */}
           <div className="flex justify-center flex-wrap gap-4 pt-2">

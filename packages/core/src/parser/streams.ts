@@ -56,15 +56,15 @@ class StreamParser {
       id: this.getRandomId(),
       addon: this.addon,
       type: 'http',
-      url: this.applyUrlModifications(stream.url),
-      externalUrl: stream.externalUrl,
-      ytId: stream.ytId,
+      url: this.applyUrlModifications(stream.url ?? undefined),
+      externalUrl: stream.externalUrl ?? undefined,
+      ytId: stream.ytId ?? undefined,
       requestHeaders: stream.behaviorHints?.proxyHeaders?.request,
       responseHeaders: stream.behaviorHints?.proxyHeaders?.response,
-      notWebReady: stream.behaviorHints?.notWebReady,
-      videoHash: stream.behaviorHints?.videoHash,
-      originalName: stream.name,
-      originalDescription: stream.description || stream.title,
+      notWebReady: stream.behaviorHints?.notWebReady ?? undefined,
+      videoHash: stream.behaviorHints?.videoHash ?? undefined,
+      originalName: stream.name ?? undefined,
+      originalDescription: (stream.description || stream.title) ?? undefined,
     };
 
     stream.description = stream.description || stream.title;
@@ -114,11 +114,11 @@ class StreamParser {
     parsedStream.torrent = {
       infoHash:
         parsedStream.type === 'p2p'
-          ? stream.infoHash
+          ? (stream.infoHash ?? undefined)
           : this.getInfoHash(stream, parsedStream),
       seeders: this.getSeeders(stream, parsedStream),
-      sources: stream.sources,
-      fileIdx: stream.fileIdx,
+      sources: stream.sources ?? undefined,
+      fileIdx: stream.fileIdx ?? undefined,
     };
 
     return parsedStream;

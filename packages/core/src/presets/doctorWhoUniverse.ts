@@ -10,7 +10,7 @@ class DoctorWhoUniverseStreamParser extends StreamParser {
     stream: Stream,
     currentParsedStream: ParsedStream
   ): string | undefined {
-    return stream.name;
+    return stream.name ?? undefined;
   }
 }
 

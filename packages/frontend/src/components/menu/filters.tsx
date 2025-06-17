@@ -78,6 +78,7 @@ import { useDisclosure } from '@/hooks/disclosure';
 import { toast } from 'sonner';
 import { Slider } from '../ui/slider/slider';
 import { TbFilterCode } from 'react-icons/tb';
+import { PasswordInput } from '../ui/password-input';
 
 type Resolution = (typeof RESOLUTIONS)[number];
 type Quality = (typeof QUALITIES)[number];
@@ -311,108 +312,6 @@ function Content() {
               <HeadingWithPageControls heading="Cache" />
               <div className="space-y-4">
                 <SettingsCard
-                  title="Cached"
-                  description="Control the exclusion of cached results"
-                >
-                  <div className="space-y-4">
-                    <Switch
-                      label="Exclude Cached"
-                      help="Completely remove cached results"
-                      moreHelp="Enabling this option overrides the below controls and cannot be used in conjunction with them"
-                      side="right"
-                      value={userData.excludeCached ?? false}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          excludeCached: value,
-                        }));
-                      }}
-                    />
-                    <Combobox
-                      help="Addons selected here will have their cached results excluded"
-                      label="Exclude Cached From Addons"
-                      value={userData.excludeCachedFromAddons ?? []}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          excludeCachedFromAddons: value,
-                        }));
-                      }}
-                      options={userData.presets.map((preset) => ({
-                        label: preset.options.name || preset.type,
-                        value: preset.instanceId,
-                        textValue: preset.options.name || preset.type,
-                      }))}
-                      emptyMessage="You haven't installed any addons..."
-                      placeholder="Select addons..."
-                      multiple
-                      disabled={userData.excludeCached === true}
-                    />
-                    <Combobox
-                      help="Services selected here will have their cached results excluded"
-                      label="Exclude Cached From Services"
-                      value={userData.excludeCachedFromServices ?? []}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          excludeCachedFromServices: value,
-                        }));
-                      }}
-                      options={Object.values(
-                        status?.settings.services ?? {}
-                      ).map((service) => ({
-                        label: service.name,
-                        value: service.id,
-                        textValue: service.name,
-                      }))}
-                      placeholder="Select services..."
-                      emptyMessage="This is odd... there aren't any services to choose from..."
-                      multiple
-                      disabled={userData.excludeCached === true}
-                    />
-                    <Combobox
-                      help="Stream types selected here will have their cached results excluded"
-                      label="Exclude Cached From Stream Types"
-                      value={userData.excludeCachedFromStreamTypes ?? []}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          excludeCachedFromStreamTypes: value as StreamType[],
-                        }));
-                      }}
-                      options={STREAM_TYPES.filter(
-                        (streamType) =>
-                          ['debrid', 'usenet'].includes(streamType) // only these 2 stream types can have a service
-                      ).map((streamType) => ({
-                        label: streamType,
-                        value: streamType,
-                        textValue: streamType,
-                      }))}
-                      emptyMessage="This is odd... there aren't any stream types to choose from..."
-                      placeholder="Select stream types..."
-                      multiple
-                      disabled={userData.excludeCached === true}
-                    />
-                    <Select
-                      label="Apply mode"
-                      disabled={userData.excludeCached === true}
-                      help="How these three options (from addons, services and stream types) are applied. AND means a result must match all, OR means a result only needs to match one"
-                      value={userData.excludeCachedMode ?? 'or'}
-                      onValueChange={(value) => {
-                        setUserData((prev) => ({
-                          ...prev,
-                          excludeCachedMode: value as 'or' | 'and',
-                        }));
-                      }}
-                      options={[
-                        { label: 'OR', value: 'or' },
-                        { label: 'AND', value: 'and' },
-                      ]}
-                    />
-                  </div>
-                </SettingsCard>
-
-                <SettingsCard
                   title="Uncached"
                   description="Control the exclusion of uncached results"
                 >
@@ -506,6 +405,107 @@ function Content() {
                         setUserData((prev) => ({
                           ...prev,
                           excludeUncachedMode: value as 'or' | 'and',
+                        }));
+                      }}
+                      options={[
+                        { label: 'OR', value: 'or' },
+                        { label: 'AND', value: 'and' },
+                      ]}
+                    />
+                  </div>
+                </SettingsCard>
+                <SettingsCard
+                  title="Cached"
+                  description="Control the exclusion of cached results"
+                >
+                  <div className="space-y-4">
+                    <Switch
+                      label="Exclude Cached"
+                      help="Completely remove cached results"
+                      moreHelp="Enabling this option overrides the below controls and cannot be used in conjunction with them"
+                      side="right"
+                      value={userData.excludeCached ?? false}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludeCached: value,
+                        }));
+                      }}
+                    />
+                    <Combobox
+                      help="Addons selected here will have their cached results excluded"
+                      label="Exclude Cached From Addons"
+                      value={userData.excludeCachedFromAddons ?? []}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludeCachedFromAddons: value,
+                        }));
+                      }}
+                      options={userData.presets.map((preset) => ({
+                        label: preset.options.name || preset.type,
+                        value: preset.instanceId,
+                        textValue: preset.options.name || preset.type,
+                      }))}
+                      emptyMessage="You haven't installed any addons..."
+                      placeholder="Select addons..."
+                      multiple
+                      disabled={userData.excludeCached === true}
+                    />
+                    <Combobox
+                      help="Services selected here will have their cached results excluded"
+                      label="Exclude Cached From Services"
+                      value={userData.excludeCachedFromServices ?? []}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludeCachedFromServices: value,
+                        }));
+                      }}
+                      options={Object.values(
+                        status?.settings.services ?? {}
+                      ).map((service) => ({
+                        label: service.name,
+                        value: service.id,
+                        textValue: service.name,
+                      }))}
+                      placeholder="Select services..."
+                      emptyMessage="This is odd... there aren't any services to choose from..."
+                      multiple
+                      disabled={userData.excludeCached === true}
+                    />
+                    <Combobox
+                      help="Stream types selected here will have their cached results excluded"
+                      label="Exclude Cached From Stream Types"
+                      value={userData.excludeCachedFromStreamTypes ?? []}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludeCachedFromStreamTypes: value as StreamType[],
+                        }));
+                      }}
+                      options={STREAM_TYPES.filter(
+                        (streamType) =>
+                          ['debrid', 'usenet'].includes(streamType) // only these 2 stream types can have a service
+                      ).map((streamType) => ({
+                        label: streamType,
+                        value: streamType,
+                        textValue: streamType,
+                      }))}
+                      emptyMessage="This is odd... there aren't any stream types to choose from..."
+                      placeholder="Select stream types..."
+                      multiple
+                      disabled={userData.excludeCached === true}
+                    />
+                    <Select
+                      label="Apply mode"
+                      disabled={userData.excludeCached === true}
+                      help="How these three options (from addons, services and stream types) are applied. AND means a result must match all, OR means a result only needs to match one"
+                      value={userData.excludeCachedMode ?? 'or'}
+                      onValueChange={(value) => {
+                        setUserData((prev) => ({
+                          ...prev,
+                          excludeCachedMode: value as 'or' | 'and',
                         }));
                       }}
                       options={[
@@ -1032,7 +1032,7 @@ function Content() {
                           }
                           minStepsBetweenThumbs={1}
                           label="Included Seeder Range"
-                          help="Streams with seeders in this range will be included, ignoring other filters"
+                          help="Streams with seeders in this range will be included, ignoring ANY other exclude/required filters, not just for this filter"
                         />
                         <div className="flex justify-between mt-1 text-xs text-[--muted]">
                           <span>
@@ -1159,7 +1159,7 @@ function Content() {
                     }}
                   />
 
-                  <TextInput
+                  <PasswordInput
                     label="TMDB Access Token"
                     help={
                       <>
@@ -1181,7 +1181,6 @@ function Content() {
                     disabled={!userData.titleMatching?.enabled}
                     required={!status?.settings.tmdbApiAvailable}
                     value={userData.tmdbAccessToken}
-                    type="password"
                     placeholder="Enter your TMDB access token"
                     onValueChange={(value) => {
                       setUserData((prev) => ({
@@ -1467,7 +1466,7 @@ function Content() {
                 />
                 <TextInputs
                   label="Included Keywords"
-                  help="Streams that contain any of these keywords will be included, ignoring other exclude/required filters"
+                  help="Streams that contain any of these keywords will be included, ignoring ANY other exclude/required filters, not just for this filter"
                   itemName="Keyword"
                   values={userData.includedKeywords || []}
                   onValuesChange={(values) => {
@@ -2206,7 +2205,7 @@ function FilterSettings<T extends string>({
             <Combobox
               label={`Included ${filterName}`}
               value={included}
-              help={`Included ${filterName.toLowerCase()} will be included regardless of other exclude/required filters.`}
+              help={`Included ${filterName.toLowerCase()} will be included regardless of ANY other exclude/required filters, not just for ${filterName.toLowerCase()}`}
               onValueChange={(values) => {
                 setIncluded(values as T[]);
                 onIncludedChange(values as T[]);

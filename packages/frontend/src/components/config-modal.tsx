@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { UserConfigAPI } from '@/services/api';
 import { useUserData } from '@/context/userData';
 import { toast } from 'sonner';
+import { PasswordInput } from './ui/password-input';
 
 interface ConfigModalProps {
   open: boolean;
@@ -79,32 +80,23 @@ export function ConfigModal({
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Load Configuration">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <TextInput
-            label="UUID"
-            id="uuid"
-            value={uuid}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setUuidInput(e.target.value)
-            }
-            placeholder="Enter your configuration UUID"
-            required
-            disabled={!!initialUuid}
-          />
-        </div>
-        <div>
-          <TextInput
-            label="Password"
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPasswordInput(e.target.value)
-            }
-            placeholder="Enter your configuration password"
-            required
-          />
-        </div>
+        <TextInput
+          label="UUID"
+          id="uuid"
+          value={uuid}
+          onValueChange={(value) => setUuidInput(value)}
+          placeholder="Enter your configuration UUID"
+          required
+          disabled={!!initialUuid}
+        />
+        <PasswordInput
+          label="Password"
+          id="password"
+          value={password}
+          onValueChange={(value) => setPasswordInput(value)}
+          placeholder="Enter your configuration password"
+          required
+        />
         <div className="flex justify-end gap-2">
           <Button type="button" onClick={handleCancel}>
             Cancel

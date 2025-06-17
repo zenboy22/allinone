@@ -141,7 +141,10 @@ export class AIOStreams {
 
     await this.precomputeSortRegexes(deduplicatedStreams);
 
-    const sortedStreams = this.sortStreams(deduplicatedStreams, type)
+    const sortedStreams = this.sortStreams(
+      deduplicatedStreams,
+      id.startsWith('kitsu') ? 'anime' : type
+    )
       // remove HDR+DV from visual tags after filtering/sorting
       .map((stream) => {
         if (stream.parsedFile?.visualTags?.includes('HDR+DV')) {
@@ -1231,6 +1234,7 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       total: number;
       details: Record<string, number>;
     }
+    const isAnime = id.startsWith('kitsu');
     const skipReasons: Record<string, SkipReason> = {
       titleMatching: { total: 0, details: {} },
       seasonEpisodeMatching: { total: 0, details: {} },
@@ -1299,7 +1303,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       // now check if we need to check this stream based on the addon and request type
       if (
         titleMatchingOptions.requestTypes?.length &&
-        !titleMatchingOptions.requestTypes.includes(type)
+        (!titleMatchingOptions.requestTypes.includes(type) ||
+          (isAnime && !titleMatchingOptions.requestTypes.includes('anime')))
       ) {
         return true;
       }
@@ -1352,7 +1357,9 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
       if (
         seasonEpisodeMatchingOptions.requestTypes?.length &&
-        !seasonEpisodeMatchingOptions.requestTypes.includes(type)
+        (!seasonEpisodeMatchingOptions.requestTypes.includes(type) ||
+          (isAnime &&
+            !seasonEpisodeMatchingOptions.requestTypes.includes('anime')))
       ) {
         return true;
       }
