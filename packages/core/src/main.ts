@@ -1284,13 +1284,18 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
 
     const normaliseTitle = (title: string) => {
       return title
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^\p{L}\p{N}+]/gu, '')
-        .replace(/\s+/g, '')
         .toLowerCase();
     };
 
     const performTitleMatch = (stream: ParsedStream) => {
-      const titleMatchingOptions = this.userData.titleMatching;
+      // const titleMatchingOptions = this.userData.titleMatching;
+      const titleMatchingOptions = {
+        mode: 'exact',
+        ...(this.userData.titleMatching ?? {}),
+      };
       if (!titleMatchingOptions || !titleMatchingOptions.enabled) {
         return true;
       }
@@ -1316,27 +1321,29 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return true;
       }
 
-      if (!streamTitle || !streamYear) {
+      if (!streamTitle || (!streamYear && type === 'movie')) {
         // if a specific stream doesn't have a title or year, filter it out.
         return false;
       }
 
       if (titleMatchingOptions.mode === 'exact') {
-        // the stream title should be an exact match of a valid title
-        return (
-          requestedMetadata?.titles.some(
-            (title) => normaliseTitle(title) === normaliseTitle(streamTitle)
-          ) &&
-          (type !== 'movie' || requestedMetadata?.year === streamYear)
+        const titleMatch = requestedMetadata?.titles.some(
+          (title) => normaliseTitle(title) === normaliseTitle(streamTitle)
         );
+        const yearMatch =
+          type === 'movie' && titleMatchingOptions.matchYear
+            ? requestedMetadata?.year === streamYear
+            : true;
+        return titleMatch && yearMatch;
       } else {
-        // a valid title should be present somewhere in the stream title
-        return (
-          requestedMetadata?.titles.some((title) =>
-            normaliseTitle(streamTitle).includes(normaliseTitle(title))
-          ) &&
-          (type !== 'movie' || requestedMetadata?.year === streamYear)
+        const titleMatch = requestedMetadata?.titles.some((title) =>
+          normaliseTitle(streamTitle).includes(normaliseTitle(title))
         );
+        const yearMatch =
+          type === 'movie' && titleMatchingOptions.matchYear
+            ? requestedMetadata?.year === streamYear
+            : true;
+        return titleMatch && yearMatch;
       }
     };
 
