@@ -78,6 +78,8 @@ jobs:
             echo EOF
           } >> "${GITHUB_ENV}"
 
+          echo "TAGS=${TAGS}" >> "${GITHUB_ENV}"
+
           echo "CHANNEL=${CHANNEL}" >> "${GITHUB_ENV}"
 
           cat "${GITHUB_ENV}"
@@ -101,3 +103,72 @@ jobs:
           context: .
           file: ./Dockerfile
           tags: ${{env.DOCKER_IMAGE_TAGS}}
+
+      - name: Send Discord Notification
+        env:
+          CHANNEL: ${{env.CHANNEL}}
+          TAGS: ${{env.TAGS}}
+        run: |
+          # Determine role based on channel
+          if [ "$CHANNEL" = "stable" ]; then
+            ROLE_ID="<@&1384627130272452638>"
+            COLOR=5763719  # Green
+            TITLE="🎉 Stable Release"
+          else
+            ROLE_ID="<@&1384627462155272242>"
+            COLOR=15844367  # Orange
+            TITLE="🌙 Nightly Build"
+          fi
+
+          # Format tags for display
+          FORMATTED_TAGS=$(for tag in $TAGS; do echo "• \`$tag\`"; done | tr '\n' '\\n')
+
+          # Get current timestamp
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          # Create JSON payload
+          cat << EOF > discord_payload.json
+          {
+            "content": "$ROLE_ID",
+            "embeds": [
+              {
+                "title": "$TITLE - Docker Images Published",
+                "description": "New Docker images have been built and pushed to registries.",
+                "color": $COLOR,
+                "fields": [
+                  {
+                    "name": "📦 Channel",
+                    "value": "\`$CHANNEL\`",
+                    "inline": true
+                  },
+                  {
+                    "name": "🏷️ Tags Published",
+                    "value": "$FORMATTED_TAGS",
+                    "inline": false
+                  },
+                  {
+                    "name": "📍 View Images",
+                    "value": "[Docker Hub](https://hub.docker.com/r/viren070/aiostreams) · [GHCR](https://github.com/users/viren070/packages/container/aiostreams)",
+                    "inline": false
+                  },
+                  {
+                    "name": "🔗 View Build",
+                    "value": "[GitHub Actions](https://github.com/Viren070/aiostreams/actions/runs/${{ github.run_id }})",
+                    "inline": false
+                  }
+                ],
+                "footer": {
+                  "text": "AIOStreams CI/CD",
+                  "icon_url": "https://github.com/Viren070.png"
+                },
+                "timestamp": "$TIMESTAMP"
+              }
+            ]
+          }
+          EOF
+
+          # Send to Discord
+          curl --fail --show-error -H "Content-Type: application/json" \
+            -X POST \
+            -d @discord_payload.json \
+            ${{ secrets.DISCORD_WEBHOOK_URL }}
