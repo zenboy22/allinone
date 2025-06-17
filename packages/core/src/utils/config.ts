@@ -28,7 +28,15 @@ const logger = createLogger('core');
 export const formatZodError = (error: ZodError) => {
   let errs = [];
   for (const issue of error.issues) {
-    errs.push(`Invalid value for ${issue.path.join('.')}: ${issue.message}`);
+    errs.push(
+      `Invalid value for ${issue.path.join('.')}: ${issue.message}${
+        (issue as any).unionErrors
+          ? `. Union checks performed:\n${(issue as any).unionErrors
+              .map((issue: any) => `- ${formatZodError(issue)}`)
+              .join('\n')}`
+          : ''
+      }`
+    );
   }
   return errs.join(' | ');
 };
