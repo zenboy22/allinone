@@ -22,6 +22,7 @@ import {
   decryptString,
   maskSensitiveInfo,
   DSU,
+  Metadata,
 } from './utils';
 import { Wrapper } from './wrapper';
 import { PresetManager } from './presets';
@@ -1269,13 +1270,13 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
     const start = Date.now();
     const isRegexAllowed = FeatureControl.isRegexAllowed(this.userData);
 
-    let titles: string[] = [];
+    let requestedMetadata: Metadata | undefined;
     if (this.userData.titleMatching?.enabled && TYPES.includes(type as any)) {
       try {
-        titles = await new TMDBMetadata(
+        requestedMetadata = await new TMDBMetadata(
           this.userData.tmdbAccessToken
-        ).getTitles(id, type as any);
-        logger.info(`Found ${titles.length} titles for ${id}`, { titles });
+        ).getMetadata(id, type as any);
+        logger.info(`Fetched metadata for ${id}`, requestedMetadata);
       } catch (error) {
         logger.error(`Error fetching titles for ${id}: ${error}`);
       }
@@ -1293,13 +1294,12 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       if (!titleMatchingOptions || !titleMatchingOptions.enabled) {
         return true;
       }
-
-      if (titles.length === 0) {
-        // don't filter out streams if no titles could be found
+      if (!requestedMetadata || requestedMetadata.titles.length === 0) {
         return true;
       }
-      const streamTitle = stream.parsedFile?.title;
 
+      const streamTitle = stream.parsedFile?.title;
+      const streamYear = stream.parsedFile?.year;
       // now check if we need to check this stream based on the addon and request type
       if (
         titleMatchingOptions.requestTypes?.length &&
@@ -1316,20 +1316,26 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         return true;
       }
 
-      if (!streamTitle) {
-        // if a specific stream doesn't have a title, filter it out.
+      if (!streamTitle || !streamYear) {
+        // if a specific stream doesn't have a title or year, filter it out.
         return false;
       }
 
       if (titleMatchingOptions.mode === 'exact') {
         // the stream title should be an exact match of a valid title
-        return titles.some(
-          (title) => normaliseTitle(title) === normaliseTitle(streamTitle)
+        return (
+          requestedMetadata?.titles.some(
+            (title) => normaliseTitle(title) === normaliseTitle(streamTitle)
+          ) &&
+          (type !== 'movie' || requestedMetadata?.year === streamYear)
         );
       } else {
         // a valid title should be present somewhere in the stream title
-        return titles.some((title) =>
-          normaliseTitle(streamTitle).includes(normaliseTitle(title))
+        return (
+          requestedMetadata?.titles.some((title) =>
+            normaliseTitle(streamTitle).includes(normaliseTitle(title))
+          ) &&
+          (type !== 'movie' || requestedMetadata?.year === streamYear)
         );
       }
     };
@@ -2036,10 +2042,10 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       if (!performTitleMatch(stream)) {
         skipReasons.titleMatching.total++;
         skipReasons.titleMatching.details[
-          stream.parsedFile?.title || 'Unknown'
+          `${stream.parsedFile?.title || 'Unknown Title'}${type === 'movie' ? ` - (${stream.parsedFile?.year || 'Unknown Year'})` : ''}`
         ] =
           (skipReasons.titleMatching.details[
-            stream.parsedFile?.title || 'Unknown'
+            `${stream.parsedFile?.title || 'Unknown Title'}${type === 'movie' ? ` - (${stream.parsedFile?.year || 'Unknown Year'})` : ''}`
           ] || 0) + 1;
         return false;
       }

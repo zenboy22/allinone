@@ -19,12 +19,17 @@ const ALTERNATIVE_TITLES_PATH = '/alternative_titles';
 const ID_CACHE_TTL = 24 * 60 * 60; // 24 hours
 const TITLE_CACHE_TTL = 7 * 24 * 60 * 60; // 7 days
 
+export interface Metadata {
+  titles: string[];
+  year?: string;
+}
+
 export class TMDBMetadata {
   private readonly TMDB_ID_REGEX = /^(?:tmdb)[-:](\d+)(?::\d+:\d+)?$/;
   private readonly TVDB_ID_REGEX = /^(?:tvdb)[-:](\d+)(?::\d+:\d+)?$/;
   private readonly IMDB_ID_REGEX = /^(?:tt)(\d+)(?::\d+:\d+)?$/;
   private readonly idCache: Cache<string, string>;
-  private readonly titleCache: Cache<string, string[]>;
+  private readonly metadataCache: Cache<string, Metadata>;
   private readonly accessToken: string;
 
   public constructor(accessToken?: string) {
@@ -33,7 +38,7 @@ export class TMDBMetadata {
     }
     this.accessToken = (accessToken || Env.TMDB_ACCESS_TOKEN)!;
     this.idCache = Cache.getInstance<string, string>('tmdb_id_conversion');
-    this.titleCache = Cache.getInstance<string, string[]>('alternative_titles');
+    this.metadataCache = Cache.getInstance<string, Metadata>('tmdb_metadata');
   }
 
   private getHeaders(): Record<string, string> {
@@ -99,13 +104,20 @@ export class TMDBMetadata {
     return tmdbId;
   }
 
-  public async getTitles(
+  private parseReleaseDate(releaseDate: string): string {
+    const date = new Date(releaseDate);
+    return date.getFullYear().toString();
+  }
+
+  public async getMetadata(
     id: string,
     type: (typeof TYPES)[number]
-  ): Promise<string[]> {
+  ): Promise<Metadata> {
     if (!['movie', 'series', 'anime'].includes(type)) {
-      return [];
+      return { titles: [], year: undefined };
     }
+
+    let metadata: Metadata = { titles: [], year: undefined };
 
     const externalId = this.parseExternalId(id);
     if (!externalId) {
@@ -118,9 +130,9 @@ export class TMDBMetadata {
 
     // Check cache first
     const cacheKey = `${tmdbId}:${type}`;
-    const cachedTitles = this.titleCache.get(cacheKey);
-    if (cachedTitles) {
-      return cachedTitles;
+    const cachedMetadata = this.metadataCache.get(cacheKey);
+    if (cachedMetadata) {
+      metadata = cachedMetadata;
     }
 
     // Fetch primary title from details endpoint
@@ -142,6 +154,10 @@ export class TMDBMetadata {
     const detailsData = await detailsResponse.json();
     const primaryTitle =
       type === 'movie' ? detailsData.title : detailsData.name;
+    const year =
+      type === 'movie'
+        ? this.parseReleaseDate(detailsData.release_date)
+        : undefined;
 
     // Fetch alternative titles
     const altTitlesUrl = new URL(
@@ -171,9 +187,11 @@ export class TMDBMetadata {
     // Combine primary title with alternative titles, ensuring no duplicates
     const allTitles = [primaryTitle, ...alternativeTitles];
     const uniqueTitles = [...new Set(allTitles)];
+    metadata.titles = uniqueTitles;
+    metadata.year = year;
 
     // Cache the result
-    this.titleCache.set(cacheKey, uniqueTitles, TITLE_CACHE_TTL);
-    return uniqueTitles;
+    this.metadataCache.set(cacheKey, metadata, TITLE_CACHE_TTL);
+    return metadata;
   }
 }

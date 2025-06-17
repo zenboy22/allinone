@@ -370,6 +370,7 @@ export const UserDataSchema = z.object({
   titleMatching: z
     .object({
       mode: z.enum(['exact', 'contains']).optional(),
+      matchYear: z.boolean().optional(),
       enabled: z.boolean().optional(),
       requestTypes: z.array(z.string()).optional(),
       addons: z.array(z.string()).optional(),

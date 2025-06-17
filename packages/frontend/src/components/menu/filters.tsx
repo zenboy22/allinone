@@ -1134,6 +1134,22 @@ function Content() {
                     }}
                   />
 
+                  <Switch
+                    label="Match Year (Movie Only)"
+                    side="right"
+                    disabled={!userData.titleMatching?.enabled}
+                    value={userData.titleMatching?.matchYear ?? false}
+                    onValueChange={(value) => {
+                      setUserData((prev) => ({
+                        ...prev,
+                        titleMatching: {
+                          ...prev.titleMatching,
+                          matchYear: value,
+                        },
+                      }));
+                    }}
+                  />
+
                   <Select
                     disabled={!userData.titleMatching?.enabled}
                     label="Matching Mode"
