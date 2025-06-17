@@ -85,6 +85,7 @@ export interface ParseValue {
   };
   addon?: {
     name: string;
+    presetId: string;
     manifestUrl: string;
   };
   debug?: {
@@ -158,6 +159,7 @@ export abstract class BaseFormatter {
       },
       addon: {
         name: stream.addon.name,
+        presetId: stream.addon.presetType,
         manifestUrl: stream.addon.manifestUrl,
       },
       service: {
