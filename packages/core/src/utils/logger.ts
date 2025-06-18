@@ -69,12 +69,6 @@ export const createLogger = (module: string) => {
     return info;
   });
 
-  console.log(`Using timezone`, timezone);
-  console.log(
-    `Using timezone eg`,
-    moment().tz(timezone).format('YYYY-MM-DD HH:mm:ss.SSS z')
-  );
-
   return winston.createLogger({
     level: Env.LOG_LEVEL,
     format: isJsonFormat
