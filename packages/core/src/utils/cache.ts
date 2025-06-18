@@ -21,14 +21,13 @@ export class Cache<K, V> {
     this.maxSize = maxSize;
     this.startStatsLoop();
   }
-
   private startStatsLoop() {
-    setInterval(
-      () => {
-        Cache.stats();
-      },
-      1000 * 60 * Env.LOG_CACHE_STATS_INTERVAL
-    );
+    const interval = Env.LOG_CACHE_STATS_INTERVAL * 60 * 1000; // Convert minutes to ms
+    const nextInterval = interval - (Date.now() % interval);
+    setTimeout(() => {
+      Cache.stats();
+      setInterval(Cache.stats, interval);
+    }, nextInterval);
   }
 
   /**
