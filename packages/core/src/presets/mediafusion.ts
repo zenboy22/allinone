@@ -282,12 +282,17 @@ export class MediaFusionPreset extends Preset {
     options: Record<string, any>,
     serviceId?: ServiceId
   ): Addon {
+    let url = options.url || this.METADATA.URL;
+    if (url.endsWith('/manifest.json')) {
+      return url;
+    }
+    url = url.replace(/\/$/, '');
     return {
       name: options.name || this.METADATA.NAME,
       identifyingName: serviceId
         ? `${options.name || this.METADATA.NAME} ${constants.SERVICE_DETAILS[serviceId].shortName}`
         : options.name || this.METADATA.NAME,
-      manifestUrl: `${Env.MEDIAFUSION_URL}/manifest.json`,
+      manifestUrl: `${url}/manifest.json`,
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
       timeout: options.timeout || this.METADATA.TIMEOUT,
@@ -310,11 +315,6 @@ export class MediaFusionPreset extends Preset {
     options: Record<string, any>,
     serviceId: ServiceId | undefined
   ) {
-    let url = options.url || this.METADATA.URL;
-    if (url.endsWith('/manifest.json')) {
-      return url;
-    }
-    url = url.replace(/\/$/, '');
     const encodedUserData = this.base64EncodeJSON(
       {
         streaming_provider: !serviceId
@@ -422,7 +422,7 @@ export class MediaFusionPreset extends Preset {
         api_password: Env.MEDIAFUSION_API_PASSWORD,
         mediaflow_config: null,
         rpdb_config: null,
-        live_search_streams: options.liveSearchStreams || false,
+        live_search_streams: options.liveSearchStreams ?? false,
         contribution_streams: false,
         mdblist_config: null,
       },
