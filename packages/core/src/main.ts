@@ -23,6 +23,7 @@ import {
   maskSensitiveInfo,
   DSU,
   Metadata,
+  Cache,
 } from './utils';
 import { Wrapper } from './wrapper';
 import { PresetManager } from './presets';
@@ -51,6 +52,8 @@ import {
 import { RPDB } from './utils/rpdb';
 import { FeatureControl } from './utils/feature';
 const logger = createLogger('core');
+
+const shuffleCache = Cache.getInstance<string, MetaPreview[]>('shuffle');
 
 export interface AIOStreamsError {
   title?: string;
@@ -349,8 +352,24 @@ export class AIOStreams {
 
     if (modification) {
       if (modification.shuffle && !(extras && extras.includes('search'))) {
-        // shuffle the catalog array  if it is not a search
-        catalog = catalog.sort(() => Math.random() - 0.5);
+        // shuffle the catalog array if it is not a search
+        const cacheKey = `shuffle-${type}-${actualCatalogId}-${this.userData.uuid}`;
+        const cachedShuffle = shuffleCache.get(cacheKey, false);
+        if (cachedShuffle) {
+          catalog = cachedShuffle;
+        } else {
+          for (let i = catalog.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [catalog[i], catalog[j]] = [catalog[j], catalog[i]];
+          }
+          if (modification.persistShuffleFor) {
+            shuffleCache.set(
+              cacheKey,
+              catalog,
+              modification.persistShuffleFor * 3600
+            );
+          }
+        }
       }
       if (modification.rpdb && this.userData.rpdbApiKey) {
         const rpdb = new RPDB(this.userData.rpdbApiKey);

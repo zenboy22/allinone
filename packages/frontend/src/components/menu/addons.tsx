@@ -63,6 +63,7 @@ import {
 import { FaArrowRightLong, FaRankingStar, FaShuffle } from 'react-icons/fa6';
 import { PiStarFill, PiStarBold } from 'react-icons/pi';
 import { IoExtensionPuzzle } from 'react-icons/io5';
+import { NumberInput } from '../ui/number-input';
 
 interface CatalogModification {
   id: string;
@@ -71,6 +72,7 @@ interface CatalogModification {
   overrideType?: string;
   enabled?: boolean;
   shuffle?: boolean;
+  persistShuffleFor?: number;
   rpdb?: boolean;
   onlyOnDiscover?: boolean;
   hideable?: boolean;
@@ -1602,6 +1604,38 @@ function SortableCatalogItem({
                         }));
                       }}
                     />
+
+                    <div className="flex flex-col md:flex-row md:items-center gap-2 -mx-2 px-2 hover:bg-[var(--subtle-highlight)] rounded-md">
+                      <div className="flex-1 py-2">
+                        <label className="text-sm font-medium">
+                          Persist Shuffle For
+                        </label>
+                        <p className="text-xs text-[--muted]">
+                          The amount of hours to keep a given shuffled catalog
+                          order before shuffling again. Defaults to 0 (Shuffle
+                          on every request).
+                        </p>
+                      </div>
+                      <div className="w-full md:w-32 py-2">
+                        <NumberInput
+                          value={catalog.persistShuffleFor ?? 0}
+                          min={0}
+                          step={1}
+                          max={24}
+                          onValueChange={(value) => {
+                            setUserData((prev) => ({
+                              ...prev,
+                              catalogModifications:
+                                prev.catalogModifications?.map((c) =>
+                                  c.id === catalog.id && c.type === catalog.type
+                                    ? { ...c, persistShuffleFor: value }
+                                    : c
+                                ),
+                            }));
+                          }}
+                        />
+                      </div>
+                    </div>
 
                     <Switch
                       label="RPDB"
