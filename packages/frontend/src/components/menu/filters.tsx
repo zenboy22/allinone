@@ -1135,7 +1135,7 @@ function Content() {
                   />
 
                   <Switch
-                    label="Match Year (Movie Only)"
+                    label="Match Year"
                     side="right"
                     disabled={!userData.titleMatching?.enabled}
                     value={userData.titleMatching?.matchYear ?? false}

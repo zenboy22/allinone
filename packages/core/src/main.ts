@@ -1331,12 +1331,11 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
         !streamTitle ||
         (titleMatchingOptions.matchYear && !streamYear && type === 'movie')
       ) {
-        // if a specific stream doesn't have a title or year, filter it out.
+        // only filter out movies without a year as series results usually don't include a year
         return false;
       }
-
       const yearMatch =
-        type === 'movie' && titleMatchingOptions.matchYear
+        titleMatchingOptions.matchYear && streamYear
           ? requestedMetadata?.year === streamYear
           : true;
 

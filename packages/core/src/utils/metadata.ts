@@ -158,10 +158,9 @@ export class TMDBMetadata {
     const detailsData = await detailsResponse.json();
     const primaryTitle =
       type === 'movie' ? detailsData.title : detailsData.name;
-    const year =
-      type === 'movie'
-        ? this.parseReleaseDate(detailsData.release_date)
-        : undefined;
+    const year = this.parseReleaseDate(
+      type === 'movie' ? detailsData.release_date : detailsData.first_air_date
+    );
 
     // Fetch alternative titles
     const altTitlesUrl = new URL(
