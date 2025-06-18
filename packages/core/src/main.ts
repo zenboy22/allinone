@@ -297,7 +297,7 @@ export class AIOStreams {
         data: [],
         errors: [
           {
-            title: `Addon ${addonInstanceId} not found`,
+            title: `Addon ${addonInstanceId} not found. Try reinstalling the addon.`,
             description: 'Addon not found',
           },
         ],
