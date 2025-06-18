@@ -97,17 +97,9 @@ export class TmdbCollectionsPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ): Addon {
-    const config = this.urlEncodeJSON({
-      enableAdultContent: options.enableAdultContent ?? false,
-      enableSearch: options.enableSearch ?? true,
-      language: options.language,
-      catalogList: ['popular', 'topRated', 'newReleases'],
-      discoverOnly: { popular: false, topRated: false, newReleases: false },
-    });
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
-      manifestUrl: `${this.METADATA.URL}/${config}/manifest.json`,
+      manifestUrl: this.generateManifestUrl(userData, options),
       enabled: true,
       library: false,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
@@ -118,5 +110,24 @@ export class TmdbCollectionsPreset extends Preset {
         'User-Agent': this.METADATA.USER_AGENT,
       },
     };
+  }
+
+  private static generateManifestUrl(
+    userData: UserData,
+    options: Record<string, any>
+  ) {
+    let url = options.url || this.METADATA.URL;
+    if (url.endsWith('/manifest.json')) {
+      return url;
+    }
+    url = url.replace(/\/$/, '');
+    const config = this.urlEncodeJSON({
+      enableAdultContent: options.enableAdultContent ?? false,
+      enableSearch: options.enableSearch ?? true,
+      language: options.language,
+      catalogList: ['popular', 'topRated', 'newReleases'],
+      discoverOnly: { popular: false, topRated: false, newReleases: false },
+    });
+    return `${url}/${config}/manifest.json`;
   }
 }

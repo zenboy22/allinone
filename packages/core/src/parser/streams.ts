@@ -401,13 +401,17 @@ class StreamParser {
           (language) => language.flag === flag
         );
 
-        const language = (
-          possibleLanguages.find((l) => l.flag_priority) || possibleLanguages[0]
-        ).english_name
+        const language =
+          possibleLanguages.find((l) => l.flag_priority) ||
+          possibleLanguages[0];
+        const languageName = (
+          language?.internal_english_name || language?.english_name
+        )
           ?.split('(')?.[0]
           ?.trim();
-        if (language && constants.LANGUAGES.includes(language as any)) {
-          return language;
+
+        if (languageName && constants.LANGUAGES.includes(languageName as any)) {
+          return languageName;
         }
         return undefined;
       })

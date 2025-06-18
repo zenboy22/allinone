@@ -44,7 +44,6 @@ export class TorrentCatalogsPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: `${Env.TORRENT_CATALOGS_URL}/manifest.json`,
       enabled: true,
       library: false,

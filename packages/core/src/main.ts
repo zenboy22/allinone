@@ -123,10 +123,6 @@ export class AIOStreams {
 
     const { streams, errors } = await this.getStreamsFromAddons(type, id);
 
-    logger.info(
-      `Received ${streams.length} streams and ${errors.length} errors`
-    );
-
     // step 3
     // apply all filters to the streams.
 
@@ -562,7 +558,7 @@ export class AIOStreams {
     // Request subtitles from all supported addons in parallel
     let errors: AIOStreamsError[] = this.addonInitialisationErrors.map(
       (error) => ({
-        title: `[❌] ${error.addon.identifyingName}`,
+        title: `[❌] ${this.getAddonName(error.addon)}`,
         description: error.error,
       })
     );
@@ -582,7 +578,7 @@ export class AIOStreams {
         } catch (error) {
           await this.handlePossibleRecursiveError(error);
           errors.push({
-            title: `[❌] ${addon.identifyingName}`,
+            title: `[❌] ${this.getAddonName(addon)}`,
             description: error instanceof Error ? error.message : String(error),
           });
         }
@@ -638,7 +634,7 @@ export class AIOStreams {
         data: [],
         errors: [
           {
-            title: `[❌] ${addon.identifyingName}`,
+            title: `[❌] ${this.getAddonName(addon)}`,
             description: error instanceof Error ? error.message : String(error),
           },
         ],
@@ -666,7 +662,9 @@ export class AIOStreams {
         ...addons.map((a) => ({
           ...a,
           presetInstanceId: preset.instanceId,
-          instanceId: `${preset.instanceId}${getSimpleTextHash(`${a.manifestUrl}`).slice(0, 4)}`,
+          // if no identifier is present, we can assume that the preset can only generate one addon at a time and so no
+          // unique identifier is needed as the preset instance id is enough to identify the addon
+          instanceId: `${preset.instanceId}${getSimpleTextHash(`${a.identifier ?? ''}`).slice(0, 4)}`,
         }))
       );
     }
@@ -726,7 +724,7 @@ export class AIOStreams {
       }
 
       logger.verbose(
-        `Determined that ${addon.identifyingName} (Instance ID: ${instanceId}) has support for the following resources: ${JSON.stringify(
+        `Determined that ${this.getAddonName(addon)} (Instance ID: ${instanceId}) has support for the following resources: ${JSON.stringify(
           addonResources
         )}`
       );
@@ -900,6 +898,10 @@ export class AIOStreams {
     return this.addons.find((a) => a.instanceId === instanceId);
   }
 
+  public getAddonName(addon: Addon): string {
+    return `${addon.name}${addon.displayIdentifier || addon.identifier ? ` ${addon.displayIdentifier || addon.identifier}` : ''}`;
+  }
+
   private shouldProxyStream(stream: ParsedStream): boolean {
     const streamService = stream.service ? stream.service.id : 'none';
     const proxy = this.userData.proxy;
@@ -977,7 +979,7 @@ export class AIOStreams {
             addon.presetInstanceId || ''
           ));
       logger.debug(
-        `Using ${proxy ? 'proxy' : 'user'} ip for ${addon.identifyingName}: ${
+        `Using ${proxy ? 'proxy' : 'user'} ip for ${this.getAddonName(addon)}: ${
           proxy
             ? maskSensitiveInfo(proxyIp ?? 'none')
             : maskSensitiveInfo(userIp ?? 'none')
@@ -1021,10 +1023,11 @@ export class AIOStreams {
     );
 
     let errors: AIOStreamsError[] = this.addonInitialisationErrors.map((e) => ({
-      title: `[❌] ${e.addon.identifyingName}`,
+      title: `[❌] ${this.getAddonName(e.addon)}`,
       description: e.error,
     }));
     let parsedStreams: ParsedStream[] = [];
+    const start = Date.now();
     let totalTimeTaken = 0;
     let previousGroupStreams: ParsedStream[] = [];
     let previousGroupTimeTaken = 0;
@@ -1042,14 +1045,14 @@ export class AIOStreams {
         );
         if (errorStreams.length > 0) {
           logger.error(
-            `Found ${errorStreams.length} error streams from ${addon.identifyingName}`,
+            `Found ${errorStreams.length} error streams from ${this.getAddonName(addon)}`,
             {
               errorStreams: errorStreams.map((s) => s.error?.title),
             }
           );
           errors.push(
             ...errorStreams.map((s) => ({
-              title: `[❌] ${s.error?.title || addon.identifyingName}`,
+              title: `[❌] ${s.error?.title || this.getAddonName(addon)}`,
               description: s.error?.description || 'Unknown error',
             }))
           );
@@ -1067,7 +1070,7 @@ export class AIOStreams {
 
         summaryMsg = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ${errorStreams.length > 0 ? '🟠' : '🟢'} [${addon.identifyingName}] Scrape Summary
+  ${errorStreams.length > 0 ? '🟠' : '🟢'} [${this.getAddonName(addon)}] Scrape Summary
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ✔ Status      : ${errorStreams.length > 0 ? 'PARTIAL SUCCESS' : 'SUCCESS'}
   📦 Streams    : ${streams.length}
@@ -1088,12 +1091,12 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
         await this.handlePossibleRecursiveError(error);
         const errMsg = error instanceof Error ? error.message : String(error);
         errors.push({
-          title: `[❌] ${addon.identifyingName}`,
+          title: `[❌] ${this.getAddonName(addon)}`,
           description: errMsg,
         });
         summaryMsg = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🔴 [${addon.identifyingName}] Scrape Summary
+  🔴 [${addon.name} ${addon.identifier}] Scrape Summary
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ✖ Status      : FAILED
   🚫 Error      : ${errMsg}
@@ -1185,6 +1188,9 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
       totalTimeTaken = result.totalTime;
     }
 
+    logger.info(
+      `Fetched ${parsedStreams.length} streams from ${supportedAddons.length} addons in ${getTimeTakenSincePoint(start)}`
+    );
     return { streams: parsedStreams, errors };
   }
 
@@ -1196,7 +1202,7 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
         `${this.userData.uuid} detected to be trying to cause infinite self scraping`
       );
       throw new Error(
-        `${addon.identifyingName} appears to be trying to scrape the current user's AIOStreams instance.`
+        `${this.getAddonName(addon)} appears to be trying to scrape the current user's AIOStreams instance.`
       );
     } else if (
       ((baseUrl && manifestUrl.host === baseUrl.host) ||
@@ -1213,13 +1219,13 @@ ${errorStreams.length > 0 ? `  ❌ Errors     : ${errorStreams.map((s) => `    �
       FeatureControl.disabledAddons.has(addon.presetInstanceId)
     ) {
       throw new Error(
-        `Addon ${addon.identifyingName} is disabled: ${FeatureControl.disabledAddons.get(
+        `Addon ${this.getAddonName(addon)} is disabled: ${FeatureControl.disabledAddons.get(
           addon.presetType
         )}`
       );
     } else if (FeatureControl.disabledHosts.has(manifestUrl.host)) {
       throw new Error(
-        `Addon ${addon.identifyingName} is disabled: ${FeatureControl.disabledHosts.get(
+        `Addon ${this.getAddonName(addon)} is disabled: ${FeatureControl.disabledHosts.get(
           manifestUrl.host
         )}`
       );

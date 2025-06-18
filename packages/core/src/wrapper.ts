@@ -110,7 +110,7 @@ export class Wrapper {
     return await manifestCache.wrap(
       async () => {
         logger.debug(
-          `Fetching manifest for ${this.addon.identifyingName} (${makeUrlLogSafe(this.manifestUrl)})`
+          `Fetching manifest for ${this.addon.name} ${this.addon.displayIdentifier || this.addon.identifier} (${makeUrlLogSafe(this.manifestUrl)})`
         );
         try {
           const res = await makeRequest(
@@ -129,19 +129,19 @@ export class Wrapper {
             logger.error(formatZodError(manifest.error));
             logger.error(JSON.stringify(data, null, 2));
             throw new Error(
-              `Failed to parse manifest for ${this.addon.identifyingName}`
+              `Failed to parse manifest for ${this.getAddonName(this.addon)}`
             );
           }
           return manifest.data;
         } catch (error: any) {
           logger.error(
-            `Failed to fetch manifest for ${this.addon.identifyingName}: ${error.message}`
+            `Failed to fetch manifest for ${this.getAddonName(this.addon)}: ${error.message}`
           );
           if (error instanceof PossibleRecursiveRequestError) {
             throw error;
           }
           throw new Error(
-            `Failed to fetch manifest for ${this.addon.identifyingName}: ${error.message}`
+            `Failed to fetch manifest for ${this.getAddonName(this.addon)}: ${error.message}`
           );
         }
       },
@@ -193,7 +193,7 @@ export class Wrapper {
       if (!parsed.success) {
         logger.error(formatZodError(parsed.error));
         throw new Error(
-          `Failed to parse meta for ${this.addon.identifyingName}`
+          `Failed to parse meta for ${this.getAddonName(this.addon)}`
         );
       }
       return parsed.data;
@@ -266,7 +266,7 @@ export class Wrapper {
       const cached = resourceCache.get(url);
       if (cached) {
         logger.info(
-          `Returning cached ${resource} for ${this.addon.name} (${makeUrlLogSafe(url)})`
+          `Returning cached ${resource} for ${this.getAddonName(this.addon)} (${makeUrlLogSafe(url)})`
         );
         return cached;
       }
@@ -283,7 +283,7 @@ export class Wrapper {
       );
       if (!res.ok) {
         logger.error(
-          `Failed to fetch ${resource} resource for ${this.addon.name}: ${res.status} - ${res.statusText}`
+          `Failed to fetch ${resource} resource for ${this.getAddonName(this.addon)}: ${res.status} - ${res.statusText}`
         );
 
         throw new Error(`${res.status} - ${res.statusText}`);
@@ -298,7 +298,7 @@ export class Wrapper {
       return validated;
     } catch (error: any) {
       logger.error(
-        `Failed to fetch ${resource} resource for ${this.addon.name}: ${error.message}`
+        `Failed to fetch ${resource} resource for ${this.getAddonName(this.addon)}: ${error.message}`
       );
       throw error;
     }
@@ -312,5 +312,9 @@ export class Wrapper {
   ): string {
     const extrasPath = extras ? `/${extras}` : '';
     return `${this.baseUrl}/${resource}/${type}/${encodeURIComponent(id)}${extrasPath}.json`;
+  }
+
+  private getAddonName(addon: Addon): string {
+    return `${addon.name}${addon.displayIdentifier || addon.identifier ? ` ${addon.displayIdentifier || addon.identifier}` : ''}`;
   }
 }

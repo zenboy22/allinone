@@ -120,7 +120,6 @@ export class DcUniversePreset extends Preset {
         : '';
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: `${Env.DC_UNIVERSE_URL}/${config ? 'catalog/' + config + '/' : ''}manifest.json`,
       enabled: true,
       library: false,

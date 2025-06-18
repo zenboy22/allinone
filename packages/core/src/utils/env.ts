@@ -268,10 +268,6 @@ export const Env = cleanEnv(process.env, {
     desc: 'Log format for the addon',
     choices: ['text', 'json'],
   }),
-  TZ: str({
-    default: 'UTC',
-    desc: 'Timezone for log timestamps (e.g., America/New_York, Europe/London)',
-  }),
   LOG_TIMEZONE: str({
     default: 'UTC',
     desc: 'Timezone for log timestamps (e.g., America/New_York, Europe/London)',
@@ -579,10 +575,6 @@ export const Env = cleanEnv(process.env, {
     default: 'https://comet.elfhosted.com',
     desc: 'Comet URL',
   }),
-  DEFAULT_COMET_INDEXERS: json({
-    default: ['dmm_public_hash_shares_only'],
-    desc: 'Comet indexers',
-  }),
   FORCE_COMET_HOSTNAME: host({
     default: undefined,
     desc: 'Force Comet hostname',
@@ -613,6 +605,14 @@ export const Env = cleanEnv(process.env, {
   MEDIAFUSION_API_PASSWORD: str({
     default: '',
     desc: 'MediaFusion API password',
+  }),
+  MEDIAFUSION_DEFAULT_USE_CACHED_RESULTS_ONLY: bool({
+    default: true,
+    desc: 'Default MediaFusion use cached results only',
+  }),
+  MEDIAFUSION_FORCED_USE_CACHED_RESULTS_ONLY: bool({
+    default: undefined,
+    desc: 'Force MediaFusion use cached results only',
   }),
   DEFAULT_MEDIAFUSION_TIMEOUT: num({
     default: undefined,

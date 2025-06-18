@@ -112,7 +112,8 @@ const AddonSchema = z.object({
   enabled: z.boolean(),
   resources: ResourceList.optional(),
   name: z.string(),
-  identifyingName: z.string(),
+  identifier: z.string().optional(), // true identifier for generating IDs
+  displayIdentifier: z.string().optional(), // identifier for display purposes
   timeout: z.number().min(1),
   library: z.boolean().optional(),
   streamPassthrough: z.boolean().optional(),

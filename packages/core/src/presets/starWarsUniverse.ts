@@ -124,7 +124,6 @@ export class StarWarsUniversePreset extends Preset {
         : '';
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: `${Env.DEFAULT_STAR_WARS_UNIVERSE_URL}/${config ? 'catalog/' + config + '/' : ''}manifest.json`,
       enabled: true,
       library: false,

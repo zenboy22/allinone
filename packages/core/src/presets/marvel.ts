@@ -96,7 +96,6 @@ export class MarvelPreset extends Preset {
         : '';
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: `${Env.MARVEL_UNIVERSE_URL}/${config ? 'catalog/' + config + '/' : ''}manifest.json`,
       enabled: true,
       library: false,

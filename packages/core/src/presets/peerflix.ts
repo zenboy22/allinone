@@ -120,7 +120,20 @@ export class PeerflixPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: `${options.name || this.METADATA.NAME} ${services.map((id) => constants.SERVICE_DETAILS[id].shortName).join(' | ')}`,
+      identifier:
+        services.length > 0
+          ? services.length > 1
+            ? 'multi'
+            : constants.SERVICE_DETAILS[services[0]].shortName
+          : 'p2p',
+      displayIdentifier:
+        services.length > 0
+          ? services.length > 1
+            ? services
+                .map((id) => constants.SERVICE_DETAILS[id].shortName)
+                .join(' | ')
+            : constants.SERVICE_DETAILS[services[0]].shortName
+          : 'P2P',
       manifestUrl: this.generateManifestUrl(userData, services, options),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

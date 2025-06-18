@@ -23,8 +23,12 @@ class WebStreamrStreamParser extends StreamParser {
     currentParsedStream: ParsedStream
   ): string | undefined {
     const messageRegex = this.getRegexForTextAfterEmojis(['🐢']);
-    const message = stream.description?.match(messageRegex)?.[1];
-    return message;
+
+    let messages = [stream.description?.match(messageRegex)?.[1]];
+    if (stream.name?.includes('external')) {
+      messages.push('External');
+    }
+    return messages.join(' | ');
   }
 
   protected override getFilename(
@@ -52,18 +56,7 @@ export class WebStreamrPreset extends Preset {
 
   static override get METADATA(): PresetMetadata {
     const supportedResources = [constants.STREAM_RESOURCE];
-    /**
-     * German 🇩🇪 (KinoGer, MeineCloud, StreamKiste)
-English 🇺🇸 (Soaper, VidSrc)
-Castilian Spanish 🇪🇸 (CineHDPlus, Cuevana, VerHdLink)
-French 🇫🇷 (Frembed, FrenchCloud)
-Italian 🇮🇹 (Eurostreaming, MostraGuarda)
-Latin American Spanish 🇲🇽 (CineHDPlus, Cuevana, VerHdLink)
-Exclude external URLs from results 
 
-
-{"de":"on","en":"on","es":"on","fr":"on","it":"on","mx":"on","excludeExternalUrls":"on"}
-     */
     const providers = [
       {
         label: '🇺🇸 English (Soaper, VidSrc)',
@@ -105,9 +98,9 @@ Exclude external URLs from results
         default: ['en'],
       },
       {
-        id: 'excludeExternalUrls',
-        name: 'Exclude External URLs',
-        description: 'Exclude external URLs from results',
+        id: 'includeExternalUrls',
+        name: 'Include External URLs',
+        description: 'Include external URLs in results',
         type: 'boolean',
         default: false,
       },
@@ -149,7 +142,6 @@ Exclude external URLs from results
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: this.generateManifestUrl(userData, options),
       enabled: true,
       streamPassthrough: false,
@@ -176,7 +168,7 @@ Exclude external URLs from results
 
     const checkedOptions = [
       ...(options.providers || []),
-      options.excludeExternalUrls ?? undefined,
+      options.includeExternalUrls ?? undefined, // ensure its removed if false
     ].filter(Boolean);
 
     const config = this.urlEncodeJSON({

@@ -42,7 +42,6 @@ export class OpenSubtitlesPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: `${Env.OPENSUBTITLES_URL}/manifest.json`,
       enabled: true,
       library: false,

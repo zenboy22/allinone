@@ -160,7 +160,6 @@ export class StreamingCatalogsPreset extends Preset {
     const config = Buffer.from(options.catalogs.join(',')).toString('base64');
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: `${Env.STREAMING_CATALOGS_URL}/${config}/manifest.json`,
       enabled: true,
       library: false,

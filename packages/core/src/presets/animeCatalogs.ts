@@ -275,7 +275,7 @@ export class AnimeCatalogsPreset extends Preset {
     });
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
+      identifier: '',
       manifestUrl: `${Env.ANIME_CATALOGS_URL}/${config}/manifest.json`,
       enabled: true,
       library: false,

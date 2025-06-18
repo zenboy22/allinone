@@ -136,7 +136,6 @@ export class DMMCastPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: options.installationUrl,
       enabled: true,
       library: false,

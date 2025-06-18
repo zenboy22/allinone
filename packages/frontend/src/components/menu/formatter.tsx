@@ -193,7 +193,6 @@ function Content() {
         type,
         addon: {
           name: addonName,
-          identifyingName: addonName,
           presetType: 'custom',
           presetInstanceId: 'custom',
           enabled: true,

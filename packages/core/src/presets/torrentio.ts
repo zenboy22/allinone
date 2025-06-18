@@ -143,7 +143,17 @@ export class TorrentioPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: `${options.name || this.METADATA.NAME} ${services.map((id) => constants.SERVICE_DETAILS[id].shortName).join(' | ')}`,
+      displayIdentifier: services
+        .map((id) => constants.SERVICE_DETAILS[id].shortName)
+        .join(' | '),
+      identifier:
+        services.length > 0
+          ? services.length > 1
+            ? 'multi'
+            : constants.SERVICE_DETAILS[services[0]].shortName
+          : options.url?.endsWith('/manifest.json')
+            ? undefined
+            : 'p2p',
       manifestUrl: this.generateManifestUrl(userData, services, options.url),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

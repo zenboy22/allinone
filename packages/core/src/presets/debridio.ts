@@ -95,9 +95,12 @@ export class DebridioPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: service
-        ? `${options.name || this.METADATA.NAME} ${constants.SERVICE_DETAILS[service].shortName}`
-        : options.name || this.METADATA.NAME,
+      displayIdentifier: service
+        ? `${constants.SERVICE_DETAILS[service].shortName}`
+        : 'custom',
+      identifier: service
+        ? `${constants.SERVICE_DETAILS[service].shortName}`
+        : 'custom',
       manifestUrl: this.generateManifestUrl(userData, service, options.url),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

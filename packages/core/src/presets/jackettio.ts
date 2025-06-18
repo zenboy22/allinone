@@ -127,9 +127,12 @@ export class JackettioPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: serviceId
-        ? `${options.name || this.METADATA.NAME} ${constants.SERVICE_DETAILS[serviceId].shortName}`
-        : options.name || this.METADATA.NAME,
+      identifier: serviceId
+        ? `${constants.SERVICE_DETAILS[serviceId].shortName}`
+        : undefined, // when no service is provided - its either going to fail or be a custom addon, which is only 1 addon in either case
+      displayIdentifier: serviceId
+        ? `${constants.SERVICE_DETAILS[serviceId].shortName}`
+        : undefined,
       manifestUrl: this.generateManifestUrl(userData, options, serviceId),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

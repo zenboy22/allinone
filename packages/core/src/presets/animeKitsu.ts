@@ -60,7 +60,6 @@ export class AnimeKitsuPreset extends Preset {
       : Env.ANIME_KITSU_URL;
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: `${baseUrl}/manifest.json`,
       enabled: true,
       library: false,

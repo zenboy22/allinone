@@ -110,17 +110,13 @@ export class OrionPreset extends Preset {
       return [this.generateAddon(userData, options, [])];
     }
 
-    const showP2P = options.showP2P ?? false;
-    const addonOptions = { ...options, showP2P: false };
-
-    let addons = usableServices.map((service) =>
-      this.generateAddon(userData, addonOptions, [service.id])
-    );
-
-    if (showP2P) {
-      // we only want to push a single p2p addon, rather than a p2p addon for each service.
-      addons.push(this.generateAddon(userData, addonOptions, []));
-    }
+    let addons: Addon[] = [
+      this.generateAddon(
+        userData,
+        options,
+        usableServices.map((service) => service.id)
+      ),
+    ];
 
     return addons;
   }
@@ -132,7 +128,21 @@ export class OrionPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: `${options.name || this.METADATA.NAME} ${serviceIds.map((id) => constants.SERVICE_DETAILS[id].shortName).join(', ')}`,
+      // we don't want our true identifier to be change if the user changes their services
+      // meaning the addon ID changes and the user then has to reinstall the addon
+      // so instead, our internal identifier simply says either: p2p, multi, or the specific short name of the single service
+      identifier:
+        serviceIds.length > 0
+          ? serviceIds.length > 1
+            ? 'multi'
+            : constants.SERVICE_DETAILS[serviceIds[0]].shortName
+          : 'P2P',
+      displayIdentifier:
+        serviceIds.length > 0
+          ? serviceIds
+              .map((id) => constants.SERVICE_DETAILS[id].shortName)
+              .join(', ')
+          : 'P2P',
       manifestUrl: this.generateManifestUrl(userData, options, serviceIds),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

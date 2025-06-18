@@ -93,7 +93,6 @@ export class CustomPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: options.manifestUrl,
       enabled: true,
       library: options.libraryAddon ?? false,

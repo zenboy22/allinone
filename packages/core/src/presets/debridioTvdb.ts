@@ -77,7 +77,6 @@ export class DebridioTvdbPreset extends Preset {
     }
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: url,
       enabled: true,
       library: false,

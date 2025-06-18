@@ -159,9 +159,20 @@ export class StreamFusionPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: `${options.name || this.METADATA.NAME} ${serviceIds
-        .map((serviceId) => constants.SERVICE_DETAILS[serviceId].shortName)
-        .join(' | ')}`,
+      identifier:
+        serviceIds.length > 0
+          ? serviceIds.length > 1
+            ? 'multi'
+            : constants.SERVICE_DETAILS[serviceIds[0]].shortName
+          : 'p2p',
+      displayIdentifier:
+        serviceIds.length > 0
+          ? serviceIds.length > 1
+            ? serviceIds
+                .map((id) => constants.SERVICE_DETAILS[id].shortName)
+                .join(' | ')
+            : constants.SERVICE_DETAILS[serviceIds[0]].shortName
+          : 'P2P',
       manifestUrl: this.generateManifestUrl(userData, options, serviceIds),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,

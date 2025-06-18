@@ -229,7 +229,6 @@ export class NuvioStreamsPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: this.generateManifestUrl(userData, options),
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
@@ -246,11 +245,11 @@ export class NuvioStreamsPreset extends Preset {
     userData: UserData,
     options: Record<string, any>
   ) {
-    const url = options.url || this.METADATA.URL;
+    let url = options.url || this.METADATA.URL;
     if (url.endsWith('/manifest.json')) {
       return url;
     }
-
+    url = url.replace(/\/$/, '');
     const cookie = options.showBoxCookie;
     const providers = options.providers;
     const scraperApiKey = options.scraperApiKey;

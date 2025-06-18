@@ -76,7 +76,6 @@ export class DoctorWhoUniversePreset extends Preset {
       : Env.DOCTOR_WHO_UNIVERSE_URL;
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: `${baseUrl}/manifest.json`,
       enabled: true,
       library: false,

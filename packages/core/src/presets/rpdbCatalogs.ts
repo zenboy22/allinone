@@ -72,7 +72,6 @@ export class RpdbCatalogsPreset extends Preset {
   ): Addon {
     return {
       name: options.name || this.METADATA.NAME,
-      identifyingName: options.name || this.METADATA.NAME,
       manifestUrl: `${Env.RPDB_CATALOGS_URL}/${userData.rpdbApiKey}/poster-default/${options.catalogs.join('_')}/manifest.json`,
       enabled: true,
       library: false,

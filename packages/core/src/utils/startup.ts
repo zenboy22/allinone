@@ -92,10 +92,6 @@ const logStartupInfo = () => {
     if (Env.CUSTOM_HTML) {
       logKeyValue('Custom HTML:', '✅ Configured');
     }
-    logKeyValue(
-      'Self Scraping:',
-      Env.DISABLE_SELF_SCRAPING ? '❌ Disabled' : '✅ Enabled'
-    );
   });
 
   // Database & Storage
@@ -118,7 +114,7 @@ const logStartupInfo = () => {
   logSection('LOGGING CONFIGURATION', '📝', () => {
     logKeyValue('Log Level:', Env.LOG_LEVEL.toUpperCase());
     logKeyValue('Log Format:', Env.LOG_FORMAT.toUpperCase());
-    logKeyValue('Timezone:', `${Env.TZ} (Logs: ${Env.LOG_TIMEZONE})`);
+    logKeyValue('Log Timezone:', Env.LOG_TIMEZONE);
     logKeyValue(
       'Sensitive Info:',
       Env.LOG_SENSITIVE_INFO ? '⚠️  ENABLED' : '❌ Disabled'
@@ -126,7 +122,7 @@ const logStartupInfo = () => {
   });
 
   // Cache Configuration
-  logSection('⚡ CACHE CONFIGURATION', '⚡', () => {
+  logSection('CACHE CONFIGURATION', '⚡', () => {
     logKeyValue('Max Cache Size:', Env.DEFAULT_MAX_CACHE_SIZE);
 
     // Proxy IP Cache
@@ -290,6 +286,10 @@ const logStartupInfo = () => {
 
   // Recursion Protection
   logSection('RECURSION PROTECTION', '🔄', () => {
+    logKeyValue(
+      'Self Scraping:',
+      Env.DISABLE_SELF_SCRAPING ? '❌ Disabled' : '✅ Enabled'
+    );
     logKeyValue('Threshold Limit:', Env.RECURSION_THRESHOLD_LIMIT.toString());
     logKeyValue('Time Window:', formatDuration(Env.RECURSION_THRESHOLD_WINDOW));
   });
@@ -357,6 +357,7 @@ const logStartupInfo = () => {
   logSection('DEFAULT SERVICE CREDENTIALS', '🔑', () => {
     const configuredServices = defaultServices.filter((service) => service.key);
     if (configuredServices.length > 0) {
+      logKeyValue('Status:', '✅ Configured');
       configuredServices.forEach((service) => {
         logKeyValue(service.name + ':', '✅ Configured');
       });
@@ -390,9 +391,14 @@ const logStartupInfo = () => {
   );
   if (configuredForcedServices.length > 0) {
     logSection('FORCED SERVICE CREDENTIALS', '🔒', () => {
+      logKeyValue('Status:', '✅ Configured');
       configuredForcedServices.forEach((service) => {
         logKeyValue(service.name + ':', '⚠️  ENFORCED');
       });
+    });
+  } else {
+    logSection('FORCED SERVICE CREDENTIALS', '🔒', () => {
+      logKeyValue('Status:', '❌ None configured');
     });
   }
 
@@ -482,11 +488,6 @@ const logStartupInfo = () => {
     if (Env.DEFAULT_COMET_USER_AGENT) {
       logKeyValue('  User Agent:', Env.DEFAULT_COMET_USER_AGENT, '     ');
     }
-    logKeyValue(
-      '  Indexers:',
-      JSON.stringify(Env.DEFAULT_COMET_INDEXERS),
-      '     '
-    );
     if (Env.FORCE_COMET_HOSTNAME) {
       logKeyValue(
         '  Force Host:',
@@ -512,6 +513,21 @@ const logStartupInfo = () => {
       Env.MEDIAFUSION_API_PASSWORD ? '✅ Configured' : '❌ None',
       '     '
     );
+    if (
+      Env.MEDIAFUSION_FORCED_USE_CACHED_RESULTS_ONLY ||
+      Env.MEDIAFUSION_DEFAULT_USE_CACHED_RESULTS_ONLY
+    ) {
+      const value =
+        Env.MEDIAFUSION_FORCED_USE_CACHED_RESULTS_ONLY ||
+        Env.MEDIAFUSION_DEFAULT_USE_CACHED_RESULTS_ONLY
+          ? '✅ Enabled'
+          : '❌ Disabled';
+      logKeyValue(
+        '  Cached Searches Default:',
+        `${value}${Env.MEDIAFUSION_FORCED_USE_CACHED_RESULTS_ONLY ? '  ⚠️  ENFORCED' : ''}`,
+        '     '
+      );
+    }
 
     // Jackettio
     logKeyValue('Jackettio:', Env.JACKETTIO_URL);
@@ -1007,8 +1023,8 @@ const logStartupInfo = () => {
   const features: string[] = [];
   if (Env.TMDB_ACCESS_TOKEN) features.push('TMDB Integration');
   if (Env.CUSTOM_HTML) features.push('Custom HTML');
-  if (Env.ENCRYPT_MEDIAFLOW_URLS) features.push('MediaFlow URL Encryption');
-  if (Env.ENCRYPT_STREMTHRU_URLS) features.push('StremThru URL Encryption');
+  if (Env.ENCRYPT_MEDIAFLOW_URLS) features.push('Encrypt MediaFlow URLs');
+  if (Env.ENCRYPT_STREMTHRU_URLS) features.push('Encrypt StremThru URLs');
 
   if (features.length > 0) {
     logSection('ADDITIONAL FEATURES', '✨', () => {
