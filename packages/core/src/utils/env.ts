@@ -843,6 +843,19 @@ export const Env = cleanEnv(process.env, {
     default: undefined,
     desc: 'Default StremThru Store user agent',
   }),
+  FORCE_STREMTHRU_STORE_HOSTNAME: host({
+    default: undefined,
+    desc: 'Force StremThru Store hostname',
+  }),
+  FORCE_STREMTHRU_STORE_PORT: forcedPort({
+    default: undefined,
+    desc: 'Force StremThru Store port',
+  }),
+  FORCE_STREMTHRU_STORE_PROTOCOL: str({
+    default: undefined,
+    desc: 'Force StremThru Store protocol',
+    choices: ['http', 'https'],
+  }),
 
   // StremThru Torz settings
   STREMTHRU_TORZ_URL: url({
@@ -856,6 +869,19 @@ export const Env = cleanEnv(process.env, {
   DEFAULT_STREMTHRU_TORZ_USER_AGENT: userAgent({
     default: undefined,
     desc: 'Default StremThru Torz user agent',
+  }),
+  FORCE_STREMTHRU_TORZ_HOSTNAME: host({
+    default: undefined,
+    desc: 'Force StremThru Torz hostname',
+  }),
+  FORCE_STREMTHRU_TORZ_PORT: forcedPort({
+    default: undefined,
+    desc: 'Force StremThru Torz port',
+  }),
+  FORCE_STREMTHRU_TORZ_PROTOCOL: str({
+    default: undefined,
+    desc: 'Force StremThru Torz protocol',
+    choices: ['http', 'https'],
   }),
 
   DEFAULT_STREAMFUSION_URL: url({

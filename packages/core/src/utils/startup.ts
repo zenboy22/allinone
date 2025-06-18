@@ -754,6 +754,23 @@ const logStartupInfo = () => {
         '     '
       );
     }
+    if (Env.FORCE_STREMTHRU_STORE_HOSTNAME) {
+      logKeyValue(
+        '  Force Host:',
+        `${Env.FORCE_STREMTHRU_STORE_PROTOCOL || 'https'}://${Env.FORCE_STREMTHRU_STORE_HOSTNAME}:${Env.FORCE_STREMTHRU_STORE_PORT || 443}`,
+        '     '
+      );
+    }
+    if (Env.FORCE_STREMTHRU_STORE_PORT !== undefined) {
+      logKeyValue('  Force Port:', Env.FORCE_STREMTHRU_STORE_PORT, '     ');
+    }
+    if (Env.FORCE_STREMTHRU_STORE_PROTOCOL !== undefined) {
+      logKeyValue(
+        '  Force Protocol:',
+        Env.FORCE_STREMTHRU_STORE_PROTOCOL,
+        '     '
+      );
+    }
 
     // StremThru Torz
     logKeyValue('StremThru Torz:', Env.STREMTHRU_TORZ_URL);
@@ -768,6 +785,23 @@ const logStartupInfo = () => {
       logKeyValue(
         '  User Agent:',
         Env.DEFAULT_STREMTHRU_TORZ_USER_AGENT,
+        '     '
+      );
+    }
+    if (Env.FORCE_STREMTHRU_TORZ_HOSTNAME) {
+      logKeyValue(
+        '  Force Host:',
+        `${Env.FORCE_STREMTHRU_TORZ_PROTOCOL || 'https'}://${Env.FORCE_STREMTHRU_TORZ_HOSTNAME}:${Env.FORCE_STREMTHRU_TORZ_PORT || 443}`,
+        '     '
+      );
+    }
+    if (Env.FORCE_STREMTHRU_TORZ_PORT !== undefined) {
+      logKeyValue('  Force Port:', Env.FORCE_STREMTHRU_TORZ_PORT, '     ');
+    }
+    if (Env.FORCE_STREMTHRU_TORZ_PROTOCOL !== undefined) {
+      logKeyValue(
+        '  Force Protocol:',
+        Env.FORCE_STREMTHRU_TORZ_PROTOCOL,
         '     '
       );
     }

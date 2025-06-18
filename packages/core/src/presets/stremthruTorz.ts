@@ -5,6 +5,34 @@ import { constants, ServiceId } from '../utils';
 import { StreamParser } from '../parser';
 
 class StremthruTorzStreamParser extends StreamParser {
+  protected override applyUrlModifications(
+    url: string | undefined
+  ): string | undefined {
+    if (!url) {
+      return url;
+    }
+    if (
+      Env.FORCE_STREMTHRU_TORZ_HOSTNAME !== undefined ||
+      Env.FORCE_STREMTHRU_TORZ_PORT !== undefined ||
+      Env.FORCE_STREMTHRU_TORZ_PROTOCOL !== undefined
+    ) {
+      // modify the URL according to settings, needed when using a local URL for requests but a public stream URL is needed.
+      const urlObj = new URL(url);
+
+      if (Env.FORCE_STREMTHRU_TORZ_PROTOCOL !== undefined) {
+        urlObj.protocol = Env.FORCE_STREMTHRU_TORZ_PROTOCOL;
+      }
+      if (Env.FORCE_STREMTHRU_TORZ_PORT !== undefined) {
+        urlObj.port = Env.FORCE_STREMTHRU_TORZ_PORT.toString();
+      }
+      if (Env.FORCE_STREMTHRU_TORZ_HOSTNAME !== undefined) {
+        urlObj.hostname = Env.FORCE_STREMTHRU_TORZ_HOSTNAME;
+      }
+      return urlObj.toString();
+    }
+    return url;
+  }
+
   // ensure release groups aren't misidentified as indexers
   protected override getIndexer(
     stream: Stream,

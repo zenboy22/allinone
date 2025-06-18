@@ -4,7 +4,41 @@ import { Env } from '../utils';
 import { constants, ServiceId } from '../utils';
 import { StreamParser } from '../parser';
 
+class StremthruStoreStreamParser extends StreamParser {
+  protected override applyUrlModifications(
+    url: string | undefined
+  ): string | undefined {
+    if (!url) {
+      return url;
+    }
+    if (
+      Env.FORCE_STREMTHRU_STORE_HOSTNAME !== undefined ||
+      Env.FORCE_STREMTHRU_STORE_PORT !== undefined ||
+      Env.FORCE_STREMTHRU_STORE_PROTOCOL !== undefined
+    ) {
+      // modify the URL according to settings, needed when using a local URL for requests but a public stream URL is needed.
+      const urlObj = new URL(url);
+
+      if (Env.FORCE_STREMTHRU_STORE_PROTOCOL !== undefined) {
+        urlObj.protocol = Env.FORCE_STREMTHRU_STORE_PROTOCOL;
+      }
+      if (Env.FORCE_STREMTHRU_STORE_PORT !== undefined) {
+        urlObj.port = Env.FORCE_STREMTHRU_STORE_PORT.toString();
+      }
+      if (Env.FORCE_STREMTHRU_STORE_HOSTNAME !== undefined) {
+        urlObj.hostname = Env.FORCE_STREMTHRU_STORE_HOSTNAME;
+      }
+      return urlObj.toString();
+    }
+    return url;
+  }
+}
+
 export class StremthruStorePreset extends Preset {
+  static override getParser(): typeof StreamParser {
+    return StremthruStoreStreamParser;
+  }
+
   static override get METADATA() {
     const supportedServices: ServiceId[] = [
       constants.REALDEBRID_SERVICE,
