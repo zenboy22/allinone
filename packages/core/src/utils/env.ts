@@ -272,6 +272,10 @@ export const Env = cleanEnv(process.env, {
     default: 'UTC',
     desc: 'Timezone for log timestamps (e.g., America/New_York, Europe/London)',
   }),
+  LOG_CACHE_STATS_INTERVAL: num({
+    default: 30,
+    desc: 'Interval for logging cache stats in minutes (verbose level only)',
+  }),
 
   STREMIO_ADDONS_CONFIG_ISSUER: url({
     default: 'https://stremio-addons.net',

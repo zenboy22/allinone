@@ -19,6 +19,16 @@ export class Cache<K, V> {
   private constructor(maxSize: number) {
     this.cache = new Map<K, CacheItem<V>>();
     this.maxSize = maxSize;
+    this.startStatsLoop();
+  }
+
+  private startStatsLoop() {
+    setInterval(
+      () => {
+        Cache.stats();
+      },
+      1000 * 60 * Env.LOG_CACHE_STATS_INTERVAL
+    );
   }
 
   /**
@@ -37,8 +47,29 @@ export class Cache<K, V> {
     return this.instances.get(name) as Cache<K, V>;
   }
 
-  stats(): string {
-    return `Cache size: ${this.cache.size}`;
+  /**
+   * Gets the statistics of the cache in use by the program. returns a formatted string containing a list of all cache instances
+   * and their currently held items, max items
+   */
+  public static stats() {
+    if (this.instances.size === 0) {
+      return;
+    }
+    const lines = [
+      '┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓',
+      '┃                   Cache Stats                     ┃',
+      '┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫',
+      '┃ Name                 │ Items    │ Max Size        ┃',
+      '┣━━━━━━━━━━━━━━━━━━━━━━┿━━━━━━━━━━┿━━━━━━━━━━━━━━━━━┫',
+      ...Array.from(this.instances.entries()).map(([name, cache]) => {
+        const nameStr = name.padEnd(20, ' ');
+        const sizeStr = String(cache.cache.size).padEnd(8, ' ');
+        const maxSizeStr = String(cache.maxSize ?? '-').padEnd(16, ' ');
+        return `┃ ${nameStr} │ ${sizeStr} │ ${maxSizeStr}┃`;
+      }),
+      '┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛',
+    ];
+    logger.verbose(lines.join('\n'));
   }
 
   /**
