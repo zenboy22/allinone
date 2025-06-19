@@ -7,6 +7,7 @@ export class TmdbCollectionsPreset extends Preset {
     const supportedResources = [
       constants.CATALOG_RESOURCE,
       constants.META_RESOURCE,
+      constants.STREAM_RESOURCE,
     ];
 
     const options: Option[] = [
