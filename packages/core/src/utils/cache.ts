@@ -51,6 +51,9 @@ export class Cache<K, V> {
    * and their currently held items, max items
    */
   public static stats() {
+    if (!this.instances) {
+      return;
+    }
     if (this.instances.size === 0) {
       return;
     }
