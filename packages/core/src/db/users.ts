@@ -28,24 +28,11 @@ export class UserRepository {
     password: string
   ): Promise<{ uuid: string; encryptedPassword: string }> {
     return txQueue.enqueue(async () => {
-      if (password.length < 8) {
+      if (password.length < 6) {
         return Promise.reject(
           new APIError(constants.ErrorCode.USER_NEW_PASSWORD_TOO_SHORT)
         );
       }
-
-      // require at least one uppercase, one lowercase, one number, and one special character
-      // [@$!%*?&\-\._#~^()+=<>,;:'"`{}[\]|\\]
-      if (
-        !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-\._#~^()+=<>,;:'"`{}[\]|\\])[A-Za-z\d@$!%*?&\-\._#~^()+=<>,;:'"`{}[\]|\\]{8,}$/.test(
-          password
-        )
-      ) {
-        return Promise.reject(
-          new APIError(constants.ErrorCode.USER_NEW_PASSWORD_TOO_SIMPLE)
-        );
-      }
-
       let validatedConfig: UserData;
       config.trusted = false;
       try {

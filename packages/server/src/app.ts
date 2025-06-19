@@ -98,7 +98,7 @@ app.get('/', (req, res) => {
   res.redirect('/stremio/configure');
 });
 
-// legacy route handler
+// legacy route handlers
 app.get('/:config?/stream/:type/:id.json', (req, res) => {
   const baseUrl =
     Env.BASE_URL ||
@@ -114,6 +114,9 @@ app.get('/:config?/stream/:type/:id.json', (req, res) => {
       }),
     ],
   });
+});
+app.get('/:config?/configure', (req, res) => {
+  res.redirect('/stremio/configure');
 });
 
 // 404 handler

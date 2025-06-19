@@ -378,6 +378,20 @@ export const Env = cleanEnv(process.env, {
     desc: 'Default timeout for the addon',
   }),
 
+  FORCE_PUBLIC_PROXY_HOST: host({
+    default: undefined,
+    desc: 'Force public proxy host',
+  }),
+  FORCE_PUBLIC_PROXY_PORT: forcedPort({
+    default: undefined,
+    desc: 'Force public proxy port',
+  }),
+  FORCE_PUBLIC_PROXY_PROTOCOL: str({
+    default: undefined,
+    desc: 'Force public proxy protocol',
+    choices: ['http', 'https'],
+  }),
+
   FORCE_PROXY_ENABLED: bool({
     default: undefined,
     desc: 'Force proxy enabled',

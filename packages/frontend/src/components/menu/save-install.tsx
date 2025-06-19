@@ -72,25 +72,8 @@ function Content() {
       return;
     }
 
-    if (newPassword.length < 8) {
-      requirements.push('Password must be at least 8 characters long');
-    }
-
-    if (!/[a-z]/.test(newPassword)) {
-      requirements.push('Password must contain at least one lowercase letter');
-    }
-
-    if (!/[A-Z]/.test(newPassword)) {
-      requirements.push('Password must contain at least one uppercase letter');
-    }
-
-    if (!/\d/.test(newPassword)) {
-      requirements.push('Password must contain at least one number');
-    }
-    if (!/[@$!%*?&\-\._#~^()+=<>,;:'"`{}[\]|\\]/.test(newPassword)) {
-      requirements.push(
-        'Password must contain at least one special character (@$!%*?&-._#~^()+=<>,;:\'"`{}[]|\\)'
-      );
+    if (newPassword.length < 6) {
+      requirements.push('Password must be at least 6 characters long');
     }
 
     setPasswordRequirements(requirements);

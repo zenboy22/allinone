@@ -121,7 +121,30 @@ export abstract class BaseProxy {
     }
 
     try {
-      return await this.generateStreamUrls(streams);
+      let urls = await this.generateStreamUrls(streams);
+      if (
+        urls &&
+        (Env.FORCE_PUBLIC_PROXY_HOST !== undefined ||
+          Env.FORCE_PUBLIC_PROXY_PORT !== undefined ||
+          Env.FORCE_PUBLIC_PROXY_PROTOCOL !== undefined)
+      ) {
+        urls = urls.map((url) => {
+          // modify the URL according to settings, needed when using a local URL for requests but a public stream URL is needed.
+          const urlObj = new URL(url);
+
+          if (Env.FORCE_PUBLIC_PROXY_PROTOCOL !== undefined) {
+            urlObj.protocol = Env.FORCE_PUBLIC_PROXY_PROTOCOL;
+          }
+          if (Env.FORCE_PUBLIC_PROXY_PORT !== undefined) {
+            urlObj.port = Env.FORCE_PUBLIC_PROXY_PORT.toString();
+          }
+          if (Env.FORCE_PUBLIC_PROXY_HOST !== undefined) {
+            urlObj.hostname = Env.FORCE_PUBLIC_PROXY_HOST;
+          }
+          return urlObj.toString();
+        });
+      }
+      return urls;
     } catch (error) {
       logger.error(
         `Failed to generate proxy URLs: ${error instanceof Error ? error.message : String(error)}`

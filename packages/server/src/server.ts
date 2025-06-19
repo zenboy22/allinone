@@ -8,7 +8,7 @@ import {
   logStartupInfo,
 } from '@aiostreams/core';
 
-const logger = createLogger('startup');
+const logger = createLogger('server');
 
 async function initialiseDatabase() {
   try {
