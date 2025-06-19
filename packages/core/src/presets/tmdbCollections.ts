@@ -32,6 +32,15 @@ export class TmdbCollectionsPreset extends Preset {
         required: false,
       },
       {
+        id: 'enableCollectionFromMovie',
+        name: 'Discover and open collection from movie details page',
+        description:
+          'Adds a button to movies details page that links to its collection',
+        type: 'boolean',
+        default: false,
+        required: false,
+      },
+      {
         id: 'language',
         name: 'Language',
         description: 'The language of the catalogs',
@@ -124,6 +133,7 @@ export class TmdbCollectionsPreset extends Preset {
     const config = this.urlEncodeJSON({
       enableAdultContent: options.enableAdultContent ?? false,
       enableSearch: options.enableSearch ?? true,
+      enableCollectionFromMovie: options.enableCollectionFromMovie ?? false,
       language: options.language,
       catalogList: ['popular', 'topRated', 'newReleases'],
       discoverOnly: { popular: false, topRated: false, newReleases: false },
