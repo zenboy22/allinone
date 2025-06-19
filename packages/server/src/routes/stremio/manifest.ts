@@ -38,7 +38,7 @@ const manifest = async (config?: UserData): Promise<Manifest> => {
   return {
     name: config?.addonName || Env.ADDON_NAME,
     id: addonId,
-    version: Env.VERSION ?? '0.0.0',
+    version: Env.VERSION === 'unknown' ? '0.0.0' : Env.VERSION,
     description: config?.addonDescription || Env.DESCRIPTION,
     catalogs,
     resources,
