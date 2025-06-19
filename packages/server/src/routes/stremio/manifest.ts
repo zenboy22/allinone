@@ -48,7 +48,6 @@ const manifest = async (config?: UserData): Promise<Manifest> => {
     logo:
       config?.addonLogo ||
       'https://raw.githubusercontent.com/Viren070/AIOStreams/refs/heads/main/packages/frontend/public/assets/logo.png',
-    types: [],
     behaviorHints: {
       configurable: true,
       configurationRequired: config ? false : true,
