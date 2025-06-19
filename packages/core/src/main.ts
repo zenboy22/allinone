@@ -1276,6 +1276,8 @@ ${errorStreams.length > 0 ? `  âŒ Errors     : ${errorStreams.map((s) => `    â
       requiredVisualTag: { total: 0, details: {} },
       excludedAudioTag: { total: 0, details: {} },
       requiredAudioTag: { total: 0, details: {} },
+      excludedAudioChannel: { total: 0, details: {} },
+      requiredAudioChannel: { total: 0, details: {} },
       excludedLanguage: { total: 0, details: {} },
       requiredLanguage: { total: 0, details: {} },
       excludedCached: { total: 0, details: {} },
