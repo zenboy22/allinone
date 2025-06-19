@@ -23,11 +23,7 @@ class NuvioStreamsStreamParser extends StreamParser {
 
     stream.description = stream.description || stream.title;
 
-    parsedStream.type = this.getStreamType(
-      stream,
-      parsedStream.service,
-      parsedStream
-    );
+    parsedStream.type = 'http';
 
     parsedStream.parsedFile = FileParser.parse(
       `${stream.name}\n${stream.description}`
@@ -44,16 +40,6 @@ class NuvioStreamsStreamParser extends StreamParser {
     if (stream.description?.split('\n')?.[-1]?.includes('⚠️')) {
       parsedStream.message += `\n${stream.description?.split('\n')?.[-1]}`;
     }
-
-    parsedStream.torrent = {
-      infoHash:
-        parsedStream.type === 'p2p'
-          ? (stream.infoHash ?? undefined)
-          : this.getInfoHash(stream, parsedStream),
-      seeders: this.getSeeders(stream, parsedStream),
-      sources: stream.sources ?? undefined,
-      fileIdx: stream.fileIdx ?? undefined,
-    };
 
     return parsedStream;
   }
