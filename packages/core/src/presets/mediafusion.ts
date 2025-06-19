@@ -283,11 +283,7 @@ export class MediaFusionPreset extends Preset {
     options: Record<string, any>,
     serviceId?: ServiceId
   ): Addon {
-    let url = options.url || this.METADATA.URL;
-    if (url.endsWith('/manifest.json')) {
-      return url;
-    }
-    url = url.replace(/\/$/, '');
+    const url = this.generateManifestUrl(options);
     return {
       name: options.name || this.METADATA.NAME,
       identifier: serviceId
@@ -300,7 +296,7 @@ export class MediaFusionPreset extends Preset {
         : options.url?.endsWith('/manifest.json')
           ? undefined
           : 'P2P',
-      manifestUrl: `${url}/manifest.json`,
+      manifestUrl: url,
       enabled: true,
       resources: options.resources || this.METADATA.SUPPORTED_RESOURCES,
       timeout: options.timeout || this.METADATA.TIMEOUT,
@@ -316,6 +312,14 @@ export class MediaFusionPreset extends Preset {
         ),
       },
     };
+  }
+
+  private static generateManifestUrl(options: Record<string, any>) {
+    const url = options.url || this.METADATA.URL;
+    if (url.endsWith('/manifest.json')) {
+      return url;
+    }
+    return `${url}/manifest.json`;
   }
 
   private static generateEncodedUserData(
